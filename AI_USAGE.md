@@ -21,6 +21,18 @@ A Codex-szel generáltattam egy `csv_elso_sorai()` függvényt, ami beolvas egy
 CSV-fájlt, kiírja az oszlopneveket, majd megjeleníti az első 5 adatsort.
 Hibakezelést is tartalmaz (pl. ha a fájl nem található).
 
+### 4. Telepítési ellenőrzőlista (INSTALL_CHECKLIST.md)
+A Codex-szel generáltattam egy lépésről lépésre követhető, kipipálható telepítési
+ellenőrzőlistát, ami leírja a Git, Unity 6000.3.20f1 LTS és Python 3.9 telepítését,
+a virtuális környezet létrehozását, valamint a `scripts/doctor` futtatását
+ellenőrzésképp. A listát friss klónból végig is teszteltem.
+
+### 5. scripts/doctor bővítése
+A Codex-szel generáltattam egy `scripts/doctor` nevű ellenőrző szkriptet, ami
+kiírja a Python, Git és Pip verzióját, ellenőrzi a szükséges Python modulokat
+(argparse, csv), és megnézi, hogy a projekt alapfájljai (src/main.py, README.md,
+AI_USAGE.md) megvannak-e.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
