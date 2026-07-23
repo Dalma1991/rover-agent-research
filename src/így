@@ -1,0 +1,4 @@
+src/
+├── prim_szam.py
+├── meresek_statisztika.py
+└── csv_beolvaso.py
