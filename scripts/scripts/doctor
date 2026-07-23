@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Egyszerű "doctor" script: kiírja a lényeges verziókat és ellenőrzi a függőségeket.
+
+set -euo pipefail
+
+echo "=== Rendszer- és eszközverziók ==="
+
+if command -v python3 &> /dev/null; then
+    echo "Python:  $(python3 --version)"
+else
+    echo "Python:  HIÁNYZIK (nincs telepítve python3)"
+fi
+
+if command -v git &> /dev/null; then
+    echo "Git:     $(git --version)"
+else
+    echo "Git:     HIÁNYZIK (nincs telepítve)"
+fi
+
+if command -v pip3 &> /dev/null; then
+    echo "Pip:     $(pip3 --version)"
+else
+    echo "Pip:     HIÁNYZIK (nincs telepítve)"
+fi
+
+echo ""
+echo "=== Python beépített modulok ellenőrzése ==="
+
+# A projekt csak beépített (standard library) modulokat használ: argparse, csv
+for modul in argparse csv; do
+    if python3 -c "import ${modul}" &> /dev/null; then
+        echo "  [OK]      ${modul}"
+    else
+        echo "  [HIÁNYZIK] ${modul}"
+    fi
+done
+
+echo ""
+echo "=== Projektfájlok ellenőrzése ==="
+
+for fajl in "src/main.py" "README.md" "AI_USAGE.md"; do
+    if [ -f "${fajl}" ]; then
+        echo "  [OK]      ${fajl}"
+    else
+        echo "  [HIÁNYZIK] ${fajl}"
+    fi
+done
+
+echo ""
+echo "=== Kész! ==="
