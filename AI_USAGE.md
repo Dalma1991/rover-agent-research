@@ -53,6 +53,33 @@ A Codex ez alapján megírta a MovementControllerPlayModeTests.cs
 fájlt, ami két tesztet tartalmaz: a mozgás- és a reset-funkció
 ellenőrzését. Mindkét teszt sikeresen lefutott.
 
+### 8. TCP/JSON rover gateway szerver (RoverGatewayServer.cs)
+A Codex-szel megíratattam egy Unity C# TCP szervert, ami külön háttérszálon
+figyel egy portot (127.0.0.1:8765), és newline-delimited JSON üzeneteket
+fogad (observe, move, stop parancsok, request_id azonosítóval). A hálózati
+szál és a Unity fő szála közötti biztonságos kommunikációt egy
+ConcurrentQueue és ManualResetEventSlim párossal oldotta meg — a tényleges
+Rigidbody-műveletek mindig a FixedUpdate-ben, a fő szálon futnak.
+
+### 9. Python CLI kliens (gateway/client.py)
+A Codex-szel megíratattam egy interaktív Python parancssori klienst, ami
+csatlakozik a Unity szerverhez, UUID-alapú request_id-kat generál, és
+JSONL fájlba naplózza a kérés-válasz párokat.
+
+### Hibakeresés
+A tesztelés során két hibát találtam és javítottam:
+1. A gömb nem mozgott annak ellenére, hogy a szerver "elfogadta" a
+   parancsot — kiderült, hogy a korábbi MovementController script még
+   engedélyezve volt ugyanazon a GameObjecten, és minden FixedUpdate-ben
+   nulla elmozdulással felülírta a RoverGatewayServer mozgatását.
+   Megoldás: a MovementController letiltása ebben a jelenetben.
+2. A "stop" parancs figyelmeztetést dobott ("Setting linear velocity of
+   a kinematic body is not supported"), mert a Rigidbody kinematikus
+   (MovePosition-t használ), így nem lehet rajta közvetlenül sebességet
+   beállítani. Megoldás: a felesleges linearVelocity/angularVelocity
+   beállítások eltávolítása a stop ágból — a mozgás leállításához elég
+   a hátralévő távolság és sebesség nullázása.
+   
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
