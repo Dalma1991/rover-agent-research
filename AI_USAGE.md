@@ -33,6 +33,26 @@ kiírja a Python, Git és Pip verzióját, ellenőrzi a szükséges Python modul
 (argparse, csv), és megnézi, hogy a projekt alapfájljai (src/main.py, README.md,
 AI_USAGE.md) megvannak-e.
 
+### 6. Unity mozgó gömb komponens (MovementController.cs)
+A Codex-szel megíratattam a MovementController.cs C# komponenst, ami a
+WASD/nyílbillentyűkkel mozgatja a gömböt egy Rigidbody segítségével.
+A komponens tartalmaz egy Inspectorból állítható sebességparamétert,
+egy R billentyűre aktiválódó reset funkciót, és egyszerű ütközésjelzést.
+A Codex részletesen elmagyarázta a MonoBehaviour, Update és FixedUpdate
+szerepét: a bemenet olvasása az Update-ben történik (képkockánként fut),
+míg a fizikai mozgatás a FixedUpdate-ben (rögzített időközönként, a
+Unity fizikai motorjához igazodva).
+
+### 7. Play Mode tesztek
+A Codex 3 lehetséges tesztelési megközelítést javasolt a mozgás és a
+reset ellenőrzésére: (1) publikus metódus közvetlen tesztelése,
+(2) bemeneti rendszer szimulálása, (3) Rigidbody közvetlen tesztelése.
+A publikus metódus (Move()) közvetlen tesztelése mellett döntöttem,
+mert stabil, gyors és nem függ az Input System konfigurációjától.
+A Codex ez alapján megírta a MovementControllerPlayModeTests.cs
+fájlt, ami két tesztet tartalmaz: a mozgás- és a reset-funkció
+ellenőrzését. Mindkét teszt sikeresen lefutott.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
