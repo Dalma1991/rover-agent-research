@@ -79,7 +79,19 @@ A tesztelés során két hibát találtam és javítottam:
    beállítani. Megoldás: a felesleges linearVelocity/angularVelocity
    beállítások eltávolítása a stop ágból — a mozgás leállításához elég
    a hátralévő távolság és sebesség nullázása.
-   
+
+   ### 10. Rovermozgás-modell összehasonlítás
+A Codex-től kértem egy összehasonlítást a kinematikus és a WheelCollider-
+alapú mozgásmodell között (m04 kötelező AI-használat). A kinematikus
+modellt választottam, mert gyors, determinisztikus, könnyen
+hibakereshető, és a fejlesztés jelenlegi fázisában (AI-vezérlés és
+interfészek kialakítása) ez a fontosabb szempont, nem a fizikai
+realizmus. A Codex azt is javasolta, hogy a vezérlés ne Unity-specifikus
+parancsokkal, hanem absztrakt sebesség-parancsokkal (linear_velocity_mps,
+angular_velocity_radps) történjen, hogy később könnyebben átvihető
+legyen WheelCollider-re vagy fizikai roverre — ezt a döntést a
+docs/coordinate-system.md fájlban dokumentáltam.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
