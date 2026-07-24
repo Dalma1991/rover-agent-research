@@ -47,3 +47,5 @@ controllerrel és neurális policy-vel egyaránt.
 - **m02**: mozgó gömb Unityben, billentyűzetes vezérléssel, Play Mode
   tesztekkel.
 - **m03**: a gömb külső, TCP/JSON alapú vezérlése Python CLI kliensből.
+- **m04**: roverszerű, négykerekű kinematikus objektum és prefab,
+  determinisztikus mozgással.
