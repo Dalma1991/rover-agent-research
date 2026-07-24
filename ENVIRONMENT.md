@@ -9,6 +9,7 @@
 | Python | 3.9.6 |
 | Git | 2.50.1 |
 | Pip | 26.0.1 |
+| IDE | PyCharm |
 
 ## Unity projekt
 - Elérési út a repóban: `unity-projekt/` *(igazítsd a tényleges mappanévhez)*
