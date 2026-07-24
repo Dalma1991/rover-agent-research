@@ -43,7 +43,17 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        Vector3 mozgasIranya = new Vector3(mozgasBemenet.x, 0f, mozgasBemenet.y);
+        Move(mozgasBemenet);
+    }
+
+    public void Move(Vector2 bemenet)
+    {
+        Vector2 normalizaltBemenet = Vector2.ClampMagnitude(bemenet, 1f);
+        Vector3 mozgasIranya = new Vector3(
+            normalizaltBemenet.x,
+            0f,
+            normalizaltBemenet.y
+        );
         Vector3 ujPozicio = rigidBody.position
                             + mozgasIranya * sebesseg * Time.fixedDeltaTime;
 
