@@ -115,6 +115,31 @@ validáció, az állapotgép, a `reset_error` és az idempotencia tekintetében.
 Jövőbeli munkaként érdemes a fuzz tesztet izolált CI-környezetben vagy
 stabilabb hálózati és erőforrás-körülmények között futtatni.
 
+### 11. Protokoll-review támadói/hibakereső szemszögből (M05 kötelező AI-használat)
+A Codex-től kértem egy protokoll-review-t a RoverGatewayServer.cs jelenlegi
+implementációjáról, kifejezetten támadói és hibakereső szemszögből. A Codex
+felsorolta a lehetséges visszaéléseket (végtelen/túl nagy mozgásparancsok,
+NaN/Infinity értékek, request_id ismétlés, gyors egymás utáni parancsok,
+kapcsolatbontás menet közben), konkrét számszerű korlátokat javasolt
+(sebesség, távolság, szög, timeout, watchdog), egy formális állapotgépet
+(IDLE/MOVING/TURNING/ERROR), egy hibakód-rendszert, és egy idempotencia-
+megoldást. Ez alapján terveztük meg és dokumentáltuk a docs/protocol.md
+fájlban a v1 protokollt.
+
+Az 5 kiemelt prioritást valósítottam meg (véges számok + validáció,
+állapotgép, watchdog, idempotencia, frame/rate limit) a teljes javasolt
+security-csomag (TLS, control lease, teljes audit-napló) helyett, mivel ez
+egy lokális kutatási prototípus, és ezt a döntést a docs/protocol.md
+"Tudatosan elhalasztott elemek" szakaszában dokumentáltam.
+
+### 12. Protokoll implementáció és hibajavítás
+A Codex implementálta a turn és get_status parancsokat, az állapotgépet,
+a szigorú validációt, az idempotencia-cache-t, a reset_error parancsot,
+valamint a dinamikus timeout-számítást a fuzz tesztekhez. Egy köztes
+lépésben a Codex regressziót vezetett be (minden kérés lefagyott), amit
+ő maga azonosított és javított egy try-catch védelemmel és részletes
+naplózással.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
