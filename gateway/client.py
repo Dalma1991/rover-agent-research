@@ -17,6 +17,7 @@ from uuid import uuid4
 
 ALAPERTELMEZETT_HOST = "127.0.0.1"
 ALAPERTELMEZETT_PORT = 8765
+MAXIMALIS_FRAME_MERET = 16 * 1024
 NAPLO_FAJL = Path(__file__).resolve().parent / "logs" / "session.jsonl"
 
 
@@ -67,7 +68,7 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
     parancs = reszek[0].lower()
     request_id = str(uuid4())
 
-    if parancs in {"observe", "stop"}:
+    if parancs in {"observe", "get_status", "stop"}:
         if len(reszek) != 1:
             raise ValueError(f"Használat: {parancs}")
         return {"request_id": request_id, "command": parancs}
@@ -84,10 +85,10 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
 
         if not math.isfinite(tavolsag) or not math.isfinite(maximalis_sebesseg):
             raise ValueError("A távolság és a sebesség véges szám legyen.")
-        if tavolsag < 0:
-            raise ValueError("A távolság nem lehet negatív.")
-        if maximalis_sebesseg <= 0:
-            raise ValueError("A maximális sebesség legyen pozitív.")
+        if not 0.01 <= tavolsag <= 2.00:
+            raise ValueError("A distance_m értéke 0.01 és 2.00 méter közé essen.")
+        if not 0.05 <= maximalis_sebesseg <= 0.50:
+            raise ValueError("A max_speed értéke 0.05 és 0.50 m/s közé essen.")
 
         return {
             "request_id": request_id,
@@ -96,39 +97,110 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
             "max_speed": maximalis_sebesseg,
         }
 
-    raise ValueError("Ismeretlen parancs. Használható: observe, move, stop, quit.")
+    if parancs == "turn":
+        if len(reszek) != 3:
+            raise ValueError("Használat: turn <angle_deg> <max_angular_speed>")
+
+        try:
+            szog = float(reszek[1])
+            maximalis_szogsebesseg = float(reszek[2])
+        except ValueError as hiba:
+            raise ValueError("A szög és a szögsebesség szám legyen.") from hiba
+
+        if not math.isfinite(szog) or not math.isfinite(maximalis_szogsebesseg):
+            raise ValueError("A szög és a szögsebesség véges szám legyen.")
+        if not -180 <= szog <= 180 or abs(szog) < 1:
+            raise ValueError(
+                "Az angle_deg -180 és 180 fok közé essen, "
+                "abszolút értéke legalább 1 fok legyen."
+            )
+        if not 5 <= maximalis_szogsebesseg <= 45:
+            raise ValueError(
+                "A max_angular_speed értéke 5 és 45 fok/s közé essen."
+            )
+
+        return {
+            "request_id": request_id,
+            "command": "turn",
+            "angle_deg": szog,
+            "max_angular_speed": maximalis_szogsebesseg,
+        }
+
+    raise ValueError(
+        "Ismeretlen parancs. Használható: observe, get_status, move, turn, "
+        "stop, quit."
+    )
+
+
+def pontosan_fogad(kapcsolat: socket.socket, hossz: int) -> bytes | None:
+    """Pontosan ``hossz`` bájtot olvas; tiszta EOF esetén None-t ad vissza."""
+    reszek: list[bytes] = []
+    hatralevo = hossz
+
+    while hatralevo:
+        adat = kapcsolat.recv(hatralevo)
+        if not adat:
+            if hatralevo == hossz:
+                return None
+            raise ConnectionError("A kapcsolat egy TCP frame közben szakadt meg.")
+        reszek.append(adat)
+        hatralevo -= len(adat)
+
+    return b"".join(reszek)
 
 
 def uzenet_kuldese(
-    olvaso: TextIO,
-    iro: TextIO,
+    kapcsolat: socket.socket,
     keres: dict[str, Any],
     naplo: JsonlNaplo,
 ) -> bool:
     kuldendo = json.dumps(keres, ensure_ascii=False, separators=(",", ":"))
+    payload = kuldendo.encode("utf-8")
+
+    if not 1 <= len(payload) <= MAXIMALIS_FRAME_MERET:
+        print(
+            f"A kimenő JSON mérete nem lehet több {MAXIMALIS_FRAME_MERET} bájtnál.",
+            file=sys.stderr,
+        )
+        return True
 
     try:
-        iro.write(kuldendo + "\n")
-        iro.flush()
+        # A 4 bájtos prefix a JSON UTF-8 payload unsigned, big-endian hossza.
+        kapcsolat.sendall(len(payload).to_bytes(4, byteorder="big", signed=False))
+        kapcsolat.sendall(payload)
         naplo.rogzit("sent", keres)
         print(f">> {kuldendo}")
 
-        valasz_sor = olvaso.readline()
+        hossz_prefix = pontosan_fogad(kapcsolat, 4)
+        if hossz_prefix is None:
+            print("A Unity szerver lezárta a kapcsolatot.", file=sys.stderr)
+            return False
+
+        valasz_hossz = int.from_bytes(hossz_prefix, byteorder="big", signed=False)
+        if not 1 <= valasz_hossz <= MAXIMALIS_FRAME_MERET:
+            print(
+                f"Hibás válaszframe-méret: {valasz_hossz} bájt.",
+                file=sys.stderr,
+            )
+            return False
+
+        valasz_payload = pontosan_fogad(kapcsolat, valasz_hossz)
+        if valasz_payload is None:
+            print("A Unity szerver lezárta a kapcsolatot.", file=sys.stderr)
+            return False
+        valasz_szoveg = valasz_payload.decode("utf-8")
     except (BrokenPipeError, ConnectionError, OSError) as hiba:
         print(f"A kapcsolat megszakadt: {hiba}", file=sys.stderr)
         return False
-
-    if valasz_sor == "":
-        print("A Unity szerver lezárta a kapcsolatot.", file=sys.stderr)
+    except UnicodeDecodeError as hiba:
+        print(f"A válasz nem érvényes UTF-8: {hiba}", file=sys.stderr)
         return False
 
-    valasz_sor = valasz_sor.rstrip("\r\n")
-
     try:
-        valasz = json.loads(valasz_sor)
+        valasz = json.loads(valasz_szoveg)
     except json.JSONDecodeError as hiba:
-        naplo.rogzit("received_invalid", {"raw": valasz_sor, "error": str(hiba)})
-        print(f"Hibás JSON-válasz: {valasz_sor}", file=sys.stderr)
+        naplo.rogzit("received_invalid", {"raw": valasz_szoveg, "error": str(hiba)})
+        print(f"Hibás JSON-válasz: {valasz_szoveg}", file=sys.stderr)
         return True
 
     naplo.rogzit("received", valasz)
@@ -155,33 +227,35 @@ def interaktiv_kliens(host: str, port: int) -> int:
         print(f"Nem sikerült kapcsolódni a Unity szerverhez: {hiba}", file=sys.stderr)
         return 1
 
-    print("Kapcsolódva. Parancsok: observe, move <distance> <speed>, stop, quit")
+    print(
+        "Kapcsolódva. Parancsok: observe, get_status, "
+        "move <distance_m> <max_speed>, "
+        "turn <angle_deg> <max_angular_speed>, stop, quit"
+    )
 
     with JsonlNaplo(NAPLO_FAJL) as naplo, kapcsolat:
-        with kapcsolat.makefile("r", encoding="utf-8", newline="\n") as olvaso:
-            with kapcsolat.makefile("w", encoding="utf-8", newline="\n") as iro:
-                while True:
-                    try:
-                        beirt_sor = input("gateway> ").strip()
-                    except (EOFError, KeyboardInterrupt):
-                        print("\nKilépés.")
-                        break
+        while True:
+            try:
+                beirt_sor = input("gateway> ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\nKilépés.")
+                break
 
-                    if beirt_sor.lower() == "quit":
-                        print("Kapcsolat lezárva.")
-                        break
+            if beirt_sor.lower() == "quit":
+                print("Kapcsolat lezárva.")
+                break
 
-                    try:
-                        keres = parancs_feldolgozasa(beirt_sor)
-                    except ValueError as hiba:
-                        print(hiba, file=sys.stderr)
-                        continue
+            try:
+                keres = parancs_feldolgozasa(beirt_sor)
+            except ValueError as hiba:
+                print(hiba, file=sys.stderr)
+                continue
 
-                    if keres is None:
-                        continue
+            if keres is None:
+                continue
 
-                    if not uzenet_kuldese(olvaso, iro, keres, naplo):
-                        break
+            if not uzenet_kuldese(kapcsolat, keres, naplo):
+                break
 
     return 0
 

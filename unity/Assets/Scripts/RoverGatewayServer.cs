@@ -1,27 +1,51 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RoverGatewayServer : MonoBehaviour
 {
+    private const int ProtokollVerzio = 1;
+    private const int MaximalisFrameMeret = 16 * 1024;
+    private const float ParancsIdotullepesMasodperc = 15f;
+
+    private enum RoverAllapot
+    {
+        IDLE,
+        MOVING,
+        TURNING,
+        ERROR
+    }
+
     [SerializeField, Range(1, 65535)]
     private int port = 8765;
 
     [SerializeField, Min(256)]
-    private int maximalisUzenethossz = 16 * 1024;
+    private int maximalisUzenethossz = MaximalisFrameMeret;
 
     private readonly ConcurrentQueue<FuggobenLevoKeres> keresek =
         new ConcurrentQueue<FuggobenLevoKeres>();
 
     private readonly ConcurrentQueue<string> naploUzenetek =
         new ConcurrentQueue<string>();
+
+    private readonly ConcurrentQueue<Guid> bontottKapcsolatok =
+        new ConcurrentQueue<Guid>();
+
+    private readonly ConcurrentDictionary<Guid, byte> bontottKapcsolatAzonositok =
+        new ConcurrentDictionary<Guid, byte>();
+
+    private readonly Dictionary<string, IdempotenciaBejegyzes> idempotenciaTar =
+        new Dictionary<string, IdempotenciaBejegyzes>();
 
     private readonly object kliensekZar = new object();
     private readonly List<TcpClient> aktivKliensek = new List<TcpClient>();
@@ -34,21 +58,28 @@ public class RoverGatewayServer : MonoBehaviour
     private Vector3 mozgasIranya;
     private float hatralevoTavolsag;
     private float maximalisSebesseg;
-
-    [Serializable]
-    private class KeresUzenet
-    {
-        public string request_id;
-        public string command;
-        public float distance_m;
-        public float max_speed;
-    }
+    private float hatralevoSzog;
+    private float maximalisSzogsebesseg;
+    private float aktivParancsKezdete;
+    private volatile RoverAllapot allapot = RoverAllapot.IDLE;
+    private FuggobenLevoKeres aktivMozgasKeres;
+    private string utolsoParancsEredmenye = "Nincs még végrehajtott parancs.";
 
     [Serializable]
     private class AlapValasz
     {
         public string request_id;
         public string status;
+        public string state;
+        public HibaAdat error;
+        public string message;
+    }
+
+    [Serializable]
+    private class HibaAdat
+    {
+        public int code;
+        public string name;
         public string message;
     }
 
@@ -72,19 +103,67 @@ public class RoverGatewayServer : MonoBehaviour
     {
         public string request_id;
         public string status;
+        public string state;
+        public HibaAdat error;
         public Pozicio position;
         public float speed;
+    }
+
+    [Serializable]
+    private class StatusValasz
+    {
+        public string request_id;
+        public string status;
+        public string state;
+        public HibaAdat error;
+        public int protocol_version;
+        public string last_command_result;
+    }
+
+    private sealed class FeldolgozottKeres
+    {
+        public string RequestId;
+        public string Command;
+        public float Distance;
+        public float MaxSpeed;
+        public float Angle;
+        public float MaxAngularSpeed;
+    }
+
+    [Serializable]
+    private sealed class KeresDto
+    {
+        public string request_id;
+        public string command;
+        public float distance_m;
+        public float max_speed;
+        public float angle_deg;
+        public float max_angular_speed;
+    }
+
+    private sealed class IdempotenciaBejegyzes
+    {
+        public readonly string PayloadHash;
+        public string VegsoValasz;
+
+        public IdempotenciaBejegyzes(string payloadHash)
+        {
+            PayloadHash = payloadHash;
+        }
     }
 
     private sealed class FuggobenLevoKeres
     {
         public readonly string Json;
+        public readonly Guid KapcsolatId;
         public readonly ManualResetEventSlim Elkeszult = new ManualResetEventSlim(false);
+        public string RequestId;
         public string Valasz;
 
-        public FuggobenLevoKeres(string json)
+        public FuggobenLevoKeres(string json, Guid kapcsolatId)
         {
             Json = json;
+            KapcsolatId = kapcsolatId;
         }
     }
 
@@ -108,16 +187,18 @@ public class RoverGatewayServer : MonoBehaviour
 
     private void FixedUpdate()
     {
+        KapcsolatBontasokFeldolgozasa();
+
         while (keresek.TryDequeue(out FuggobenLevoKeres keres))
         {
-            string valasz = FeldolgozKeres(keres.Json);
-            keres.Valasz = valasz;
-
-            Debug.Log($"TCP kérés: {keres.Json}\nTCP válasz: {valasz}", this);
-            keres.Elkeszult.Set();
+            string valasz = FeldolgozKeres(keres);
+            if (valasz != null)
+            {
+                BefejezVarakozoKerest(keres, valasz);
+            }
         }
 
-        MozgatRover();
+        FrissitAktivMozgast();
     }
 
     private void OnDisable()
@@ -197,48 +278,80 @@ public class RoverGatewayServer : MonoBehaviour
 
     private void KliensKezelo(TcpClient kliens)
     {
+        Guid kapcsolatId = Guid.NewGuid();
+
         try
         {
             kliens.NoDelay = true;
 
             using (kliens)
             using (NetworkStream halozat = kliens.GetStream())
-            using (StreamReader olvaso = new StreamReader(halozat, Encoding.UTF8))
-            using (StreamWriter iro = new StreamWriter(halozat, new UTF8Encoding(false))
             {
-                AutoFlush = true,
-                NewLine = "\n"
-            })
-            {
-                string sor;
-                while (fut && (sor = olvaso.ReadLine()) != null)
+                List<FuggobenLevoKeres> kapcsolatKeresei = new List<FuggobenLevoKeres>();
+
+                while (fut)
                 {
-                    if (sor.Length > maximalisUzenethossz)
+                    // Nem blokkolunk egy hosszú move/turn válaszára: ugyanerről a
+                    // kapcsolatról közben stop/observe/get_status is érkezhet.
+                    for (int i = 0; i < kapcsolatKeresei.Count; i++)
                     {
-                        // Nem használunk JsonUtilityt a háttérszálon.
-                        iro.WriteLine(
-                            "{\"request_id\":\"\",\"status\":\"error\","
-                            + "\"message\":\"Az üzenet túl hosszú.\"}"
-                        );
-                        continue;
+                        FuggobenLevoKeres keszKeres = kapcsolatKeresei[i];
+                        if (!keszKeres.Elkeszult.IsSet)
+                        {
+                            continue;
+                        }
+
+                        FrameIras(halozat, keszKeres.Valasz);
+                        kapcsolatKeresei.RemoveAt(i);
+                        i--;
                     }
 
-                    FuggobenLevoKeres keres = new FuggobenLevoKeres(sor);
-                    keresek.Enqueue(keres);
-
-                    // A hálózati szál addig vár, amíg a Unity fő szála elkészíti
-                    // az állapotot tartalmazó választ a FixedUpdate-ben.
-                    while (fut && !keres.Elkeszult.Wait(100))
-                    {
-                        // Rövid időközönként ellenőrizzük a leállítási jelzőt is.
-                    }
-
-                    if (!fut && string.IsNullOrEmpty(keres.Valasz))
+                    if (KapcsolatLezart(kliens))
                     {
                         break;
                     }
 
-                    iro.WriteLine(keres.Valasz);
+                    if (!halozat.DataAvailable)
+                    {
+                        Thread.Sleep(10);
+                        continue;
+                    }
+
+                    byte[] hosszPuffer = new byte[4];
+                    if (!PontosanOlvas(halozat, hosszPuffer, 4))
+                    {
+                        break;
+                    }
+
+                    int frameHossz = (hosszPuffer[0] << 24)
+                        | (hosszPuffer[1] << 16)
+                        | (hosszPuffer[2] << 8)
+                        | hosszPuffer[3];
+
+                    // A v1 protokollban a prefix a UTF-8 payload bájthosszát adja meg.
+                    int tenylegesMaximum = Math.Min(maximalisUzenethossz, MaximalisFrameMeret);
+                    if (frameHossz <= 0 || frameHossz > tenylegesMaximum)
+                    {
+                        string hiba = HibaValasz(
+                            "",
+                            1101,
+                            "INVALID_FIELD_TYPE",
+                            $"A TCP frame mérete 1 és {tenylegesMaximum} bájt között lehet."
+                        );
+                        FrameIras(halozat, hiba);
+                        break;
+                    }
+
+                    byte[] payload = new byte[frameHossz];
+                    if (!PontosanOlvas(halozat, payload, frameHossz))
+                    {
+                        break;
+                    }
+
+                    string json = new UTF8Encoding(false, true).GetString(payload);
+                    FuggobenLevoKeres keres = new FuggobenLevoKeres(json, kapcsolatId);
+                    kapcsolatKeresei.Add(keres);
+                    keresek.Enqueue(keres);
                 }
             }
         }
@@ -258,6 +371,8 @@ public class RoverGatewayServer : MonoBehaviour
         }
         finally
         {
+            bontottKapcsolatAzonositok.TryAdd(kapcsolatId, 0);
+            bontottKapcsolatok.Enqueue(kapcsolatId);
             lock (kliensekZar)
             {
                 aktivKliensek.Remove(kliens);
@@ -265,108 +380,598 @@ public class RoverGatewayServer : MonoBehaviour
         }
     }
 
-    private string FeldolgozKeres(string json)
+    private string FeldolgozKeres(FuggobenLevoKeres fuggoben)
     {
-        KeresUzenet keres;
-
-        try
+        string json = fuggoben.Json;
+        if (!KeresValidalasa(json, out FeldolgozottKeres keres, out string validaciosHiba))
         {
-            keres = JsonUtility.FromJson<KeresUzenet>(json);
-        }
-        catch (ArgumentException)
-        {
-            return HibaValasz("", "Hibás JSON.");
+            return validaciosHiba;
         }
 
-        if (keres == null)
+        string payloadHash = Sha256(json);
+        if (idempotenciaTar.TryGetValue(keres.RequestId, out IdempotenciaBejegyzes letezo))
         {
-            return HibaValasz("", "Hibás JSON.");
+            if (!string.Equals(letezo.PayloadHash, payloadHash, StringComparison.Ordinal))
+            {
+                return HibaValasz(
+                    keres.RequestId,
+                    1401,
+                    "REQUEST_ID_CONFLICT",
+                    "A request_id korábban eltérő payload-dal szerepelt."
+                );
+            }
+
+            if (letezo.VegsoValasz != null)
+            {
+                return letezo.VegsoValasz;
+            }
+
+            return HibaValasz(
+                keres.RequestId,
+                1400,
+                "DUPLICATE_REQUEST",
+                "Az azonos request_id-jú kérés még feldolgozás alatt áll."
+            );
         }
 
-        if (string.IsNullOrWhiteSpace(keres.request_id))
+        // Az ID-t a végrehajtás előtt foglaljuk le, így nincs dupla mozgás.
+        idempotenciaTar.Add(keres.RequestId, new IdempotenciaBejegyzes(payloadHash));
+
+        // A kapcsolat a hálózati és a Unity-szál közötti átadás közben is megszakadhat.
+        if (bontottKapcsolatAzonositok.ContainsKey(fuggoben.KapcsolatId))
         {
-            return HibaValasz("", "A request_id mező kötelező.");
+            string bontasiHiba = HibaValasz(
+                keres.RequestId,
+                1501,
+                "WATCHDOG_EXPIRED",
+                "A klienskapcsolat a kérés végrehajtása előtt megszakadt."
+            );
+            VegsoValaszTarolasa(keres.RequestId, bontasiHiba);
+            utolsoParancsEredmenye = bontasiHiba;
+            return bontasiHiba;
         }
 
-        switch (keres.command)
+        string valasz;
+        switch (keres.Command)
         {
             case "observe":
-                return JsonUtility.ToJson(new ObserveValasz
+                valasz = JsonUtility.ToJson(new ObserveValasz
                 {
-                    request_id = keres.request_id,
-                    status = "ok",
+                    request_id = keres.RequestId,
+                    status = "completed",
+                    state = AllapotNev,
+                    error = null,
                     position = new Pozicio(rigidBody.position),
                     speed = rigidBody.linearVelocity.magnitude
                 });
+                break;
+
+            case "get_status":
+                valasz = JsonUtility.ToJson(new StatusValasz
+                {
+                    request_id = keres.RequestId,
+                    status = "completed",
+                    state = AllapotNev,
+                    error = null,
+                    protocol_version = ProtokollVerzio,
+                    last_command_result = utolsoParancsEredmenye
+                });
+                break;
 
             case "move":
-                if (keres.distance_m < 0f || keres.max_speed <= 0f
-                    || float.IsNaN(keres.distance_m) || float.IsNaN(keres.max_speed)
-                    || float.IsInfinity(keres.distance_m) || float.IsInfinity(keres.max_speed))
+                if (allapot != RoverAllapot.IDLE)
                 {
-                    return HibaValasz(
-                        keres.request_id,
-                        "A distance_m nem lehet negatív, a max_speed pedig legyen pozitív."
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1300,
+                        "COMMAND_NOT_ALLOWED_IN_STATE",
+                        $"A move parancs {AllapotNev} állapotban nem engedélyezett."
                     );
+                    break;
                 }
 
                 mozgasIranya = transform.forward.normalized;
-                hatralevoTavolsag = keres.distance_m;
-                maximalisSebesseg = keres.max_speed;
+                hatralevoTavolsag = keres.Distance;
+                maximalisSebesseg = keres.MaxSpeed;
+                AktivMozgasInditasa(RoverAllapot.MOVING, fuggoben, keres.RequestId);
+                return null;
 
-                return OkValasz(keres.request_id, "A mozgatási parancs elfogadva.");
+            case "turn":
+                if (allapot != RoverAllapot.IDLE)
+                {
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1300,
+                        "COMMAND_NOT_ALLOWED_IN_STATE",
+                        $"A turn parancs {AllapotNev} állapotban nem engedélyezett."
+                    );
+                    break;
+                }
+
+                hatralevoSzog = keres.Angle;
+                maximalisSzogsebesseg = keres.MaxAngularSpeed;
+                AktivMozgasInditasa(RoverAllapot.TURNING, fuggoben, keres.RequestId);
+                return null;
 
             case "stop":
-                hatralevoTavolsag = 0f;
-                maximalisSebesseg = 0f;
-
-                return OkValasz(keres.request_id, "A gömb megállt.");
+                RoverAllapot stopElottiAllapot = allapot;
+                RoverAzonnaliLeallitasa();
+                // ERROR állapotban a stop biztonságos no-op, nem hibanyugtázás.
+                if (stopElottiAllapot != RoverAllapot.ERROR)
+                {
+                    allapot = RoverAllapot.IDLE;
+                }
+                if (aktivMozgasKeres != null)
+                {
+                    string megszakitott = HibaValasz(
+                        aktivMozgasKeres.RequestId,
+                        1300,
+                        "COMMAND_NOT_ALLOWED_IN_STATE",
+                        "Az aktív mozgást stop parancs szakította meg."
+                    );
+                    MozgasiKeresBefejezese(megszakitott);
+                }
+                valasz = SikerValasz(keres.RequestId, "A rover áll.");
+                break;
 
             default:
-                return HibaValasz(keres.request_id, "Ismeretlen parancs.");
+                valasz = HibaValasz(
+                    keres.RequestId,
+                    1200,
+                    "UNKNOWN_COMMAND",
+                    "Ismeretlen parancs."
+                );
+                break;
         }
+
+        VegsoValaszTarolasa(keres.RequestId, valasz);
+        utolsoParancsEredmenye = valasz;
+        return valasz;
     }
 
-    private void MozgatRover()
+    private void AktivMozgasInditasa(
+        RoverAllapot ujAllapot,
+        FuggobenLevoKeres fuggoben,
+        string requestId
+    )
     {
-        if (hatralevoTavolsag <= 0f || maximalisSebesseg <= 0f)
+        allapot = ujAllapot;
+        aktivParancsKezdete = Time.realtimeSinceStartup;
+        aktivMozgasKeres = fuggoben;
+        aktivMozgasKeres.RequestId = requestId;
+    }
+
+    private void FrissitAktivMozgast()
+    {
+        if (allapot != RoverAllapot.MOVING && allapot != RoverAllapot.TURNING)
         {
             return;
         }
 
-        float lepes = Mathf.Min(
-            maximalisSebesseg * Time.fixedDeltaTime,
-            hatralevoTavolsag
-        );
-
-        rigidBody.MovePosition(rigidBody.position + mozgasIranya * lepes);
-        hatralevoTavolsag -= lepes;
-
-        if (hatralevoTavolsag <= Mathf.Epsilon)
+        if (Time.realtimeSinceStartup - aktivParancsKezdete >= ParancsIdotullepesMasodperc)
         {
-            hatralevoTavolsag = 0f;
-            maximalisSebesseg = 0f;
+            RoverAzonnaliLeallitasa();
+            allapot = RoverAllapot.ERROR;
+            string hiba = HibaValasz(
+                aktivMozgasKeres.RequestId,
+                1500,
+                "COMMAND_TIMEOUT",
+                "A move/turn parancs 15 másodpercen belül nem fejeződött be."
+            );
+            MozgasiKeresBefejezese(hiba);
+            return;
+        }
+
+        if (allapot == RoverAllapot.MOVING)
+        {
+            float lepes = Mathf.Min(maximalisSebesseg * Time.fixedDeltaTime, hatralevoTavolsag);
+            rigidBody.MovePosition(rigidBody.position + mozgasIranya * lepes);
+            hatralevoTavolsag -= lepes;
+
+            if (hatralevoTavolsag > Mathf.Epsilon)
+            {
+                return;
+            }
+        }
+        else
+        {
+            float eloJel = Mathf.Sign(hatralevoSzog);
+            float lepes = Mathf.Min(
+                maximalisSzogsebesseg * Time.fixedDeltaTime,
+                Mathf.Abs(hatralevoSzog)
+            ) * eloJel;
+            rigidBody.MoveRotation(
+                rigidBody.rotation * Quaternion.AngleAxis(lepes, Vector3.up)
+            );
+            hatralevoSzog -= lepes;
+
+            if (Mathf.Abs(hatralevoSzog) > Mathf.Epsilon)
+            {
+                return;
+            }
+        }
+
+        string requestId = aktivMozgasKeres.RequestId;
+        RoverAzonnaliLeallitasa();
+        allapot = RoverAllapot.IDLE;
+        MozgasiKeresBefejezese(SikerValasz(requestId, "A mozgási parancs befejeződött."));
+    }
+
+    private void RoverAzonnaliLeallitasa()
+    {
+        hatralevoTavolsag = 0f;
+        maximalisSebesseg = 0f;
+        hatralevoSzog = 0f;
+        maximalisSzogsebesseg = 0f;
+        rigidBody.linearVelocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
+    }
+
+    private void MozgasiKeresBefejezese(string valasz)
+    {
+        if (aktivMozgasKeres == null)
+        {
+            return;
+        }
+
+        FuggobenLevoKeres befejezett = aktivMozgasKeres;
+        aktivMozgasKeres = null;
+        VegsoValaszTarolasa(befejezett.RequestId, valasz);
+        utolsoParancsEredmenye = valasz;
+        BefejezVarakozoKerest(befejezett, valasz);
+    }
+
+    private void BefejezVarakozoKerest(FuggobenLevoKeres keres, string valasz)
+    {
+        keres.Valasz = valasz;
+        Debug.Log($"TCP kérés: {keres.Json}\nTCP válasz: {valasz}", this);
+        keres.Elkeszult.Set();
+    }
+
+    private string SikerValasz(string requestId, string uzenet)
+    {
+        return JsonUtility.ToJson(new AlapValasz
+        {
+            request_id = requestId,
+            status = "completed",
+            state = AllapotNev,
+            error = null,
+            message = uzenet
+        });
+    }
+
+    private string HibaValasz(string requestId, int kod, string nev, string uzenet)
+    {
+        return JsonUtility.ToJson(new AlapValasz
+        {
+            request_id = requestId ?? "",
+            status = "failed",
+            state = AllapotNev,
+            error = new HibaAdat { code = kod, name = nev, message = uzenet },
+            message = uzenet
+        });
+    }
+
+    private string AllapotNev => allapot.ToString();
+
+    private void KapcsolatBontasokFeldolgozasa()
+    {
+        while (bontottKapcsolatok.TryDequeue(out Guid kapcsolatId))
+        {
+            if (aktivMozgasKeres == null || aktivMozgasKeres.KapcsolatId != kapcsolatId)
+            {
+                continue;
+            }
+
+            // Csak a mozgást indító kliens bontása aktiválja a watchdogot.
+            string requestId = aktivMozgasKeres.RequestId;
+            RoverAzonnaliLeallitasa();
+            allapot = RoverAllapot.ERROR;
+            string hiba = HibaValasz(
+                requestId,
+                1501,
+                "WATCHDOG_EXPIRED",
+                "A vezérlőkapcsolat move/turn közben megszakadt."
+            );
+            MozgasiKeresBefejezese(hiba);
         }
     }
 
-    private string OkValasz(string requestId, string uzenet)
+    private void VegsoValaszTarolasa(string requestId, string valasz)
     {
-        return JsonUtility.ToJson(new AlapValasz
+        if (requestId != null
+            && idempotenciaTar.TryGetValue(requestId, out IdempotenciaBejegyzes bejegyzes))
         {
-            request_id = requestId,
-            status = "ok",
-            message = uzenet
-        });
+            bejegyzes.VegsoValasz = valasz;
+        }
     }
 
-    private string HibaValasz(string requestId, string uzenet)
+    private static string Sha256(string json)
     {
-        return JsonUtility.ToJson(new AlapValasz
+        using (SHA256 sha = SHA256.Create())
         {
-            request_id = requestId,
-            status = "error",
-            message = uzenet
-        });
+            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(json));
+            StringBuilder eredmeny = new StringBuilder(hash.Length * 2);
+            foreach (byte ertek in hash)
+            {
+                eredmeny.Append(ertek.ToString("x2", CultureInfo.InvariantCulture));
+            }
+            return eredmeny.ToString();
+        }
+    }
+
+    private bool KeresValidalasa(
+        string json,
+        out FeldolgozottKeres keres,
+        out string hibaValasz
+    )
+    {
+        keres = null;
+        hibaValasz = null;
+        KeresDto dto;
+
+        // A v1 kérés lapos JSON objektum; a beágyazott objektum/tömb nem része a sémának.
+        string levagottJson = json == null ? "" : json.Trim();
+        if (levagottJson.Length < 2
+            || levagottJson[0] != '{'
+            || levagottJson[levagottJson.Length - 1] != '}'
+            || levagottJson.IndexOf('{', 1) >= 0
+            || levagottJson.IndexOf('[', 1) >= 0)
+        {
+            hibaValasz = HibaValasz(
+                "", 1101, "INVALID_FIELD_TYPE",
+                "A v1 kérésnek lapos JSON objektumnak kell lennie."
+            );
+            return false;
+        }
+
+        try
+        {
+            dto = JsonUtility.FromJson<KeresDto>(json);
+        }
+        catch (ArgumentException)
+        {
+            hibaValasz = HibaValasz(
+                "",
+                1101,
+                "INVALID_FIELD_TYPE",
+                "A kérés nem értelmezhető JSON objektumként."
+            );
+            return false;
+        }
+
+        if (dto == null || !StringMezo(json, "request_id"))
+        {
+            hibaValasz = HibaValasz(
+                "",
+                1104,
+                "INVALID_REQUEST_ID",
+                "A request_id kötelező UUID v4 string."
+            );
+            return false;
+        }
+
+        if (!ErvenyesUuidV4(dto.request_id))
+        {
+            hibaValasz = HibaValasz(
+                dto.request_id,
+                1104,
+                "INVALID_REQUEST_ID",
+                "A request_id kanonikus UUID v4 formátumú legyen."
+            );
+            return false;
+        }
+
+        if (!StringMezo(json, "command") || string.IsNullOrWhiteSpace(dto.command))
+        {
+            hibaValasz = HibaValasz(
+                dto.request_id,
+                1101,
+                "INVALID_FIELD_TYPE",
+                "A command kötelező string mező."
+            );
+            return false;
+        }
+
+        FeldolgozottKeres eredmeny = new FeldolgozottKeres
+        {
+            RequestId = dto.request_id,
+            Command = dto.command
+        };
+
+        if (dto.command == "move")
+        {
+            if (!NumerikusMezoValidalasa(
+                    json, "distance_m", dto.request_id, out double distance, out hibaValasz)
+                || !NumerikusMezoValidalasa(
+                    json, "max_speed", dto.request_id, out double speed, out hibaValasz))
+            {
+                return false;
+            }
+
+            if (distance < 0.01d || distance > 2.00d)
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1203, "VALUE_OUT_OF_RANGE",
+                    "A distance_m értéke 0.01 és 2.00 méter között lehet."
+                );
+                return false;
+            }
+            if (speed < 0.05d || speed > 0.50d)
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1203, "VALUE_OUT_OF_RANGE",
+                    "A max_speed értéke 0.05 és 0.50 m/s között lehet."
+                );
+                return false;
+            }
+
+            eredmeny.Distance = (float)distance;
+            eredmeny.MaxSpeed = (float)speed;
+        }
+        else if (dto.command == "turn")
+        {
+            if (!NumerikusMezoValidalasa(
+                    json, "angle_deg", dto.request_id, out double angle, out hibaValasz)
+                || !NumerikusMezoValidalasa(
+                    json, "max_angular_speed", dto.request_id,
+                    out double angularSpeed, out hibaValasz))
+            {
+                return false;
+            }
+
+            if (angle < -180d || angle > 180d || Math.Abs(angle) < 1d)
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1203, "VALUE_OUT_OF_RANGE",
+                    "Az angle_deg -180 és 180 fok közötti legyen, abszolút értéke legalább 1 fok."
+                );
+                return false;
+            }
+            if (angularSpeed < 5d || angularSpeed > 45d)
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1203, "VALUE_OUT_OF_RANGE",
+                    "A max_angular_speed értéke 5 és 45 fok/s között lehet."
+                );
+                return false;
+            }
+
+            eredmeny.Angle = (float)angle;
+            eredmeny.MaxAngularSpeed = (float)angularSpeed;
+        }
+
+        keres = eredmeny;
+        return true;
+    }
+
+    private bool NumerikusMezoValidalasa(
+        string json,
+        string mezonev,
+        string requestId,
+        out double ertek,
+        out string hibaValasz
+    )
+    {
+        ertek = 0d;
+        hibaValasz = null;
+        Match match = Regex.Match(
+            json,
+            "\\\"" + Regex.Escape(mezonev)
+                + "\\\"\\s*:\\s*(?<value>[^,}\\s]+)",
+            RegexOptions.CultureInvariant
+        );
+
+        if (!match.Success
+            || Regex.Matches(
+                json,
+                "\\\"" + Regex.Escape(mezonev) + "\\\"\\s*:",
+                RegexOptions.CultureInvariant
+            ).Count != 1
+            || match.Groups["value"].Value.StartsWith("\"", StringComparison.Ordinal))
+        {
+            hibaValasz = HibaValasz(
+                requestId, 1101, "INVALID_FIELD_TYPE",
+                $"A {mezonev} kötelező numerikus mező."
+            );
+            return false;
+        }
+
+        string token = match.Groups["value"].Value;
+        if (!double.TryParse(
+                token,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out ertek))
+        {
+            hibaValasz = HibaValasz(
+                requestId, 1101, "INVALID_FIELD_TYPE",
+                $"A {mezonev} kötelező numerikus mező."
+            );
+            return false;
+        }
+
+        if (double.IsNaN(ertek) || double.IsInfinity(ertek))
+        {
+            hibaValasz = HibaValasz(
+                requestId, 1202, "NON_FINITE_VALUE",
+                $"A {mezonev} értékének véges számnak kell lennie."
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool StringMezo(string json, string mezonev)
+    {
+        return Regex.IsMatch(
+            json,
+            "\\\"" + Regex.Escape(mezonev) + "\\\"\\s*:\\s*\\\"",
+            RegexOptions.CultureInvariant
+        );
+    }
+
+    private static bool ErvenyesUuidV4(string requestId)
+    {
+        if (requestId == null
+            || requestId.Length != 36
+            || !Guid.TryParseExact(requestId, "D", out _)
+            || requestId[14] != '4')
+        {
+            return false;
+        }
+
+        char varians = char.ToLowerInvariant(requestId[19]);
+        return varians == '8' || varians == '9' || varians == 'a' || varians == 'b';
+    }
+
+    private static bool PontosanOlvas(Stream stream, byte[] puffer, int hossz)
+    {
+        int pozicio = 0;
+        while (pozicio < hossz)
+        {
+            int olvasott = stream.Read(puffer, pozicio, hossz - pozicio);
+            if (olvasott == 0)
+            {
+                return false;
+            }
+            pozicio += olvasott;
+        }
+        return true;
+    }
+
+    private static void FrameIras(Stream stream, string json)
+    {
+        byte[] payload = Encoding.UTF8.GetBytes(json);
+        int hossz = payload.Length;
+        byte[] prefix =
+        {
+            (byte)(hossz >> 24),
+            (byte)(hossz >> 16),
+            (byte)(hossz >> 8),
+            (byte)hossz
+        };
+        stream.Write(prefix, 0, prefix.Length);
+        stream.Write(payload, 0, payload.Length);
+        stream.Flush();
+    }
+
+    private static bool KapcsolatLezart(TcpClient kliens)
+    {
+        try
+        {
+            return kliens.Client.Poll(0, SelectMode.SelectRead)
+                && kliens.Client.Available == 0;
+        }
+        catch (SocketException)
+        {
+            return true;
+        }
+        catch (ObjectDisposedException)
+        {
+            return true;
+        }
     }
 
     private void LeallitSzerver()
