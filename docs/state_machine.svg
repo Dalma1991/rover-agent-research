@@ -1,0 +1,36 @@
+<svg width="680" height="350" viewBox="0 0 680 350" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Rover v1 protokoll allapotgepe</title>
+<desc>Negy allapot: IDLE, MOVING, TURNING, ERROR. IDLE-bol move inditja a MOVING-ot, turn a TURNING-ot; sikeres befejezes vagy stop visszavisz IDLE-be; idotullepes vagy hiba ERROR-ba visz mindket mozgo allapotbol.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5f5e5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="80" y="60" width="160" height="50" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="160" y="85" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C">IDLE</text>
+
+<rect x="440" y="60" width="160" height="50" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+<text x="520" y="85" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#042C53">MOVING</text>
+
+<rect x="80" y="260" width="160" height="50" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+<text x="160" y="285" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#042C53">TURNING</text>
+
+<rect x="440" y="260" width="160" height="50" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+<text x="520" y="285" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#501313">ERROR</text>
+
+<line x1="240" y1="77" x2="440" y2="77" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="340" y="68" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5f5e5a">move</text>
+
+<line x1="440" y1="97" x2="240" y2="97" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="340" y="112" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5f5e5a">stop / kesz</text>
+
+<line x1="145" y1="110" x2="145" y2="260" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="160" y="172" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5f5e5a">turn</text>
+
+<line x1="175" y1="260" x2="175" y2="110" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="160" y="200" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5f5e5a">stop / kesz</text>
+
+<line x1="520" y1="110" x2="520" y2="260" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="560" y="185" text-anchor="start" font-family="sans-serif" font-size="12" fill="#5f5e5a">idotullepes</text>
+
+<line x1="240" y1="285" x2="440" y2="285" stroke="#5f5e5a" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="340" y="275" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5f5e5a">idotullepes</text>
+</svg>
