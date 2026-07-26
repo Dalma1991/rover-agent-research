@@ -49,3 +49,6 @@ controllerrel és neurális policy-vel egyaránt.
 - **m03**: a gömb külső, TCP/JSON alapú vezérlése Python CLI kliensből.
 - **m04**: roverszerű, négykerekű kinematikus objektum és prefab,
   determinisztikus mozgással.
+- **m05**: formális roverprotokoll (v1), JSON séma, hibakódok, állapotgép,
+  biztonsági korlátok (sebesség/távolság/szög/timeout), idempotencia,
+  fuzz/property-based tesztek.
