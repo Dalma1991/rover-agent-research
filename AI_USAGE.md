@@ -92,6 +92,29 @@ angular_velocity_radps) történjen, hogy később könnyebben átvihető
 legyen WheelCollider-re vagy fizikai roverre — ezt a döntést a
 docs/coordinate-system.md fájlban dokumentáltam.
 
+## Tesztelési tapasztalatok és ismert korlátok
+
+A `protocol_fuzz_test.py` sikeresen igazolt, és segített kijavítani két
+valódi hibát a `RoverGatewayServer.cs` fájlban: egy regressziót, amely minden
+kérésnél lefagyást okozott, valamint egy JSON-validációs rést, amely
+csendben elfogadta a duplikált vagy nem dokumentált extra mezőket. Mindkét
+hibát kijavítottuk, amit a fuzz teszt is megerősített:
+`test_hibas_es_csonka_json_mindig_strukturalt_hibat_ad: ok`.
+
+A randomizált `test_move_randomizalt_tartomanyok` és
+`test_turn_randomizalt_tartomanyok` futtatása során ugyanakkor többször
+megbízhatatlanná vált a helyi Python tesztkliens és a Unity Editor közötti
+kommunikáció, jellemzően több egymást követő lépés után. A timeoutok
+`WATCHDOG_EXPIRED` hibát és ERROR állapotot eredményeztek. A jelenség
+feltételezett oka a Unity Editor háttérfolyamatainak vagy a helyi gép
+erőforrás-terhelésének hatása.
+
+Ezt tesztinfrastruktúra-korlátként, nem protokollhibaként dokumentáljuk.
+A szerver minden egyedileg, kézzel tesztelt esetben helyesen viselkedett a
+validáció, az állapotgép, a `reset_error` és az idempotencia tekintetében.
+Jövőbeli munkaként érdemes a fuzz tesztet izolált CI-környezetben vagy
+stabilabb hálózati és erőforrás-körülmények között futtatni.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.

@@ -68,7 +68,7 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
     parancs = reszek[0].lower()
     request_id = str(uuid4())
 
-    if parancs in {"observe", "get_status", "stop"}:
+    if parancs in {"observe", "get_status", "stop", "reset_error"}:
         if len(reszek) != 1:
             raise ValueError(f"Használat: {parancs}")
         return {"request_id": request_id, "command": parancs}
@@ -128,7 +128,7 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
 
     raise ValueError(
         "Ismeretlen parancs. Használható: observe, get_status, move, turn, "
-        "stop, quit."
+        "stop, reset_error, quit."
     )
 
 
@@ -230,7 +230,7 @@ def interaktiv_kliens(host: str, port: int) -> int:
     print(
         "Kapcsolódva. Parancsok: observe, get_status, "
         "move <distance_m> <max_speed>, "
-        "turn <angle_deg> <max_angular_speed>, stop, quit"
+        "turn <angle_deg> <max_angular_speed>, stop, reset_error, quit"
     )
 
     with JsonlNaplo(NAPLO_FAJL) as naplo, kapcsolat:

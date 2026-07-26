@@ -51,6 +51,8 @@ public class RoverGatewayServer : MonoBehaviour
     private readonly List<TcpClient> aktivKliensek = new List<TcpClient>();
 
     private Rigidbody rigidBody;
+    private Vector3 kezdoPozicio;
+    private Quaternion kezdoForgatas;
     private TcpListener listener;
     private Thread listenerSzal;
     private volatile bool fut;
@@ -170,6 +172,8 @@ public class RoverGatewayServer : MonoBehaviour
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
+        kezdoPozicio = rigidBody.position;
+        kezdoForgatas = rigidBody.rotation;
     }
 
     private void OnEnable()
@@ -191,7 +195,24 @@ public class RoverGatewayServer : MonoBehaviour
 
         while (keresek.TryDequeue(out FuggobenLevoKeres keres))
         {
-            string valasz = FeldolgozKeres(keres);
+            string valasz;
+            try
+            {
+                valasz = FeldolgozKeres(keres);
+            }
+            catch (Exception hiba)
+            {
+                Debug.LogException(hiba, this);
+                string requestId = RequestIdKinyerese(keres.Json);
+                valasz = HibaValasz(
+                    requestId,
+                    1600,
+                    "INTERNAL_ERROR",
+                    "A kérés feldolgozása közben belső szerverhiba történt."
+                );
+                VegsoValaszTarolasa(requestId, valasz);
+                utolsoParancsEredmenye = valasz;
+            }
             if (valasz != null)
             {
                 BefejezVarakozoKerest(keres, valasz);
@@ -514,6 +535,39 @@ public class RoverGatewayServer : MonoBehaviour
                 valasz = SikerValasz(keres.RequestId, "A rover áll.");
                 break;
 
+            case "reset_error":
+                if (allapot != RoverAllapot.ERROR)
+                {
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1300,
+                        "COMMAND_NOT_ALLOWED_IN_STATE",
+                        $"A reset_error parancs {AllapotNev} állapotban nem engedélyezett."
+                    );
+                    break;
+                }
+
+                if (!BiztonsagosHibaReset())
+                {
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1502,
+                        "ERROR_RESET_NOT_SAFE",
+                        "A rover fizikai állapota nem teszi lehetővé a biztonságos resetet."
+                    );
+                    break;
+                }
+
+                RoverAzonnaliLeallitasa();
+                rigidBody.position = kezdoPozicio;
+                rigidBody.rotation = kezdoForgatas;
+                allapot = RoverAllapot.IDLE;
+                valasz = SikerValasz(
+                    keres.RequestId,
+                    "A hiba törölve; a rover visszaállt a kezdőhelyzetbe."
+                );
+                break;
+
             default:
                 valasz = HibaValasz(
                     keres.RequestId,
@@ -605,6 +659,34 @@ public class RoverGatewayServer : MonoBehaviour
         maximalisSzogsebesseg = 0f;
         rigidBody.linearVelocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
+    }
+
+    private bool BiztonsagosHibaReset()
+    {
+        return aktivMozgasKeres == null
+            && hatralevoTavolsag == 0f
+            && hatralevoSzog == 0f
+            && VegesVektor(rigidBody.position)
+            && VegesQuaternion(rigidBody.rotation)
+            && VegesVektor(rigidBody.linearVelocity)
+            && VegesVektor(rigidBody.angularVelocity)
+            && VegesVektor(kezdoPozicio)
+            && VegesQuaternion(kezdoForgatas);
+    }
+
+    private static bool VegesVektor(Vector3 ertek)
+    {
+        return Veges(ertek.x) && Veges(ertek.y) && Veges(ertek.z);
+    }
+
+    private static bool VegesQuaternion(Quaternion ertek)
+    {
+        return Veges(ertek.x) && Veges(ertek.y) && Veges(ertek.z) && Veges(ertek.w);
+    }
+
+    private static bool Veges(float ertek)
+    {
+        return !float.IsNaN(ertek) && !float.IsInfinity(ertek);
     }
 
     private void MozgasiKeresBefejezese(string valasz)
@@ -725,6 +807,20 @@ public class RoverGatewayServer : MonoBehaviour
             return false;
         }
 
+        List<string> mezok = JsonMezonevek(json);
+        HashSet<string> latottMezok = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string mezo in mezok)
+        {
+            if (!latottMezok.Add(mezo))
+            {
+                hibaValasz = HibaValasz(
+                    "", 1103, "DUPLICATE_FIELD",
+                    $"A(z) {mezo} mező csak egyszer szerepelhet."
+                );
+                return false;
+            }
+        }
+
         try
         {
             dto = JsonUtility.FromJson<KeresDto>(json);
@@ -749,6 +845,33 @@ public class RoverGatewayServer : MonoBehaviour
                 "A request_id kötelező UUID v4 string."
             );
             return false;
+        }
+
+        HashSet<string> engedelyezettMezok = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "request_id", "command"
+        };
+        if (dto.command == "move")
+        {
+            engedelyezettMezok.Add("distance_m");
+            engedelyezettMezok.Add("max_speed");
+        }
+        else if (dto.command == "turn")
+        {
+            engedelyezettMezok.Add("angle_deg");
+            engedelyezettMezok.Add("max_angular_speed");
+        }
+
+        foreach (string mezo in mezok)
+        {
+            if (!engedelyezettMezok.Contains(mezo))
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1102, "UNKNOWN_FIELD",
+                    $"A(z) {mezo} mező nem része a(z) {dto.command} kérés sémájának."
+                );
+                return false;
+            }
         }
 
         if (!ErvenyesUuidV4(dto.request_id))
@@ -843,6 +966,74 @@ public class RoverGatewayServer : MonoBehaviour
 
         keres = eredmeny;
         return true;
+    }
+
+    private static List<string> JsonMezonevek(string json)
+    {
+        List<string> mezok = new List<string>();
+        int index = 0;
+        while (index < json.Length)
+        {
+            if (json[index] != '"')
+            {
+                index++;
+                continue;
+            }
+
+            index++;
+            bool escape = false;
+            StringBuilder szoveg = new StringBuilder();
+            while (index < json.Length)
+            {
+                char karakter = json[index++];
+                if (escape)
+                {
+                    // Dokumentált mezőneveink nem tartalmaznak escape-et; az
+                    // escape-elt nevet ismeretlen mezőként kezeljük.
+                    szoveg.Append('\\');
+                    szoveg.Append(karakter);
+                    escape = false;
+                }
+                else if (karakter == '\\')
+                {
+                    escape = true;
+                }
+                else if (karakter == '"')
+                {
+                    break;
+                }
+                else
+                {
+                    szoveg.Append(karakter);
+                }
+            }
+
+            int kovetkezo = index;
+            while (kovetkezo < json.Length && char.IsWhiteSpace(json[kovetkezo]))
+            {
+                kovetkezo++;
+            }
+            if (kovetkezo < json.Length && json[kovetkezo] == ':')
+            {
+                mezok.Add(szoveg.ToString());
+            }
+        }
+        return mezok;
+    }
+
+    private static string RequestIdKinyerese(string json)
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return "";
+        }
+
+        Match match = Regex.Match(
+            json,
+            "\\\"request_id\\\"\\s*:\\s*\\\"(?<value>[^\\\"]*)\\\"",
+            RegexOptions.CultureInvariant
+        );
+        return match.Success ? match.Groups["value"].Value : "";
     }
 
     private bool NumerikusMezoValidalasa(
