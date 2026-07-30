@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "name": "stadium-test-hidden",
+    "type": "test",
+    "seed": 2402156773
+  },
+  "track": {
+    "straight_length_m": 14.0,
+    "turn_radius_m": 4.5,
+    "line_width_m": 0.16,
+    "background_color_rgb": {
+      "r": 22,
+      "g": 25,
+      "b": 31
+    }
+  },
+  "obstacles": [
+    {
+      "id": "test-box-01",
+      "position_m": {
+        "x": 4.5,
+        "y": 0.324,
+        "z": -3.883
+      },
+      "size_m": {
+        "x": 0.737,
+        "y": 0.648,
+        "z": 0.801
+      },
+      "schedule": {
+        "appear_at_s": 4.808,
+        "visible_for_s": 5.183,
+        "disappear_at_s": 9.991
+      }
+    },
+    {
+      "id": "test-box-02",
+      "position_m": {
+        "x": 4.5,
+        "y": 0.416,
+        "z": -3.901
+      },
+      "size_m": {
+        "x": 0.576,
+        "y": 0.832,
+        "z": 0.99
+      },
+      "schedule": {
+        "appear_at_s": 10.306,
+        "visible_for_s": 7.102,
+        "disappear_at_s": 17.408
+      }
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/rover/scenario.schema.json",
+  "title": "Rover stadium scenario",
+  "description": "Zárt, két egyenesből és két félkörből álló rover-pálya szcenáriója.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "metadata", "track", "obstacles"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "track": {
+      "$ref": "#/$defs/track"
+    },
+    "obstacles": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/obstacle"},
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "seed"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z0-9]+(?:[a-z0-9._-]*[a-z0-9])?$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["train", "dev", "test"]
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        }
+      }
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "straight_length_m",
+        "turn_radius_m",
+        "line_width_m",
+        "background_color_rgb"
+      ],
+      "properties": {
+        "straight_length_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "turn_radius_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "line_width_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "background_color_rgb": {
+          "$ref": "#/$defs/rgb"
+        }
+      }
+    },
+    "rgb": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["r", "g", "b"],
+      "properties": {
+        "r": {"type": "integer", "minimum": 0, "maximum": 255},
+        "g": {"type": "integer", "minimum": 0, "maximum": 255},
+        "b": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
+    },
+    "vector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "z": {"type": "number"}
+      }
+    },
+    "positiveVector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "number", "exclusiveMinimum": 0},
+        "y": {"type": "number", "exclusiveMinimum": 0},
+        "z": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appear_at_s", "visible_for_s", "disappear_at_s"],
+      "properties": {
+        "appear_at_s": {"type": "number", "minimum": 0},
+        "visible_for_s": {"type": "number", "exclusiveMinimum": 0},
+        "disappear_at_s": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "obstacle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "position_m", "size_m", "schedule"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:[a-z0-9_-]*[a-z0-9])?$"
+        },
+        "position_m": {"$ref": "#/$defs/vector3"},
+        "size_m": {"$ref": "#/$defs/positiveVector3"},
+        "schedule": {"$ref": "#/$defs/schedule"}
+      }
+    }
+  }
+}

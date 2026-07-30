@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "name": "stadium-dev-scheduled",
+    "type": "dev",
+    "seed": 2198769980
+  },
+  "track": {
+    "straight_length_m": 10.0,
+    "turn_radius_m": 3.5,
+    "line_width_m": 0.2,
+    "background_color_rgb": {
+      "r": 35,
+      "g": 38,
+      "b": 42
+    }
+  },
+  "obstacles": [
+    {
+      "id": "dev-box-01",
+      "position_m": {
+        "x": 3.5,
+        "y": 0.396,
+        "z": -4.618
+      },
+      "size_m": {
+        "x": 0.63,
+        "y": 0.792,
+        "z": 0.584
+      },
+      "schedule": {
+        "appear_at_s": 5.588,
+        "visible_for_s": 9.834,
+        "disappear_at_s": 15.422
+      }
+    }
+  ]
+}
