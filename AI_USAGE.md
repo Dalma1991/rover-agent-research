@@ -140,6 +140,31 @@ lépésben a Codex regressziót vezetett be (minden kérés lefagyott), amit
 ő maga azonosított és javított egy try-catch védelemmel és részletes
 naplózással.
 
+### 13. Szcenárió-séma, generátor és dokumentáció (M06 kötelező AI-használat)
+A Codex-től kértem egy JSON sémát egy zárt, stadion alakú rover-pálya
+leírásához (geometria, akadályok, seedelt ütemezés), egy generátor
+szkriptet, ami determinisztikusan (SHA-256 alapú, platformfüggetlen
+módon) állítja elő a train/dev/test példaszcenáriókat, valamint
+dokumentációt (docs/scenario-schema.md). A seedeket a Codex tudatosan
+nem "kézzel kitalálva" adta meg, hanem egy dokumentált, reprodukálható
+segédszkripttel generálta a szcenárió stabil azonosítójából - ezzel
+teljesítve a feladat azon megkötését, hogy a teszt seedek ne kerüljenek
+"bele" a promptpéldákba.
+
+**Fontos korlát**: a hónapos Codex-kvóta (JetBrains AI) elfogyott menet
+közben, mielőtt a validátor és a reprodukálhatósági teszt elkészült
+volna. Ezt a két fájlt (experiments/scenario_validator.py,
+tests/scenario_seed_test.py), valamint a Unity pálya-építő scriptet
+(unity/Assets/Scripts/TrackController.cs) emiatt kézzel írtam meg,
+Claude segítségével, Codex nélkül - a Codex által lefektetett séma és
+generálási logika pontos ismeretében, hogy a kimenet konzisztens
+maradjon. Ezt azért fontos dokumentálni, mert az M06 kötelező
+AI-használati elemét (validátor) végül nem AI készítette.
+
+A validátor és a reprodukálhatósági teszt mindegyike lefutott és
+sikeres: mind a 3 példaszcenárió érvényes a JSON Schema szerint, és a
+reprodukálhatósági teszt igazolta, hogy azonos (típus, név) pár mindig
+azonos seedet és azonos akadálysorozatot ad.
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
