@@ -52,3 +52,6 @@ controllerrel és neurális policy-vel egyaránt.
 - **m05**: formális roverprotokoll (v1), JSON séma, hibakódok, állapotgép,
   biztonsági korlátok (sebesség/távolság/szög/timeout), idempotencia,
   fuzz/property-based tesztek.
+  - **m06**: zárt, stadion alakú pálya fehér vonallal, paraméterezhető
+  geometriával (egyenes hossz, kanyar sugár, vonalszélesség, háttérszín),
+  seedelt determinisztikus akadályütemezés, train/dev/test szcenáriók.
