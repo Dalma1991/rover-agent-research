@@ -258,4 +258,76 @@ public class TrackController : MonoBehaviour
             });
         }
     }
-}
+// --- M07: nyilvános geometriai lekérdezés a szenzorokhoz ---
+    //
+    // Visszaadja, hogy egy adott világkoordináta (XZ síkban vetítve)
+    // mekkora távolságra van a pálya középvonalától (méterben), valamint
+    // hogy ez a táv a vonal félszélességén belül van-e ("a vonalon van").
+    public bool TavolsagAKozepvonaltol(Vector3 vilagPoziicio, out float tavolsagM)
+    {
+        if (dokumentum == null || dokumentum.track == null)
+        {
+            tavolsagM = float.PositiveInfinity;
+            return false;
+        }
+
+        float felHossz = dokumentum.track.straight_length_m / 2f;
+        float sugar = dokumentum.track.turn_radius_m;
+        float felSzelesseg = dokumentum.track.line_width_m / 2f;
+
+        float x = vilagPoziicio.x;
+        float z = vilagPoziicio.z;
+
+        float legkisebbTavolsag = float.PositiveInfinity;
+
+        legkisebbTavolsag = Mathf.Min(
+            legkisebbTavolsag,
+            TavolsagEgyenestol(x, z, sugar, -felHossz, felHossz)
+        );
+
+        legkisebbTavolsag = Mathf.Min(
+            legkisebbTavolsag,
+            TavolsagEgyenestol(x, z, -sugar, -felHossz, felHossz)
+        );
+
+        legkisebbTavolsag = Mathf.Min(
+            legkisebbTavolsag,
+            TavolsagIvtol(x, z, 0f, -felHossz, sugar)
+        );
+
+        legkisebbTavolsag = Mathf.Min(
+            legkisebbTavolsag,
+            TavolsagIvtol(x, z, 0f, felHossz, sugar)
+        );
+
+        tavolsagM = legkisebbTavolsag;
+        return legkisebbTavolsag <= felSzelesseg;
+    }
+
+    private float TavolsagEgyenestol(float x, float z, float allandoX, float z1, float z2)
+    {
+        float zClamp = Mathf.Clamp(z, Mathf.Min(z1, z2), Mathf.Max(z1, z2));
+        float dx = x - allandoX;
+        float dz = z - zClamp;
+        return Mathf.Sqrt(dx * dx + dz * dz);
+    }
+
+    private float TavolsagIvtol(float x, float z, float kozepX, float kozepZ, float sugar)
+    {
+        float dx = x - kozepX;
+        float dz = z - kozepZ;
+        float tavKozepponttol = Mathf.Sqrt(dx * dx + dz * dz);
+        return Mathf.Abs(tavKozepponttol - sugar);
+    }
+
+    public float VonalFelSzelessegeM
+    {
+        get
+        {
+            if (dokumentum == null || dokumentum.track == null)
+            {
+                return 0.1f;
+            }
+            return dokumentum.track.line_width_m / 2f;
+        }
+    }}
