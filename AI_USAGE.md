@@ -183,6 +183,7 @@ differenciált működését a pálya kanyarjában végzett kézi teszttel
 igazoltam: a három szenzor egyidejűleg eltérő kimenetet adott
 (I=0.00 not_white, I=0.12 not_white, I=1.00 WHITE), lásd
 docs/sensors.md.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
