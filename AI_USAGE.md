@@ -165,6 +165,24 @@ A validátor és a reprodukálhatósági teszt mindegyike lefutott és
 sikeres: mind a 3 példaszcenárió érvényes a JSON Schema szerint, és a
 reprodukálhatósági teszt igazolta, hogy azonos (típus, név) pár mindig
 azonos seedet és azonos akadálysorozatot ad.
+
+### 14. Szenzorkalibráció és háromszenzoros mód (M07 kötelező AI-használat)
+A Claude-tól kértem segítséget az M07 mérföldkőhöz: a ColorSensor.cs
+kalibrációjának elemzéséhez (5 ismert pozícióban mért intenzitásérték
+kiértékelése, a 0.5-ös alapértelmezett küszöb mérés alapú igazolása),
+valamint a háromszenzoros (bal-közép-jobb) elrendezés
+megtervezéséhez és megírásához. A Claude megírta a SensorArray.cs
+komponenst, amely egy kapcsolható (Inspectorban és kódból is
+átállítható) haromSzenzorosMod mezővel aktiválja/deaktiválja a bal
+és jobb szenzor GameObject-jét, míg a középső mindig aktív marad. A
+munka során előkerült egy már meglévő hiba is: a TrackController.cs
+két helyen a `.material` property-t használta `.sharedMaterial`
+helyett, ami Edit módban anyag-szivárgáshoz vezetett volna — ezt is
+a Claude segítségével javítottuk. A háromszenzoros mód helyes,
+differenciált működését a pálya kanyarjában végzett kézi teszttel
+igazoltam: a három szenzor egyidejűleg eltérő kimenetet adott
+(I=0.00 not_white, I=0.12 not_white, I=1.00 WHITE), lásd
+docs/sensors.md.
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
