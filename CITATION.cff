@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Simulation-Blind Two-Timescale Rover Control by General-Purpose Coding Agents"
+type: software
+authors:
+  - family-names: "Sipos-Posta"
+    given-names: "Dalma"
+    affiliation: "University of Miskolc"
+repository-code: "https://github.com/Dalma1991/rover-agent-research"
+version: "0.6.0"
+date-released: "2026-08-21"
+license: MIT
+keywords:
+  - robotics
+  - agentic AI
+  - simulation
+  - rover control
+  - Unity
