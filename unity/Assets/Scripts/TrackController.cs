@@ -10,6 +10,7 @@ using UnityEngine;
 // Beolvas egy szcenárió JSON fájlt (experiments/scenarios/ mappából),
 // felépíti a stadion alakú fehér vonalat, és létrehozza/időzíti az
 // akadályokat a schedule mezők alapján.
+[ExecuteAlways]
 public class TrackController : MonoBehaviour
 {
     [Header("Szcenárió")]
@@ -209,7 +210,7 @@ public class TrackController : MonoBehaviour
             ?? Shader.Find("Sprites/Default");
         Material vonalAnyag = new Material(vonalShader);
         BeallitAnyagSzint(vonalAnyag, Color.white);
-        vonalRenderer.material = vonalAnyag;
+        vonalRenderer.sharedMaterial= vonalAnyag;
     }
 
     private void BeallitTalajSzint()
@@ -224,7 +225,7 @@ public class TrackController : MonoBehaviour
             return;
         }
 
-        BeallitAnyagSzint(talajRenderer.material, dokumentum.track.background_color_rgb.UnitySzin());
+        BeallitAnyagSzint(talajRenderer.sharedMaterial, dokumentum.track.background_color_rgb.UnitySzin());
     }
 
     private void BeallitAnyagSzint(Material anyag, Color szin)
