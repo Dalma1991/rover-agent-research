@@ -184,6 +184,27 @@ igazoltam: a három szenzor egyidejűleg eltérő kimenetet adott
 (I=0.00 not_white, I=0.12 not_white, I=1.00 WHITE), lásd
 docs/sensors.md.
 
+### 15. LiDAR-szimuláció, kalibráció és profilozás (M08 kötelező AI-használat)
+A Claude-tól kértem segítséget az M08 mérföldkőhöz: a LidarSensor.cs
+megtervezéséhez és megírásához (raycast-alapú, konfigurálható
+látómezejű/felbontású 2D LiDAR-modell, szektoros tömörítéssel, zaj-,
+dropout- és késleltetés-modellezéssel), valamint a geometriai
+kalibráció és a futásidő-profilozás terveinek kidolgozásához. A
+kalibráció két lépésben zajlott: előbb egy elvi, transzformáció
+nélküli tesztobjektumon (hogy kiküszöböljük a RoverChassis összetett
+skálázásából eredő zavaró tényezőket), majd megismételve közvetlenül
+a RoverChassis-on lévő éles Lidar komponensen is, ismert
+világkoordinátás pozíciókban elhelyezett tesztakadállyal. Mind az öt
+mérési pont (0.5/1.5/2.5/4.5/7.5 m elvárt felület-távolság) a 0.02
+m-es beállított zaj-szórás ésszerű tartományán belül teljesült,
+mindkét tesztsorozatban. A futásidő-profilozás négy felbontásnál
+(12/36/72/144 sugár) 0.040–0.239 ms közötti, közel lineárisan
+skálázódó mérési időt igazolt. A munka során felmerült egy
+self-collision probléma is (a Lidar a rover saját dobozütközőjébe
+ütközött) — ezt egy külön "Rover" Unity-réteg bevezetésével és az
+Akadaly Reteg mezőből való kizárásával oldottuk meg. Lásd
+docs/lidar.md.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
