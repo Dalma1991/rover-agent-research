@@ -58,3 +58,7 @@ controllerrel és neurális policy-vel egyaránt.
 - **m07**: vonalérzékelő szenzorok (raycast + zaj + küszöb modell),
   mérés alapján kalibrált küszöb, kapcsolható egy-/háromszenzoros
   (bal-közép-jobb) mód, reprodukálható zaj-seedek.
+- **m08**: 2D LiDAR-szimuláció (raycast-alapú, konfigurálható
+  látómező/felbontás/hatótáv), szektoros tömörítés, zaj/dropout/
+  késleltetés-modellezés, geometriai kalibráció ismert pozíciókban,
+  futásidő-profilozás több felbontásnál.
