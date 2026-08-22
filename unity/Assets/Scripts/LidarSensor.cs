@@ -67,6 +67,15 @@ public class LidarSensor : MonoBehaviour
     public bool[] ErvenyessegiMaszk { get; private set; }
     public float MaxHatotav => maxHatotav;
     public int SugarSzam => sugarSzam;
+        public float KozepSugarTavolsag()
+    {
+        if (NyersTavolsagok == null || NyersTavolsagok.Length == 0)
+        {
+            return -1f;
+        }
+        int kozepIndex = Mathf.RoundToInt((sugarSzam - 1) / 2f);
+        return NyersTavolsagok[kozepIndex];
+    }
 
     // --- Szektoros, tömörített kimenet ---
     public float[] SzektorMinTavolsag { get; private set; }
@@ -243,7 +252,7 @@ public class LidarSensor : MonoBehaviour
         {
             UnityEditor.Handles.Label(
                 kozeppont + Vector3.up * 0.2f,
-                $"LiDAR {sugarSzam} sugár, {UtolsoMeresIdejeMs:F3} ms"
+                $"LiDAR {sugarSzam} sugár, {UtolsoMeresIdejeMs:F3} ms\nKözépső sugár: {KozepSugarTavolsag():F3} m"
             );
         }
 #endif
