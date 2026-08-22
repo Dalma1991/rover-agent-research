@@ -51,6 +51,7 @@ public class RoverGatewayServer : MonoBehaviour
     private readonly List<TcpClient> aktivKliensek = new List<TcpClient>();
 
     private Rigidbody rigidBody;
+    private SensorArray szenzorTomb;
     private Vector3 kezdoPozicio;
     private Quaternion kezdoForgatas;
     private TcpListener listener;
@@ -101,6 +102,19 @@ public class RoverGatewayServer : MonoBehaviour
     }
 
     [Serializable]
+    private class SzenzorErtek
+    {
+        public bool white;
+        public float intensity;
+
+        public SzenzorErtek(bool feher, float intenzitas)
+        {
+            white = feher;
+            intensity = intenzitas;
+        }
+    }
+
+    [Serializable]
     private class ObserveValasz
     {
         public string request_id;
@@ -109,6 +123,10 @@ public class RoverGatewayServer : MonoBehaviour
         public HibaAdat error;
         public Pozicio position;
         public float speed;
+        public string sensor_mode;
+        public SzenzorErtek sensor_left;
+        public SzenzorErtek sensor_center;
+        public SzenzorErtek sensor_right;
     }
 
     [Serializable]
@@ -172,6 +190,7 @@ public class RoverGatewayServer : MonoBehaviour
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
+                szenzorTomb = GetComponent<SensorArray>();
         kezdoPozicio = rigidBody.position;
         kezdoForgatas = rigidBody.rotation;
     }
@@ -456,6 +475,9 @@ public class RoverGatewayServer : MonoBehaviour
         switch (keres.Command)
         {
             case "observe":
+                string szenzorMod = szenzorTomb != null && szenzorTomb.HaromSzenzorosMod
+                    ? "three"
+                    : "single";
                 valasz = JsonUtility.ToJson(new ObserveValasz
                 {
                     request_id = keres.RequestId,
@@ -463,7 +485,20 @@ public class RoverGatewayServer : MonoBehaviour
                     state = AllapotNev,
                     error = null,
                     position = new Pozicio(rigidBody.position),
-                    speed = rigidBody.linearVelocity.magnitude
+                    speed = rigidBody.linearVelocity.magnitude,
+                    sensor_mode = szenzorMod,
+                    sensor_left = new SzenzorErtek(
+                        szenzorTomb != null && szenzorTomb.BalFeher,
+                        szenzorTomb != null ? szenzorTomb.BalErtek : 0f
+                    ),
+                    sensor_center = new SzenzorErtek(
+                        szenzorTomb != null && szenzorTomb.KozepFeher,
+                        szenzorTomb != null ? szenzorTomb.KozepErtek : 0f
+                    ),
+                    sensor_right = new SzenzorErtek(
+                        szenzorTomb != null && szenzorTomb.JobbFeher,
+                        szenzorTomb != null ? szenzorTomb.JobbErtek : 0f
+                    )
                 });
                 break;
 

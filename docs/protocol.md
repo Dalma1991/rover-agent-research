@@ -20,8 +20,41 @@ v1 protokollt írja le.
 ## Parancsok
 
 ### observe
-Lekérdezi a rover aktuális pozícióját és sebességét. Minden állapotban
-engedélyezett.
+Lekérdezi a rover aktuális pozícióját, sebességét és — az M09
+mérföldkőtől kezdve — a vonalérzékelő szenzorok állapotát. Minden
+állapotban engedélyezett.
+
+**Válaszmezők (a szabvány mezőkön felül):**
+
+```json
+{
+  "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+  "speed": 0.0,
+  "sensor_mode": "single | three",
+  "sensor_left": { "white": false, "intensity": 0.0 },
+  "sensor_center": { "white": false, "intensity": 0.0 },
+  "sensor_right": { "white": false, "intensity": 0.0 }
+}
+```
+
+- `position`, `speed`: a rover Unity-beli pozíciója (méter) és
+  aktuális sebessége (m/s). **Kizárólag diagnosztikai/naplózási
+  célra** - a szenzorokra épülő controllerek (pl. M09 baseline) nem
+  támaszkodhatnak ezekre a mezőkre, mivel ez privilegizált
+  szimulátor-információ, ami egy valódi roveren nem állna
+  rendelkezésre.
+- `sensor_mode`: `"single"`, ha csak a középső szenzor aktív,
+  `"three"`, ha a bal-közép-jobb háromszenzoros elrendezés aktív
+  (lásd `docs/sensors.md`).
+- `sensor_left` / `sensor_center` / `sensor_right`: az adott
+  szenzor aktuális mérése. `single` módban a `sensor_left` és
+  `sensor_right` mezők jelen vannak, de nem tükröznek valós mérést
+  (a szenzor inaktív). `white`: a mért intenzitás a küszöb felett
+  van-e. `intensity`: a nyers, zajjal terhelt mért érték (lásd
+  `docs/sensors.md` a zajmodellért).
+
+Ez additív, visszafelé kompatibilis bővítés - a protokollverzió
+emiatt nem változott (marad v1).
 
 ### get_status
 Lekérdezi a rover jelenlegi állapotát (state machine állapota,
@@ -173,6 +206,14 @@ beleértve a validációt, az állapotgépet, a `reset_error` parancsot és az
 idempotenciát. Jövőbeli munkaként érdemes a fuzz tesztet izolált
 CI-környezetben vagy stabilabb hálózati és erőforrás-körülmények között
 futtatni.
+
+## Verziótörténet (v1 keretében, additív bővítések)
+
+- **M09**: az `observe` válasz kibővítve `sensor_mode`,
+  `sensor_left`, `sensor_center`, `sensor_right` mezőkkel, hogy a
+  hagyományos (AI nélküli) baseline controller kizárólag
+  szenzoradatra tudjon támaszkodni, ne a privilegizált
+  `position`/`speed` mezőkre.
 
 ## Tudatosan elhalasztott elemek (jövőbeli munka)
 
