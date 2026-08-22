@@ -55,3 +55,6 @@ controllerrel és neurális policy-vel egyaránt.
 - **m06**: zárt, stadion alakú pálya fehér vonallal, paraméterezhető
   geometriával (egyenes hossz, kanyar sugár, vonalszélesség, háttérszín),
   seedelt determinisztikus akadályütemezés, train/dev/test szcenáriók.
+- **m07**: vonalérzékelő szenzorok (raycast + zaj + küszöb modell),
+  mérés alapján kalibrált küszöb, kapcsolható egy-/háromszenzoros
+  (bal-közép-jobb) mód, reprodukálható zaj-seedek.
