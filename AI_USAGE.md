@@ -205,6 +205,25 @@ self-collision probléma is (a Lidar a rover saját dobozütközőjébe
 Akadaly Reteg mezőből való kizárásával oldottuk meg. Lásd
 docs/lidar.md.
 
+### 16. Az observe válasz bővítése szenzoradatokkal (M09 előkészítés, kötelező AI-használat)
+Az M09 mérföldkő (hagyományos, AI nélküli vonalkövető baseline)
+tervezése közben felmerült, hogy az `observe` parancs válasza addig
+kizárólag a rover Unity-beli `position` és `speed` mezőit adta
+vissza — ezekre a baseline controller nem támaszkodhat, mivel egy
+valódi roveren nem állna rendelkezésre ilyen privilegizált
+szimulátor-információ. A Claude-tól kértem segítséget a
+RoverGatewayServer.cs observe válaszának kibővítéséhez: a szerver
+mostantól a SensorArray komponensből kiolvasva `sensor_mode`
+(single/three) és `sensor_left`/`sensor_center`/`sensor_right`
+mezőket is visszaad, mindegyiket a saját `white`/`intensity`
+értékével. A bővítés additív és visszafelé kompatibilis, a
+protokollverzió emiatt nem változott (marad v1). A módosítást a
+Python TCP klienssel (gateway/client.py) manuálisan teszteltem: az
+`observe` parancsra adott válasz helyesen tartalmazta mindhárom
+szenzor aktuális mérését. A docs/protocol.md dokumentációt is
+frissítettük az új válaszmezők leírásával és egy rövid
+verziótörténeti bejegyzéssel.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
