@@ -1,3 +1,18 @@
 gateway/logs/*.jsonl
 .idea/
 .DS_Store
+
+# Unity - automatikusan generált mappák, sosem kellenek verziókövetésbe
+unity/Library/
+unity/Temp/
+unity/obj/
+unity/Logs/
+unity/UserSettings/
+unity/MemoryCaptures/
+unity/Build/
+unity/Builds/
+*.csproj
+*.sln
+*.unityproj
+sysinfo.txt
+crashlytics-build.txt
