@@ -40,10 +40,17 @@ HOLTSAV = 0.02
 KERESES_FORDULAT_FOK = 3.0
 KERESES_MAX_LEPES = 40
 
+AKADALY_KUSZOB_M = 0.5
+AKADALY_FORDULAT_FOK = 15.0
+ELOLSO_SZEKTOROK = (2, 3)
+BAL_SZEKTOROK = (0, 1)
+JOBB_SZEKTOROK = (4, 5)
+
 
 class Allapot(Enum):
     VONALON = "VONALON"
     KERESES = "KERESES"
+    AKADALY = "AKADALY"
 
 
 @dataclass
@@ -51,6 +58,7 @@ class FutasStatisztika:
     lepesek_szama: int = 0
     parancsok_szama: int = 0
     vonalvesztesek_szama: int = 0
+    akadaly_kerulesek_szama: int = 0
     palyaelhagyas: bool = False
     kezdet: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -106,6 +114,26 @@ def mindharom_nem_feher(observe_valasz: dict[str, Any]) -> bool:
     )
 
 
+def akadaly_elol(observe_valasz: dict[str, Any]) -> bool:
+    """Igazat ad vissza, ha az elulso szektorok barmelyikeben a legkozelebbi
+    akadaly az AKADALY_KUSZOB_M tavolsagon belul van. Hianyzo/ures
+    lidar_szektor_min eseten ovatosan False-t ad vissza (nincs eszleles)."""
+    szektorok = observe_valasz.get("lidar_szektor_min") or []
+    if len(szektorok) <= max(ELOLSO_SZEKTOROK):
+        return False
+    return any(szektorok[i] < AKADALY_KUSZOB_M for i in ELOLSO_SZEKTOROK)
+
+
+def szabadabb_oldal_elojele(observe_valasz: dict[str, Any]) -> int:
+    """1, ha jobbra van tobb hely (tehat jobbra kell fordulni), -1 ha balra."""
+    szektorok = observe_valasz.get("lidar_szektor_min") or []
+    if len(szektorok) <= max(JOBB_SZEKTOROK):
+        return 1
+    bal_min = min(szektorok[i] for i in BAL_SZEKTOROK)
+    jobb_min = min(szektorok[i] for i in JOBB_SZEKTOROK)
+    return 1 if jobb_min >= bal_min else -1
+
+
 def egy_lepes_vonalon(
     kliens: GatewayKliens,
     stat: FutasStatisztika,
@@ -113,6 +141,10 @@ def egy_lepes_vonalon(
 ) -> Allapot:
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
+
+    if akadaly_elol(observe):
+        stat.akadaly_kerulesek_szama += 1
+        return Allapot.AKADALY
 
     if mindharom_nem_feher(observe):
         stat.vonalvesztesek_szama += 1
@@ -133,6 +165,28 @@ def egy_lepes_vonalon(
     )
     stat.parancsok_szama += 1
     return Allapot.VONALON
+
+
+def egy_lepes_akadaly(
+    kliens: GatewayKliens,
+    stat: FutasStatisztika,
+) -> Allapot:
+    observe = kliens.kuld({"command": "observe"})
+    stat.parancsok_szama += 1
+
+    if not akadaly_elol(observe):
+        return Allapot.VONALON
+
+    irany = szabadabb_oldal_elojele(observe)
+    kliens.kuld(
+        {
+            "command": "turn",
+            "angle_deg": irany * AKADALY_FORDULAT_FOK,
+            "max_angular_speed": TURN_SEBESSEG,
+        }
+    )
+    stat.parancsok_szama += 1
+    return Allapot.AKADALY
 
 
 def egy_lepes_kereses(
@@ -176,6 +230,8 @@ def futtat(host: str, port: int, max_lepes: int) -> FutasStatisztika:
         while stat.lepesek_szama < max_lepes and not stat.palyaelhagyas:
             if allapot is Allapot.VONALON:
                 allapot = egy_lepes_vonalon(kliens, stat, utolso_elojel)
+            elif allapot is Allapot.AKADALY:
+                allapot = egy_lepes_akadaly(kliens, stat)
             else:
                 allapot = egy_lepes_kereses(
                     kliens, stat, utolso_elojel, kereses_lepesek
@@ -195,6 +251,7 @@ def naplo_iras(stat: FutasStatisztika) -> None:
         "lepesek_szama": stat.lepesek_szama,
         "parancsok_szama": stat.parancsok_szama,
         "vonalvesztesek_szama": stat.vonalvesztesek_szama,
+        "akadaly_kerulesek_szama": stat.akadaly_kerulesek_szama,
         "palyaelhagyas": stat.palyaelhagyas,
     }
     with NAPLO_FAJL.open("a", encoding="utf-8") as f:
@@ -226,6 +283,7 @@ def main() -> int:
         f"Futas vege: {stat.lepesek_szama} lepes, "
         f"{stat.parancsok_szama} parancs, "
         f"{stat.vonalvesztesek_szama} vonalveszes, "
+        f"{stat.akadaly_kerulesek_szama} akadalykerules, "
         f"palyaelhagyas={stat.palyaelhagyas}"
     )
     naplo_iras(stat)
