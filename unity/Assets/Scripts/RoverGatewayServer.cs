@@ -52,6 +52,7 @@ public class RoverGatewayServer : MonoBehaviour
 
     private Rigidbody rigidBody;
     private SensorArray szenzorTomb;
+    private LidarSensor lidar;
     private Vector3 kezdoPozicio;
     private Quaternion kezdoForgatas;
     private TcpListener listener;
@@ -127,6 +128,7 @@ public class RoverGatewayServer : MonoBehaviour
         public SzenzorErtek sensor_left;
         public SzenzorErtek sensor_center;
         public SzenzorErtek sensor_right;
+        public float[] lidar_szektor_min;
     }
 
     [Serializable]
@@ -191,6 +193,7 @@ public class RoverGatewayServer : MonoBehaviour
     {
         rigidBody = GetComponent<Rigidbody>();
                 szenzorTomb = GetComponent<SensorArray>();
+        lidar = GetComponentInChildren<LidarSensor>();
         kezdoPozicio = rigidBody.position;
         kezdoForgatas = rigidBody.rotation;
     }
@@ -498,7 +501,8 @@ public class RoverGatewayServer : MonoBehaviour
                     sensor_right = new SzenzorErtek(
                         szenzorTomb != null && szenzorTomb.JobbFeher,
                         szenzorTomb != null ? szenzorTomb.JobbErtek : 0f
-                    )
+                    ),
+                    lidar_szektor_min = lidar != null ? lidar.SzektorMinTavolsag : new float[0]
                 });
                 break;
 

@@ -1,4 +1,5 @@
 gateway/logs/*.jsonl
+logs/*.jsonl
 .idea/
 .DS_Store
 
