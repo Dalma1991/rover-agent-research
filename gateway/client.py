@@ -68,7 +68,7 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
     parancs = reszek[0].lower()
     request_id = str(uuid4())
 
-    if parancs in {"observe", "get_status", "stop", "reset_error"}:
+    if parancs in {"observe", "get_status", "stop", "reset_error", "reset_position"}:
         if len(reszek) != 1:
             raise ValueError(f"Használat: {parancs}")
         return {"request_id": request_id, "command": parancs}

@@ -607,6 +607,38 @@ public class RoverGatewayServer : MonoBehaviour
                 );
                 break;
 
+            case "reset_position":
+                if (allapot != RoverAllapot.IDLE)
+                {
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1300,
+                        "COMMAND_NOT_ALLOWED_IN_STATE",
+                        $"A reset_position parancs {AllapotNev} allapotban nem engedelyezett."
+                    );
+                    break;
+                }
+
+                if (!BiztonsagosHibaReset())
+                {
+                    valasz = HibaValasz(
+                        keres.RequestId,
+                        1502,
+                        "ERROR_RESET_NOT_SAFE",
+                        "A rover fizikai allapota nem teszi lehetove a biztonsagos resetet."
+                    );
+                    break;
+                }
+
+                RoverAzonnaliLeallitasa();
+                rigidBody.position = kezdoPozicio;
+                rigidBody.rotation = kezdoForgatas;
+                valasz = SikerValasz(
+                    keres.RequestId,
+                    "A rover visszaallt a kezdohelyzetbe."
+                );
+                break;
+
             default:
                 valasz = HibaValasz(
                     keres.RequestId,

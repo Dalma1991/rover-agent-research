@@ -13,7 +13,7 @@ v1 protokollt írja le.
 ```json
 {
   "request_id": "UUID v4, 36 karakter",
-  "command": "observe | move | turn | stop | get_status | reset_error"
+  "command": "observe | move | turn | stop | get_status | reset_error | reset_position"
 }
 ```
 
@@ -87,6 +87,15 @@ véges), a rovert a kezdő pozícióba és forgatásba állítja, majd IDLE
 állapotba vált. Sikertelen biztonsági ellenőrzéskor ERROR állapotban
 marad.
 
+### reset_position
+
+Csak IDLE allapotban engedelyezett. A rovert a kezdo pozicioba es
+forgatasba allitja, IDLE allapotban marad (nem valtoztat allapotot,
+ellentetben a reset_error-ral, ami ERROR-bol IDLE-be valt). Celja:
+kiserleti/mereszsi futasok kozotti, reprodukalhato pozicio-reset,
+amikor nincs hibaallapot. Sikertelen biztonsagi ellenorzeskor
+ERROR_RESET_NOT_SAFE hibat ad, valtozatlan allapotban marad.
+
 ## Válaszformátum
 
 ```json
@@ -149,6 +158,7 @@ Engedélyezési mátrix:
 | turn | igen | nem | nem | nem |
 | stop | igen (no-op) | igen | igen | igen (no-op) |
 | reset_error | nem | nem | nem | igen |
+| reset_position | igen | nem | nem | nem |
 
 ## Hibakódok (v1 alkészlet)
 
@@ -214,6 +224,10 @@ futtatni.
   hagyományos (AI nélküli) baseline controller kizárólag
   szenzoradatra tudjon támaszkodni, ne a privilegizált
   `position`/`speed` mezőkre.
+- **M09**: uj `reset_position` parancs - IDLE allapotbol hivhato
+  pozicio-reset a kiserleti futasok kozotti reprodukalhatosaghoz
+  (korabban csak a `reset_error` allitotta vissza a kezdopoziciot,
+  de az kizarolag ERROR allapotbol volt hivhato).
 
 ## Tudatosan elhalasztott elemek (jövőbeli munka)
 
