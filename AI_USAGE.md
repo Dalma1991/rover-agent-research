@@ -224,6 +224,39 @@ szenzor aktuális mérését. A docs/protocol.md dokumentációt is
 frissítettük az új válaszmezők leírásával és egy rövid
 verziótörténeti bejegyzéssel.
 
+### 17. Baseline vonalkövető kontroller, akadályelkerülés és reset_position (M09 kötelező AI-használat)
+A Claude-tól kértem segítséget az M09 mérföldkőhöz: egy
+hagyományos, szabály-alapú (nem AI-vezérelt) vonalkövető baseline
+kontroller (`controllers/baseline_line_follower.py`) megtervezéséhez
+és megírásához - állapotgép (VONALON/KERESES/AKADALY) egy P-
+szabályozóval a bal/jobb szenzor intenzitáskülönbségére. Az első
+tesztek során kiderült, hogy a rover kerekei nekiütköztek az
+akadályoknak fordulás közben, mielőtt a test elfordulhatott volna -
+ennek okát (a RoverChassis Scale Z=1.5 túlnyújtása és a kerekek
+aránytalan mérete) a Claude segítségével azonosítottuk és
+javítottuk (Scale Z 1.0-ra, kerekek arányosítva). Emellett a Claude
+megírta a LidarSensor szektoradatainak (`lidar_szektor_min`)
+observe-válaszba integrálását az akadályelkerüléshez, és egy új
+`reset_position` protokollparancsot (a meglévő
+BiztonsagosHibaReset/RoverAzonnaliLeallitasa segédmetódusok
+újrahasznosításával), hogy a kísérleti futások azonos
+kezdőállapotból induljanak.
+
+Két mérési sorozatot (30-30 futás) végeztünk: az elsőben átlagosan
+3.9 akadálykerülést mértünk nagy szórással (0-23), amit egy
+oszcilláló akadály-elkerülési viselkedésre gyanakodva hiszterézis
+bevezetésével (0.5 m belépési / 0.8 m kilépési küszöb) és a
+fordulási szög növelésével (15°→45°) próbáltunk kezelni. A második
+mérés (átlag 4.6, szórás 5.0, 0-12 tartomány) azt mutatta, hogy ez
+a beavatkozás **nem oldotta meg érdemben** a jelenséget - a nyers
+adatokban kétmodális eloszlás maradt (a futások kb. egyharmada
+10-12 körüli, ismétlődő akadálytalálkozást mutatott). Ezt a
+mérföldkő dokumentációjában (docs/m09-plan.md) őszintén, negatív/
+vegyes eredményként rögzítettük, a gyökérok pontos diagnosztizálását
+(lépésenkénti naplózás hiányában) jövőbeli munkaként (M10)
+azonosítva, nem próbáltuk tovább vakon paraméter-hangolással
+"eltüntetni" a jelenséget.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.

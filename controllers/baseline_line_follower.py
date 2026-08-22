@@ -40,8 +40,9 @@ HOLTSAV = 0.02
 KERESES_FORDULAT_FOK = 3.0
 KERESES_MAX_LEPES = 40
 
-AKADALY_KUSZOB_M = 0.5
-AKADALY_FORDULAT_FOK = 15.0
+AKADALY_KUSZOB_BELEPES_M = 0.5
+AKADALY_KUSZOB_KILEPES_M = 0.8
+AKADALY_FORDULAT_FOK = 45.0
 ELOLSO_SZEKTOROK = (2, 3)
 BAL_SZEKTOROK = (0, 1)
 JOBB_SZEKTOROK = (4, 5)
@@ -114,14 +115,19 @@ def mindharom_nem_feher(observe_valasz: dict[str, Any]) -> bool:
     )
 
 
-def akadaly_elol(observe_valasz: dict[str, Any]) -> bool:
+def akadaly_elol(observe_valasz: dict[str, Any], kuszob: float) -> bool:
     """Igazat ad vissza, ha az elulso szektorok barmelyikeben a legkozelebbi
-    akadaly az AKADALY_KUSZOB_M tavolsagon belul van. Hianyzo/ures
-    lidar_szektor_min eseten ovatosan False-t ad vissza (nincs eszleles)."""
+    akadaly a megadott kuszob tavolsagon belul van. Hianyzo/ures
+    lidar_szektor_min eseten ovatosan False-t ad vissza (nincs eszleles).
+
+    Ket kulonbozo kuszobbel hivjuk (hiszterezis): AKADALY_KUSZOB_BELEPES_M
+    (szukebb, VONALON -> AKADALY valtashoz) es AKADALY_KUSZOB_KILEPES_M
+    (tagabb, AKADALY -> VONALON valtashoz), hogy a hatarertek kozeli
+    oszcillaciot elkeruljuk."""
     szektorok = observe_valasz.get("lidar_szektor_min") or []
     if len(szektorok) <= max(ELOLSO_SZEKTOROK):
         return False
-    return any(szektorok[i] < AKADALY_KUSZOB_M for i in ELOLSO_SZEKTOROK)
+    return any(szektorok[i] < kuszob for i in ELOLSO_SZEKTOROK)
 
 
 def szabadabb_oldal_elojele(observe_valasz: dict[str, Any]) -> int:
@@ -142,7 +148,7 @@ def egy_lepes_vonalon(
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
 
-    if akadaly_elol(observe):
+    if akadaly_elol(observe, AKADALY_KUSZOB_BELEPES_M):
         stat.akadaly_kerulesek_szama += 1
         return Allapot.AKADALY
 
@@ -174,7 +180,7 @@ def egy_lepes_akadaly(
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
 
-    if not akadaly_elol(observe):
+    if not akadaly_elol(observe, AKADALY_KUSZOB_KILEPES_M):
         return Allapot.VONALON
 
     irany = szabadabb_oldal_elojele(observe)

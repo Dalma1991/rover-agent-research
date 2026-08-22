@@ -111,10 +111,50 @@ alapértelmezett Time Scale mellett is megismételni a mérést,
   AKADALY_KUSZOB_M/AKADALY_FORDULAT_FOK paraméterek finomhangolásával
   kezelni egy következő iterációban.
 
-**Jövőbeli munka:**
-- Az akadály-oszcilláció kivizsgálása és kezelése (pl. hiszterézis
-  bevezetése az AKADALY állapotba lépés/kilépés küszöbei közé).
+## Második mérési sorozat: hiszterézis + nagyobb fordulási szög
+
+A fenti oszcillációs megfigyelés alapján két módosítást vezettünk be:
+
+1. **Hiszterézis** az AKADALY állapotba lépés/kilépés küszöbei közé:
+   belépési küszöb maradt 0.5 m, kilépési küszöb 0.8 m-re nőtt (azaz
+   csak akkor tér vissza VONALON állapotba, ha az akadály legalább
+   0.8 m-re van), hogy elkerüljük a határérték körüli billegést.
+2. **Nagyobb AKADALY_FORDULAT_FOK**: 15 fokról 45 fokra növelve,
+   hogy egy-egy korrekciós lépés határozottabban kerülje ki az
+   akadályt, ne araszoljon el mellette apró lépésekben.
+
+**Összegzés (újabb 30 futás, azonos módszertannal):**
+
+| Metrika | Átlag | Szórás | Min | Max |
+|---|---:|---:|---:|---:|
+| Parancsok száma | 718.2 | 54.2 | 645 | 794 |
+| Vonalvesztések száma | 16.0 | 3.1 | 10 | 24 |
+| Akadálykerülések száma | 4.6 | 5.0 | 0 | 12 |
+| Pályaelhagyás | 0/30 futásban | | | |
+
+**Őszinte következtetés:** a hiszterézis és a nagyobb fordulási szög
+**nem oldotta meg érdemben** a jelenséget - az akadálykerülések
+száma továbbra is nagy szórást mutat (0-12), és a nyers adatokban
+egyértelműen **kétmodális** eloszlás látszik: a 30 futásból kb.
+egyharmada 10-12 körüli, ismétlődő akadálytalálkozást mutat, a
+többi pedig 0-1 körülit. Ez arra utal, hogy a probléma gyökere nem
+a küszöbérték körüli billegés vagy a fordulási szög mérete volt,
+hanem valami strukturálisabb: feltehetően bizonyos megközelítési
+szögeknél az elkerülő fordulat visszafordítja a rovert (közvetlenül
+vagy a vonalkövetés által korrigálva) ugyanazon vagy egy másik
+akadály felé, ismétlődő ciklust okozva.
+
+Ennek pontos diagnosztizálásához **lépésenkénti (nem csak
+futás-végi) naplózásra** lenne szükség, ami rögzítené az egyes
+lépések szenzor- és LiDAR-adatait, állapotátmeneteit - ez egy
+nagyobb műszerezési munka, amit tudatosan **jövőbeli munkaként**
+halasztunk, nem ezen mérföldkő részeként.
+
+**Jövőbeli munka (M10 vagy később):**
+- Lépésenkénti diagnosztikai naplózás bevezetése (szenzor/LiDAR
+  értékek és állapotátmenetek minden lépésnél), hogy a fenti
+  kétmodális jelenség gyökere pontosan azonosítható legyen.
 - A mérés megismétlése alapértelmezett Time Scale (1) mellett, az
   eredmények összehasonlítása.
-- Szisztematikus paraméter-sweep (P-erősítés, keresési/akadály-
-  fordulási szögek) a docs/m09-plan.md tervezett módszertana szerint.
+- Szisztematikus paraméter-sweep (P-erősítés, keresési szög) a
+  fenti diagnosztika birtokában, célzottabban.
