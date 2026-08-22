@@ -227,6 +227,8 @@ def futtat(host: str, port: int, max_lepes: int) -> FutasStatisztika:
     kereses_lepesek = [0]
 
     try:
+        kliens.kuld({"command": "reset_position"})
+
         while stat.lepesek_szama < max_lepes and not stat.palyaelhagyas:
             if allapot is Allapot.VONALON:
                 allapot = egy_lepes_vonalon(kliens, stat, utolso_elojel)

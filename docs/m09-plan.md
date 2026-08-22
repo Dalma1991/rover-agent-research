@@ -71,3 +71,50 @@ lefixálódtak.
   válasz szenzormezőinek leírásával (M09 bővítés).
 - `docs/sensors.md` — a vonalérzékelő szenzorok kalibrációja és
   zajmodellje.
+
+
+## Mérési eredmények (első 30 futás)
+
+Az első 30 futást a `reset_position` parancs bevezetése után
+végeztük, minden futás elején automatikus pozíció-resettel (azonos
+kezdőállapotból indul mindegyik), 300 lépéses felső korláttal.
+
+**Módszertani megjegyzés:** a futások felgyorsítása érdekében a
+Unity `Time Scale` beállítását ideiglenesen 70-re emeltük (az
+alapértelmezett 1 helyett). Ez csak a valós idő és a szimulált idő
+arányát változtatja, a fizikai szimuláció lépésközét nem - a
+mérőszámok (parancsszám, vonalvesztés, akadálykerülés,
+pályaelhagyás) ettől függetlenek, de jövőbeli munkaként érdemes
+alapértelmezett Time Scale mellett is megismételni a mérést,
+összehasonlításképp.
+
+**Összegzés (30 futás, `controllers/summarize_runs.py`):**
+
+| Metrika | Átlag | Szórás | Min | Max |
+|---|---:|---:|---:|---:|
+| Parancsok száma | 746.8 | 31.1 | 625 | 779 |
+| Vonalvesztések száma | 14.7 | 3.3 | 11 | 22 |
+| Akadálykerülések száma | 3.9 | 4.0 | 0 | 23 |
+| Pályaelhagyás | 0/30 futásban | | | |
+
+**Megfigyelések:**
+- A baseline kontroller egyetlen futásban sem hagyta el a pályát
+  (0/30) - stabil, alapvetően működő vonalkövetés.
+- A vonalvesztések száma viszonylag alacsony szórással konzisztens
+  (11-22 között).
+- Az akadálykerülések száma nagy szórást mutat (0-23), amit
+  elsősorban a 14. futás kiugró értéke (23 akadálykerülés) húz fel.
+  Ez valószínűleg nem 23 különálló, sikeres elkerülést jelent, hanem
+  azt, hogy a rover egy adott futásban egy akadály közelében
+  ismételten oda-vissza fordult (oszcillált) anélkül, hogy tisztán
+  kikerülte volna - ezt érdemes lesz megvizsgálni és a
+  AKADALY_KUSZOB_M/AKADALY_FORDULAT_FOK paraméterek finomhangolásával
+  kezelni egy következő iterációban.
+
+**Jövőbeli munka:**
+- Az akadály-oszcilláció kivizsgálása és kezelése (pl. hiszterézis
+  bevezetése az AKADALY állapotba lépés/kilépés küszöbei közé).
+- A mérés megismétlése alapértelmezett Time Scale (1) mellett, az
+  eredmények összehasonlítása.
+- Szisztematikus paraméter-sweep (P-erősítés, keresési/akadály-
+  fordulási szögek) a docs/m09-plan.md tervezett módszertana szerint.
