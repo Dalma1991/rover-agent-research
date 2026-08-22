@@ -62,3 +62,9 @@ controllerrel és neurális policy-vel egyaránt.
   látómező/felbontás/hatótáv), szektoros tömörítés, zaj/dropout/
   késleltetés-modellezés, geometriai kalibráció ismert pozíciókban,
   futásidő-profilozás több felbontásnál.
+- **m09**: hagyományos (AI nélküli) vonalkövető baseline kontroller
+  (állapotgép + P-szabályozó), LiDAR-alapú akadályelkerülés, uj
+  `reset_position` protokollparancs a reprodukálható mérésekhez,
+  két 30 futásos mérési sorozat (0/30 és 0/30 pályaelhagyás),
+  dokumentált nyitott kérdéssel az akadálykerülés kétmodális
+  eloszlásáról (lásd docs/m09-plan.md).
