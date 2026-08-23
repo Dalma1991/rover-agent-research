@@ -99,10 +99,25 @@ lépésekben (5°-onként), miközben lassan előre halad, amíg valamelyik
 vonalszenzor `white`-ot nem jelez. Ha ez `VISSZATALALAS_MAX_LEPES`
 (15) lépésen belül nem sikerül, a rendszer a tágabb, általános
 KERESÉS állapotra eszkalál.
-**Fontos, nem elhallgatott korlát:** ez a stratégia (a feltételezés,
-hogy a vonal az elkerülési iránnyal ellentétes oldalon maradt) egy
-ésszerű, de eddig **nem validált** heurisztika - Unity/valós futáson
-még nem lett kiértékelve.
+**Unity Play módban tesztelve (10+1 futás):** 18, teljes 500 lépésig
+lefutott, "tiszta" (pályaelhagyás nélküli) futás közül 11-ben
+aktiválódott a `VISSZATALALAS` állapot, és mind a 11 esetben
+sikeresen visszatalált a vonalra (`VONALON`) - egyetlen eszkalálás
+sem történt a tágabb `KERESES` állapotra. **Ez biztató, de a
+mintaméret (11 esemény) kicsi** ahhoz, hogy általános
+megbízhatóságot állítsunk - nagyobb mintás mérés (a tervezett
+végleges 30 futásos sorozat) szükséges a szilárd következtetéshez.
+
+**Módszertani tanulság ebből a tesztelési körből:** egy próbálkozás
+során ideiglenesen "örökké láthatóvá" tettük a szcenárió akadályait
+(a `disappear_at_s` érték drasztikus megnövelésével) a tesztelés
+felgyorsítására - ez viszont torzította a mérést, mert a rover a
+pálya körbejárása során ismételten ugyanabba az akadályba futott
+bele (17-39 ütközés/futás, gyakori pályaelhagyás), ami nem
+reprezentálja a tervezett, időzített szcenáriót. Az eredeti
+időzítés visszaállítása után a viselkedés visszatért az M09-cel
+konzisztens, egészséges mintázathoz (0 pályaelhagyás mind a 10
+futásban).
 
 Az állapotgép mind a négy állapotára és azok átmeneteire új unit
 tesztek készültek (`tests/baseline_line_follower_test.py`, 9 teszt,

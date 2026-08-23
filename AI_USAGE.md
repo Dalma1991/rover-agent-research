@@ -308,14 +308,29 @@ akadállyal érintkezik éppen a rover) **nem vált be** - egy
 diagnosztikai naplózással feltártuk, hogy a rover több colliderje
 (alváz + 4 kerék) egyszerre, mélyen átfedésben egy akadállyal
 instabil, oda-vissza ugráló érintkezés-jelzéseket okozott a fizikai
-motorban, így a számláló továbbra is hamisan magas maradt. Ehelyett
-egy egyszerűbb, időalapú "hűtési" (cooldown) mechanizmusra váltottunk
+motorban, így a számláló továbbra is hamisan magas maradt. Ehelyett egy egyszerűbb, időalapú "hűtési" (cooldown) mechanizmusra váltottunk
 (0.5 másodperc): ez manuálisan tesztelve bevált - egy rögzített
 pozícióban a számláló nem nőtt tovább több mint két percig, míg a
 korábbi verzióval percenként több tucatszor nőtt volna.
 
-## Megjegyzések
+**A `VISSZATALALAS` állapot Unity Play mód-os validálása:** 10
+automatizált futást hajtottam végre a baseline kontrollerrel az
+eredeti (időzített) szcenárión. 18, teljes 500 lépésig lefutott
+"tiszta" futás közül 11-ben aktiválódott a `VISSZATALALAS` állapot,
+és mind a 11 esetben sikeresen visszatalált a vonalra, egyetlen
+eszkalálás sem történt a tágabb `KERESES` állapotra. A Claude
+figyelmeztetett, hogy ez a mintaméret (11 esemény) kicsi az
+általános megbízhatóság megállapításához, ezt a korlátot a
+`docs/m10-plan.md`-ben is dokumentáltuk.
 
+Eközben egy saját hibámat is érdemes rögzíteni: a tesztelés
+felgyorsítása érdekében ideiglenesen "örökké láthatóvá" tettem a
+szcenárió akadályait a szcenárió-JSON-ban - ez torzította a mérést
+(a rover a pálya körbejárása során ismételten ugyanabba az
+akadályba futott, 17-39 ütközés/futás, gyakori pályaelhagyás). A
+Claude segített felismerni a torzítás okát és visszaállítani az
+eredeti időzítést, ami után a viselkedés visszatért az M09-cel
+konzisztens, egészséges mintázathoz.
 
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
