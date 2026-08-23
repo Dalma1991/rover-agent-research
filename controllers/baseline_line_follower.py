@@ -48,6 +48,10 @@ KERESES_MAX_LEPES = 40
 AKADALY_KUSZOB_BELEPES_M = 0.5
 AKADALY_KUSZOB_KILEPES_M = 0.8
 AKADALY_FORDULAT_FOK = 45.0
+# M10: ha ennyi egymast koveto lepesig nem sikerul kikerulni az
+# akadalyt (pl. ket akadaly koze szorult a rover - zsakutca), a
+# tovabbi fordulgatas helyett a tagabb KERESES allapotra eszkalalunk.
+ZSAKUTCA_AKADALY_MAX_LEPES = 20
 ELOLSO_SZEKTOROK = (2, 3)
 BAL_SZEKTOROK = (0, 1)
 JOBB_SZEKTOROK = (4, 5)
@@ -76,6 +80,7 @@ class FutasStatisztika:
     parancsok_szama: int = 0
     vonalvesztesek_szama: int = 0
     akadaly_kerulesek_szama: int = 0
+    zsakutcak_szama: int = 0
     palyaelhagyas: bool = False
     # M10: a gateway collision_occurred/collision_count mezoibol szarmazik,
     # kizarolag diagnosztikai celra - a vezerlesi dontesekben nem hasznaljuk.
@@ -259,6 +264,7 @@ def egy_lepes_akadaly(
     kliens: GatewayKliens,
     stat: FutasStatisztika,
     utolso_elkerulesi_irany: list[int],
+    akadaly_lepesek: list[int],
     naplo: LepesNaplozo | None,
     lepes_szam: int,
 ) -> Allapot:
@@ -268,9 +274,29 @@ def egy_lepes_akadaly(
     if not akadaly_elol(observe, AKADALY_KUSZOB_KILEPES_M):
         # M10: nem közvetlenül VONALON-ra váltunk, hanem egy rövid,
         # irányított visszakeresésre - lásd egy_lepes_visszatalalas().
+        # Ez az ág akkor is aktiválódik, ha az akadály közben eltűnt
+        # (schedule.disappear_at_s) - a rover a rendelkezésére álló,
+        # nem-privilegizált adatokból (LiDAR) nem tudja megkülönböztetni
+        # ezt a sikeres kerüléstől; ez a különbség utólag, diagnosztikai
+        # célra a lépésnaplóból (position mező) állapítható meg, lásd
+        # analyze_step_log.py. Tudatosan nem próbáljuk ezt valós időben
+        # megkülönböztetni, mert az privilegizált adat használatát
+        # igényelné a vezérlési döntésben.
+        akadaly_lepesek[0] = 0
         if naplo is not None:
             naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [], Allapot.VISSZATALALAS)
         return Allapot.VISSZATALALAS
+
+    akadaly_lepesek[0] += 1
+    if akadaly_lepesek[0] >= ZSAKUTCA_AKADALY_MAX_LEPES:
+        # M10: zsákutca-észlelés - a további fordulgatás helyett a
+        # tágabb KERESÉS állapotra eszkalálunk, és külön számláljuk
+        # zsákutca-esetként a hiba-taxonómia számára.
+        akadaly_lepesek[0] = 0
+        stat.zsakutcak_szama += 1
+        if naplo is not None:
+            naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [], Allapot.KERESES)
+        return Allapot.KERESES
 
     irany = szabadabb_oldal_elojele(observe)
     utolso_elkerulesi_irany[0] = irany
@@ -284,7 +310,6 @@ def egy_lepes_akadaly(
     if naplo is not None:
         naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [turn_parancs], Allapot.AKADALY)
     return Allapot.AKADALY
-
 
 def egy_lepes_visszatalalas(
     kliens: GatewayKliens,
@@ -397,6 +422,7 @@ def futtat(
     kereses_lepesek = [0]
     utolso_elkerulesi_irany = [1]
     visszatalalas_lepesek = [0]
+    akadaly_lepesek = [0]
     run_id = str(uuid4())
     naplo = LepesNaplozo(lepes_naplo_fajl, run_id) if lepes_naplo_fajl else None
 
@@ -410,7 +436,7 @@ def futtat(
                 )
             elif allapot is Allapot.AKADALY:
                 allapot = egy_lepes_akadaly(
-                    kliens, stat, utolso_elkerulesi_irany, naplo, stat.lepesek_szama
+                    kliens, stat, utolso_elkerulesi_irany, akadaly_lepesek, naplo, stat.lepesek_szama
                 )
             elif allapot is Allapot.VISSZATALALAS:
                 allapot = egy_lepes_visszatalalas(
@@ -450,6 +476,7 @@ def naplo_iras(stat: FutasStatisztika) -> None:
         "parancsok_szama": stat.parancsok_szama,
         "vonalvesztesek_szama": stat.vonalvesztesek_szama,
         "akadaly_kerulesek_szama": stat.akadaly_kerulesek_szama,
+        "zsakutcak_szama": stat.zsakutcak_szama,
         "palyaelhagyas": stat.palyaelhagyas,
         "utkozott": stat.utkozott,
         "utkozesek_szama": stat.utkozesek_szama,
@@ -493,6 +520,7 @@ def main() -> int:
         f"{stat.parancsok_szama} parancs, "
         f"{stat.vonalvesztesek_szama} vonalveszes, "
         f"{stat.akadaly_kerulesek_szama} akadalykerules, "
+        f"zsakutcak={stat.zsakutcak_szama}, "
         f"utkozesek={stat.utkozesek_szama}, "
         f"palyaelhagyas={stat.palyaelhagyas}"
     )

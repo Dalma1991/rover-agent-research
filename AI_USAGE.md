@@ -332,6 +332,29 @@ Claude segített felismerni a torzítás okát és visszaállítani az
 eredeti időzítést, ami után a viselkedés visszatért az M09-cel
 konzisztens, egészséges mintázathoz.
 
+**Zsákutca-kezelés (ugyanaznap):** a Claude-tól kértem a `docs/m10-plan.md`
+5. munkacsomagjának (zsákutca és eltűnő akadály kezelése)
+megvalósítását. Egy explicit lépésszámláló bevezetésével (ha a rover
+`ZSAKUTCA_AKADALY_MAX_LEPES` lépésig nem tud kikerülni egy akadályt,
+a `KERESES` állapotra eszkalál, külön statisztikaként számolva) és
+egy hozzá tartozó unit teszttel egészítettük ki a rendszert. Az
+eltűnő akadály esetére a Claude azt javasolta, hogy ezt **ne**
+próbáljuk explicit módon megkülönböztetni a sikeres kerüléstől
+valós időben, mert az privilegizált pozíció-adat használatát
+igényelné a vezérlési döntésben - ehelyett dokumentáltuk ezt mint
+tudatos tervezési korlátot, ami utólag, diagnosztikai célra a
+lépésnaplóból elemezhető.
+
+A manuális szerkesztés (Rider-ben, kézzel másolva/beillesztve) során
+két kódszerkesztési hiba is becsúszott: egyszer egy `import`-lista
+csere véletlenül szintaktikai hibát okozott, egyszer pedig egy
+függvényhívás módosítása közben egy `elif` ág rossz behúzással és
+rossz argumentum-sorrenddel csúszott be. Mindkettőt a hibaüzenetek
+(`SyntaxError`, `TypeError`) alapján, a kód pontos, aktuális
+állapotát megnézve azonosítottuk és javítottuk - egyik esetben sem
+próbáltunk vakon, a tényleges fájltartalom ellenőrzése nélkül
+módosítani.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.

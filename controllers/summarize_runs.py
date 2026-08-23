@@ -29,6 +29,7 @@ def osszegez(n: int = 30) -> None:
     parancsok = [f["parancsok_szama"] for f in futasok]
     vonalveszesek = [f["vonalvesztesek_szama"] for f in futasok]
     akadalykerulesek = [f["akadaly_kerulesek_szama"] for f in futasok]
+    zsakutcak = [f.get("zsakutcak_szama", 0) for f in futasok]
     palyaelhagyasok = sum(1 for f in futasok if f["palyaelhagyas"])
     utkozesek = [f.get("utkozesek_szama", 0) for f in futasok]
     utkozott_futasok = sum(1 for f in futasok if f.get("utkozott", False))
@@ -43,6 +44,9 @@ def osszegez(n: int = 30) -> None:
     print(f"  Akadalykerulesek:     atlag={statistics.mean(akadalykerulesek):.1f}, "
           f"szoras={statistics.stdev(akadalykerulesek):.1f}, "
           f"min={min(akadalykerulesek)}, max={max(akadalykerulesek)}")
+    print(f"  Zsakutcak szama:      atlag={statistics.mean(zsakutcak):.1f}, "
+          f"szoras={statistics.stdev(zsakutcak):.1f}, "
+          f"min={min(zsakutcak)}, max={max(zsakutcak)}")
     print(f"  Palyaelhagyasok:      {palyaelhagyasok}/{len(futasok)} futasban")
     print(f"  Utkozesek szama:      atlag={statistics.mean(utkozesek):.1f}, "
           f"szoras={statistics.stdev(utkozesek):.1f}, "

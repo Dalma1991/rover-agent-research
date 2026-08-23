@@ -124,10 +124,26 @@ tesztek készültek (`tests/baseline_line_follower_test.py`, 9 teszt,
 mind zöld) - stub gateway-klienssel, Unity nélkül futnak. **Nem
 helyettesítik** a Unity Play Mode-os fizikai tesztet.
 
-### 5. Zsákutca és eltűnő akadály kezelése (még nincs kész)
-A jelenlegi logika nem kezeli explicit módon, ha egy akadály a
-kerülés közben eltűnik (`schedule.disappear_at_s`), vagy ha a rover
-két akadály közé szorul (zsákutca).
+### 5. Zsákutca és eltűnő akadály kezelése (kész, ez a session)
+**Zsákutca:** ha a rover `ZSAKUTCA_AKADALY_MAX_LEPES` (20) egymást
+követő lépésig `AKADALY` állapotban marad anélkül, hogy sikerülne
+kikerülnie (pl. két akadály közé szorul), a rendszer a további
+fordulgatás helyett a tágabb `KERESES` állapotra eszkalál, és ezt
+külön statisztikaként (`zsakutcak_szama`) számolja - elkülönítve a
+sikeres akadálykerülésektől. Unit teszttel lefedve
+(`test_akadaly_zsakutca_eszleles_eskalal_keresesre`).
+
+**Eltűnő akadály:** ezt a rendszer már korábban is helyesen kezelte
+- ha a LiDAR már nem lát akadályt elöl, a rover kilép az `AKADALY`
+állapotból, függetlenül attól, hogy ez azért történt, mert sikeresen
+elkerülte, vagy mert az akadály közben eltűnt
+(`schedule.disappear_at_s`). **Tudatos tervezési döntés, nem
+hiányosság:** a rover a rendelkezésére álló, nem-privilegizált
+adatokból (LiDAR) nem tudja és nem is szabad, hogy valós időben
+megkülönböztesse ezt a két esetet - az privilegizált pozíció-adat
+használatát igényelné a vezérlési döntésben, ami sértené a projekt
+alapelvét. A különbség utólag, diagnosztikai célra a lépésnaplóból
+(`position` mező) az `analyze_step_log.py`-jal állapítható meg.
 
 ### 6. Hiba-taxonómia (részben megalapozva)
 Feladatkiírás szerinti kategóriák: ütközés, elakadás, téves vonal,

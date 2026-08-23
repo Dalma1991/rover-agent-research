@@ -31,6 +31,7 @@ from baseline_line_follower import (  # noqa: E402
     Allapot,
     FutasStatisztika,
     VISSZATALALAS_MAX_LEPES,
+    ZSAKUTCA_AKADALY_MAX_LEPES,
     egy_lepes_akadaly,
     egy_lepes_kereses,
     egy_lepes_visszatalalas,
@@ -94,15 +95,33 @@ class AllapotgepAtmenetekTest(unittest.TestCase):
         stat = FutasStatisztika()
         irany = [0]
         kliens = StubGatewayKliens([observe_valasz(akadaly_tavolsag_m=0.3)])
-        uj_allapot = egy_lepes_akadaly(kliens, stat, irany, None, 0)
+        uj_allapot = egy_lepes_akadaly(kliens, stat, irany, [0], None, 0)
         self.assertIs(uj_allapot, Allapot.AKADALY)
         self.assertIn(irany[0], (1, -1))
 
     def test_akadaly_elhagyasakor_visszatalalasra_valt_nem_kozvetlenul_vonalonra(self) -> None:
         stat = FutasStatisztika()
         kliens = StubGatewayKliens([observe_valasz(akadaly_tavolsag_m=5.0)])
-        uj_allapot = egy_lepes_akadaly(kliens, stat, [1], None, 0)
+        uj_allapot = egy_lepes_akadaly(kliens, stat, [1], [0], None, 0)
         self.assertIs(uj_allapot, Allapot.VISSZATALALAS)
+
+    def test_akadaly_zsakutca_eszleles_eskalal_keresesre(self) -> None:
+        stat = FutasStatisztika()
+        # ZSAKUTCA_AKADALY_MAX_LEPES-szer egymas utan "meg mindig akadaly
+        # elottunk" valaszt adunk - ez szimulalja, hogy a rover nem tud
+        # kikerulni (pl. ket akadaly koze szorult).
+        valaszok = [
+            observe_valasz(akadaly_tavolsag_m=0.3) for _ in range(ZSAKUTCA_AKADALY_MAX_LEPES)
+        ]
+        kliens = StubGatewayKliens(valaszok)
+        irany = [1]
+        lepesek = [0]
+        uj_allapot = Allapot.AKADALY
+        for _ in range(ZSAKUTCA_AKADALY_MAX_LEPES):
+            uj_allapot = egy_lepes_akadaly(kliens, stat, irany, lepesek, None, 0)
+        self.assertIs(uj_allapot, Allapot.KERESES)
+        self.assertEqual(stat.zsakutcak_szama, 1)
+        self.assertEqual(lepesek[0], 0)
 
     def test_visszatalalas_azonnal_vonalon_ha_mar_feher_a_szenzor(self) -> None:
         stat = FutasStatisztika()
