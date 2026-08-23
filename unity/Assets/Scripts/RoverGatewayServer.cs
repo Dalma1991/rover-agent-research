@@ -51,6 +51,7 @@ public class RoverGatewayServer : MonoBehaviour
     private readonly List<TcpClient> aktivKliensek = new List<TcpClient>();
 
     private Rigidbody rigidBody;
+    private TrackController trackController; // M10: akadaly-utemezes ujraindításához reset_position-nel
     private SensorArray szenzorTomb;
     private LidarSensor lidar;
     private Vector3 kezdoPozicio;
@@ -210,6 +211,7 @@ public class RoverGatewayServer : MonoBehaviour
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
+        trackController = FindFirstObjectByType<TrackController>();
                 szenzorTomb = GetComponent<SensorArray>();
         lidar = GetComponentInChildren<LidarSensor>();
         kezdoPozicio = rigidBody.position;
@@ -686,7 +688,8 @@ public class RoverGatewayServer : MonoBehaviour
                 rigidBody.rotation = kezdoForgatas;
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
-                               utolsoUtkozesIdopontja = float.NegativeInfinity;
+                   trackController?.UjrakezdiAkadalyUtemezest();
+                utolsoUtkozesIdopontja = float.NegativeInfinity;
                 valasz = SikerValasz(
                     keres.RequestId,
                     "A rover visszaallt a kezdohelyzetbe."

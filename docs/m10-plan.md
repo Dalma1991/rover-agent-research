@@ -157,20 +157,58 @@ emiatt jelenleg **nem lehet megbízhatóan megkülönböztetni** egy
 tisztázni kell (vagy kör-detektálással, vagy explicit sikerességi
 kritérium bevezetésével).
 
-### 7. State-machine diagram, videók, benchmark logok
+### 7. Végleges 30 futásos mérési sorozat (kész, ez a session)
+Egy fontos, korábban észrevétlen hibát is feltártunk és kijavítottunk
+eközben: az akadályok `schedule.appear_at_s`/`disappear_at_s`
+időzítése a Play mód *indításához* volt kötve, nem az egyes
+futások `reset_position` parancsához - emiatt az akadályok gyakorlatilag
+csak a Play mód elindítása utáni néhány másodpercben jelentek meg
+egyszer, utána egy teljes Play munkamenetben többé soha. Javítás:
+`TrackController.UjrakezdiAkadalyUtemezest()` új publikus metódus,
+amit a `RoverGatewayServer` minden `reset_position` parancsnál
+meghív, így minden futás saját, független időablakot kap.
+
+**Fontos, tudatosan vállalt mérési egyszerűsítés:** a 70x Time Scale
+miatt a hálózati parancsok oda-vissza útja alatt is több szimulált
+másodperc telik el, ami a rövid (5-7 másodperces) időzített
+időablakot gyakorlatilag elérhetetlenné teszi TCP-n keresztül
+irányított futásoknál. Ezért a végleges méréshez az akadályokat
+*állandóan láthatóvá* tettük (`experiments/scenarios/stadium-train-baseline.json`-ben
+`disappear_at_s` nagyon nagyra állítva) - ez eltér az eredeti,
+tervezett időzített szcenáriótól, és ezt a jövőbeli mérésekben is
+egyértelműen jelölni kell.
+
+**Eredmény (30 futás, mindkét akadály állandóan látható):**
+- Parancsok száma: átlag 832.9, szórás 317.4 (475-1297)
+- Vonalvesztések: átlag 17.2, szórás 11.7 (4-40)
+- Akadálykerülések: átlag 2.8, szórás 2.2 (0-10)
+- Zsákutcák: 0/30 futásban
+- Pályaelhagyások: **18/30 futásban**
+- Ütközések: átlag 20.9, szórás 17.0 (3-64)
+- Ütközött futások: 30/30
+
+**Értelmezés, őszintén:** ez az eredmény **megerősíti** az M09-ben
+már dokumentált, ismert oszcillációs problémát - mivel az akadály
+most állandóan jelen van, a rover a pálya minden körbejárásánál
+ismételten belefut, ami magyarázza a magas ütközésszámot és a
+gyakori pályaelhagyást. Ez **nem** az M10 munkacsomagjainak (ütközés-
+detektálás, VISSZATALALAS, zsákutca-kezelés) hibája - azok külön-külön,
+célzott teszteken igazoltan helyesen működnek (lásd 2. és 4. pont) -,
+hanem az eredeti M09 oszcillációs probléma **még mindig nyitott**,
+és ez a mérés ezt csak élesebben megmutatja, mert most nincs esély
+arra, hogy az akadály időközben eltűnjön és "megmentse" a rovert.
+A gyökérok-javítás (pl. az elkerülési stratégia finomítása ismételt
+találkozásoknál) M11+ munkaként azonosítva, nem ennek a
+mérföldkőnek a része.
+
+### 8. State-machine diagram, videók
 Az M09-es háromállapotú diagram (`docs/state_machine.svg`)
 frissítése a tervezett `VISSZATALALAS` állapottal, majd demonstrációs
-videók és a végleges benchmark-mérés a dinamikus akadályos
-szcenáriókon (`experiments/scenarios/`).
+videók - még nincs kész.
 
 ## Következő konkrét lépés
-Javítani a többszörös ütközés-számlálás problémáját (lásd 2. pont),
-mielőtt bármilyen ütközés-alapú mérésre támaszkodnánk. Utána tesztelni
-Unity Play módban az új `VISSZATALALAS` állapot tényleges
-viselkedését (4. pont) - csökkenti-e a vonal-visszatalálási időt, és
-nem vezet-e be új oszcillációt (pl. ha a heurisztikus feltételezett
-irány rendszeresen téves).
-
+State-machine diagram frissítése, demonstrációs videó, majd az M10
+git tag és a GitHub Milestone/Issue lezárása.
 Csak ezután érdemes a 30 futásos mérési sorozatot megismételni és az
 `analyze_step_log.py`-t éles logon lefuttatni.
 

@@ -29,9 +29,9 @@
         "z": 0.789
       },
       "schedule": {
-        "appear_at_s": 4.003,
-        "visible_for_s": 6.976,
-        "disappear_at_s": 10.979
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0 ,
+        "disappear_at_s": 100000.0
       }
     },
     {
@@ -47,9 +47,9 @@
         "z": 0.571
       },
       "schedule": {
-        "appear_at_s": 13.712,
-        "visible_for_s": 5.397,
-        "disappear_at_s": 19.109
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0,
+        "disappear_at_s": 100000.0
       }
     }
   ]

@@ -104,8 +104,12 @@ public class TrackController : MonoBehaviour
         public float EltunesIdo;
     }
 
+    private float utemezesKezdeteS;
+
     private void Awake()
     {
+        utemezesKezdeteS = Time.timeSinceLevelLoad;
+
         vonalRenderer = GetComponent<LineRenderer>();
         if (vonalRenderer == null)
         {
@@ -136,9 +140,21 @@ public class TrackController : MonoBehaviour
         );
     }
 
+    /// <summary>
+    /// M10: az akadaly-utemezes "nulla idopontjat" ujraallitja a jelenlegi
+    /// pillanatra. A RoverGatewayServer hivja meg reset_position parancsnal,
+    /// hogy minden futas sajat, fuggetlen eselyt kapjon az akadalyokkal
+    /// valo talalkozasra - kulonben a schedule.appear_at_s/disappear_at_s
+    /// csak egyszer, a Play mod inditasa utan rovid ideig ervenyesulne.
+    /// </summary>
+    public void UjrakezdiAkadalyUtemezest()
+    {
+        utemezesKezdeteS = Time.timeSinceLevelLoad;
+    }
+
     private void Update()
     {
-        float t = Time.timeSinceLevelLoad;
+        float t = Time.timeSinceLevelLoad - utemezesKezdeteS;
 
         foreach (AkadalyPeldany akadaly in akadalyok)
         {
@@ -243,19 +259,40 @@ public class TrackController : MonoBehaviour
 
     private void FelepitAkadalyokat()
     {
+        // M10 javitas: torli a korabbi (pl. ExecuteAlways ujrafutasabol
+        // vagy kezi torlesbol) maradt akadalyokat, mielott ujakat hozna
+        // letre - igy a metodus barmennyiszer lefuthat, sosem duplikal
+        // es sosem hagy "halott" hivatkozast a listaban.
+        for (int i = akadalyok.Count - 1; i >= 0; i--)
+        {
+            if (akadalyok[i].Objektum != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(akadalyok[i].Objektum);
+                }
+                else
+                {
+                    DestroyImmediate(akadalyok[i].Objektum);
+                }
+            }
+        }
+        akadalyok.Clear();
+
         foreach (Akadaly akadaly in dokumentum.obstacles)
         {
             GameObject objektum = GameObject.CreatePrimitive(PrimitiveType.Cube);
             objektum.name = akadaly.id;
-                        // M10: "Akadaly" tag az utkozesdetektalashoz (lasd
+            // M10: "Akadaly" tag az utkozesdetektalashoz (lasd
             // RoverGatewayServer.OnCollisionEnter). A tag maganak a
             // Unity projektnek a Tags & Layers listajaban is szerepelnie
-            // kell (mar hozzaadva Project Settings-ben).
+            // kell (ProjectSettings/TagManager.asset - mar hozzaadva).
             objektum.tag = AkadalyTagNev;
             objektum.transform.SetParent(transform);
             objektum.transform.position = akadaly.position_m.UnityVektor();
             objektum.transform.localScale = akadaly.size_m.UnityVektor();
             objektum.SetActive(false);
+
             akadalyok.Add(new AkadalyPeldany
             {
                 Objektum = objektum,
@@ -264,7 +301,7 @@ public class TrackController : MonoBehaviour
             });
         }
     }
-// --- M07: nyilvános geometriai lekérdezés a szenzorokhoz ---
+    // --- M07: nyilvános geometriai lekérdezés a szenzorokhoz ---
     //
     // Visszaadja, hogy egy adott világkoordináta (XZ síkban vetítve)
     // mekkora távolságra van a pálya középvonalától (méterben), valamint
@@ -336,4 +373,5 @@ public class TrackController : MonoBehaviour
             }
             return dokumentum.track.line_width_m / 2f;
         }
-    }}
+    }
+}
