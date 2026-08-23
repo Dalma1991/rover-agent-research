@@ -1,0 +1,144 @@
+# M10 terv: akadálykerülés és visszatalálás a vonalra
+
+## Cél
+
+Az M09 baseline kiegészítése **teljes, determinisztikus**
+akadálykerüléssel és vonal-visszakereséssel: a rendszer előre
+definiált akadályszcenáriók többségében ütközés nélkül térjen
+vissza a vonalra, a kudarcokat pedig egy explicit hiba-taxonómia
+szerint automatikusan címkézze.
+
+## Kiindulási állapot (M09-ből örökölt)
+
+Az M09 baseline (`controllers/baseline_line_follower.py`) már
+tartalmaz egy kezdetleges **AKADÁLY** állapotot: LiDAR-szektor
+alapú akadályészlelés hiszterézissel (belépés 0.5 m, kilépés 0.8 m)
+és egy fix szögű (45°) elkerülő fordulat a szabadabb oldal felé.
+Két 30 futásos mérési sorozat mindkettő 0/30 pályaelhagyással zárult
+- a baseline stabil, de a `docs/m09-plan.md` dokumentál egy
+**nyitva hagyott, őszintén jelzett problémát**: az akadálykerülések
+száma futásonként erősen kétmodális eloszlású (a futások kb.
+egyharmada 10-12 ismétlődő akadálytalálkozást mutat), ami arra utal,
+hogy bizonyos megközelítési szögeknél az elkerülő fordulat
+visszafordítja a rovert ugyanahhoz vagy egy másik akadályhoz -
+**oszcillációs ciklus**. Ennek gyökere lépésenkénti naplózás nélkül
+nem volt diagnosztizálható.
+
+**Fontos, eddig fel nem ismert dokumentációs/mérési rés**, amit M10
+elején pótoltunk:
+- `docs/protocol.md` nem dokumentálta a `lidar_szektor_min` mezőt
+  (pedig M08 óta az `observe` válasz része) - pótolva.
+- A rendszernek **nem volt ütközésdetektálása**: sem a Unity, sem a
+  protokoll nem jelezte vissza, ha a rover ténylegesen nekiütközött
+  egy akadálynak. Az "akadálykerülések száma" metrika valójában csak
+  azt mérte, hányszor lépett AKADÁLY állapotba - nem azt, hogy sikeres
+  volt-e a kerülés.
+
+## M10 munkacsomagok
+
+### 1. Lépésenkénti diagnosztikai naplózás (kész)
+`controllers/baseline_line_follower.py` új `LepesNaplozo` osztálya
+minden lépésnél JSONL-be írja: `run_id`, lépésszám, állapot előtte/
+utána, a három vonalszenzor nyers értéke, `lidar_szektor_min`, a
+lépésben kiadott parancs(ok), valamint - **kizárólag diagnosztikai
+célra, a vezérlési döntésben nem használva** - a privilegizált
+`position` és az új `collision_occurred`/`collision_count` mezőket.
+Napló helye: `logs/m10_lepes_naplo.jsonl` (`--lepes-naplo` kapcsolóval
+állítható vagy kikapcsolható).
+
+### 2. Ütközésdetektálás Unity oldalon (kész)
+- `TrackController.FelepitAkadalyokat()`: minden létrehozott akadály
+  megkapja az `Akadaly` taget.
+- `RoverGatewayServer.cs`: új `OnCollisionEnter` kezelő, ami az
+  `Akadaly` taggel ütköző eseményeket számolja
+  (`utkozesTortentAzUtolsoResetOta`, `utkozesekSzamaAzUtolsoResetOta`).
+  Ezek a `reset_position`/`reset_error` parancsoknál nullázódnak, így
+  futásonként tisztán mérhető az ütközésszám.
+- `observe` válasz bővítve `collision_occurred`/`collision_count`
+  mezőkkel (`docs/protocol.md`-ben dokumentálva, kizárólag
+  diagnosztikai célra megjelölve, ahogy a `position`/`speed` is).
+- **- **Unity Play módban igazolva:** a rover pozícióját kézzel egy
+  mindig aktív teszt-objektum (`TesztAkadaly`, ideiglenesen `Akadaly`
+  taggel ellátva) helyére állítva az `OnCollisionEnter` helyesen és
+  ismételten lefutott (`M10: utkozes eszlelve...` log-üzenet).
+- **Fontos, dokumentált módszertani felfedezés:** ha a rover mélyen
+  belelóg egy akadályba és ott marad, a fizikai motor minden lépésben
+  újra meghívja az `OnCollisionEnter`-t - egyetlen beragadás alatt a
+  számláló 13-szor is nőtt néhány másodperc alatt. A jelenlegi
+  számláló tehát egy folyamatos ütközést több különálló eseményként
+  számol. Ezt javítani kell (pl. `OnCollisionExit`-tel párosított
+  jelzővel: csak akkor számítson újra ütközésnek, ha közben a rover
+  ténylegesen elvált az akadálytól) **mielőtt éles mérésre
+  támaszkodnánk** rá - egyelőre csak dokumentálva, nem javítva.
+
+### 3. Oszcilláció diagnosztizálása a lépésnaplóból (kész)
+Új `controllers/analyze_step_log.py` szkript: futásonként megkeresi az
+AKADÁLY-belépéseket, és két egymást követő belépés `position` mezője
+alapján (kizárólag diagnosztikai célra) jelzi, ha a rover 0.3 m-nél
+kevesebbet haladt előre két akadálytalálkozás között - ez a jel az
+M09-ben leírt "ugyanahhoz az akadályhoz visszafordul" jelenségre utal,
+szemben azzal, amikor egyszerűen több, egymástól távoli akadállyal
+találkozik útközben. Szintetikus naplóval végponttól végpontig
+tesztelve (helyben-ismétlődő párt helyesen jelzett, távoli,
+egyszeri akadálytalálkozást helyesen nem jelzett gyanúsnak).
+**Korlát, amit nem hallgatunk el:** ez csak azt méri, hogy a pozíció
+alig változott - nem bizonyítja, hogy ugyanazt az akadályt kerülte-e
+a rover ismételten; első, gyors triázs-eszköznek szánjuk, nem végleges
+hiba-taxonómia-döntésnek. Éles naplóval (valódi Unity-futásból) még
+nincs kipróbálva.
+
+### 4. Explicit vonal-visszakeresési eljárás kerülés után (kész - teszteletlen stratégia)
+Új `VISSZATALALAS` állapot: az AKADÁLY állapot már nem közvetlenül
+VONALON-ra vált, amint a LiDAR szabadnak jelzi az elülső szektorokat,
+hanem a `VISSZATALALAS` állapotba lép. Ott a rendszer megjegyzi az
+elkerülő fordulat irányát, és azzal **ellentétes** irányba forog kis
+lépésekben (5°-onként), miközben lassan előre halad, amíg valamelyik
+vonalszenzor `white`-ot nem jelez. Ha ez `VISSZATALALAS_MAX_LEPES`
+(15) lépésen belül nem sikerül, a rendszer a tágabb, általános
+KERESÉS állapotra eszkalál.
+**Fontos, nem elhallgatott korlát:** ez a stratégia (a feltételezés,
+hogy a vonal az elkerülési iránnyal ellentétes oldalon maradt) egy
+ésszerű, de eddig **nem validált** heurisztika - Unity/valós futáson
+még nem lett kiértékelve.
+
+Az állapotgép mind a négy állapotára és azok átmeneteire új unit
+tesztek készültek (`tests/baseline_line_follower_test.py`, 9 teszt,
+mind zöld) - stub gateway-klienssel, Unity nélkül futnak. **Nem
+helyettesítik** a Unity Play Mode-os fizikai tesztet.
+
+### 5. Zsákutca és eltűnő akadály kezelése (még nincs kész)
+A jelenlegi logika nem kezeli explicit módon, ha egy akadály a
+kerülés közben eltűnik (`schedule.disappear_at_s`), vagy ha a rover
+két akadály közé szorul (zsákutca).
+
+### 6. Hiba-taxonómia (részben megalapozva)
+Feladatkiírás szerinti kategóriák: ütközés, elakadás, téves vonal,
+timeout, oszcilláció. Az ütközés mérése mostantól megvan (2. pont).
+**Nyitott kérdés, amit nem akarunk elhamarkodottan lezárni:** a
+rendszernek jelenleg nincs kör-/etap-befejezés detektálása, tehát
+minden futás technikailag a `--max-lepes` biztonsági korlátig fut -
+emiatt jelenleg **nem lehet megbízhatóan megkülönböztetni** egy
+"időtúllépés miatt leállított, egyébként sikeres" futást egy valódi
+"elakadás" esettől. Ezt a hiba-taxonómia automatikus kódolása előtt
+tisztázni kell (vagy kör-detektálással, vagy explicit sikerességi
+kritérium bevezetésével).
+
+### 7. State-machine diagram, videók, benchmark logok
+Az M09-es háromállapotú diagram (`docs/state_machine.svg`)
+frissítése a tervezett `VISSZATALALAS` állapottal, majd demonstrációs
+videók és a végleges benchmark-mérés a dinamikus akadályos
+szcenáriókon (`experiments/scenarios/`).
+
+## Következő konkrét lépés
+Javítani a többszörös ütközés-számlálás problémáját (lásd 2. pont),
+mielőtt bármilyen ütközés-alapú mérésre támaszkodnánk. Utána tesztelni
+Unity Play módban az új `VISSZATALALAS` állapot tényleges
+viselkedését (4. pont) - csökkenti-e a vonal-visszatalálási időt, és
+nem vezet-e be új oszcillációt (pl. ha a heurisztikus feltételezett
+irány rendszeresen téves).
+
+Csak ezután érdemes a 30 futásos mérési sorozatot megismételni és az
+`analyze_step_log.py`-t éles logon lefuttatni.
+
+Csak ezután érdemes a 30 futásos mérési sorozatot megismételni és az
+`analyze_step_log.py`-t éles logon lefuttatni.

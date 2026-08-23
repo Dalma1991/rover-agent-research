@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Osszegzo statisztika az M09 baseline kontroller futasi naploibol."""
+"""Osszegzo statisztika az M09/M10 baseline kontroller futasi naploibol.
+
+Megjegyzes: az "utkozott"/"utkozesek_szama" mezok csak az M10 bovites
+(RoverGatewayServer collision_occurred/collision_count) utan keszult
+naplobejegyzesekben szerepelnek - regebbi (M09) sorokban hianyozhatnak,
+ezert ezekre .get(..., alapertelmezett) hasznalatos.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +30,8 @@ def osszegez(n: int = 30) -> None:
     vonalveszesek = [f["vonalvesztesek_szama"] for f in futasok]
     akadalykerulesek = [f["akadaly_kerulesek_szama"] for f in futasok]
     palyaelhagyasok = sum(1 for f in futasok if f["palyaelhagyas"])
+    utkozesek = [f.get("utkozesek_szama", 0) for f in futasok]
+    utkozott_futasok = sum(1 for f in futasok if f.get("utkozott", False))
 
     print(f"Osszegzes ({len(futasok)} futas):")
     print(f"  Parancsok szama:      atlag={statistics.mean(parancsok):.1f}, "
@@ -36,6 +44,10 @@ def osszegez(n: int = 30) -> None:
           f"szoras={statistics.stdev(akadalykerulesek):.1f}, "
           f"min={min(akadalykerulesek)}, max={max(akadalykerulesek)}")
     print(f"  Palyaelhagyasok:      {palyaelhagyasok}/{len(futasok)} futasban")
+    print(f"  Utkozesek szama:      atlag={statistics.mean(utkozesek):.1f}, "
+          f"szoras={statistics.stdev(utkozesek):.1f}, "
+          f"min={min(utkozesek)}, max={max(utkozesek)}")
+    print(f"  Utkozott futasok:     {utkozott_futasok}/{len(futasok)} futasban")
 
 
 if __name__ == "__main__":

@@ -55,6 +55,14 @@ public class RoverGatewayServer : MonoBehaviour
     private LidarSensor lidar;
     private Vector3 kezdoPozicio;
     private Quaternion kezdoForgatas;
+
+    // --- M10: utkozesdetektalas (hiba-taxonomia "utkozes" kategoriaja) ---
+    // A TrackController "Akadaly" taggel latja el a letrehozott akadalyokat
+    // (lasd TrackController.FelepitAkadalyokat). Csak ezekkel az utkozeseket
+    // szamoljuk, a talajjal/palyaval valo folyamatos erintkezest nem.
+    private const string AkadalyTagNev = "Akadaly";
+    private bool utkozesTortentAzUtolsoResetOta = false;
+    private int utkozesekSzamaAzUtolsoResetOta = 0;
     private TcpListener listener;
     private Thread listenerSzal;
     private volatile bool fut;
@@ -129,6 +137,8 @@ public class RoverGatewayServer : MonoBehaviour
         public SzenzorErtek sensor_center;
         public SzenzorErtek sensor_right;
         public float[] lidar_szektor_min;
+        public bool collision_occurred;
+        public int collision_count;
     }
 
     [Serializable]
@@ -247,6 +257,26 @@ public class RoverGatewayServer : MonoBehaviour
     private void OnDisable()
     {
         LeallitSzerver();
+    }
+
+
+    // --- M10: utkozesdetektalas ---
+    // A rover Rigidbody-jat hordozo GameObject-en fut (RequireComponent),
+    // ezert az OnCollisionEnter itt a rover fizikai utkozeseit fogja el.
+    // A rover kinematikus, az akadalyok statikus colliderek - ez a
+    // kombinacio eleg ahhoz, hogy Unity generalja az utkozesi esemenyt,
+    // mivel a roveren van (kinematikus) Rigidbody.
+    private void OnCollisionEnter(Collision utkozes)
+    {
+        if (utkozes.collider != null && utkozes.collider.CompareTag(AkadalyTagNev))
+        {
+            utkozesTortentAzUtolsoResetOta = true;
+            utkozesekSzamaAzUtolsoResetOta++;
+            naploUzenetek.Enqueue(
+                $"M10: utkozes eszlelve az akadallyal '{utkozes.collider.name}' " +
+                $"(osszesen {utkozesekSzamaAzUtolsoResetOta} az utolso reset ota)."
+            );
+        }
     }
 
     private void OnApplicationQuit()
@@ -502,7 +532,9 @@ public class RoverGatewayServer : MonoBehaviour
                         szenzorTomb != null && szenzorTomb.JobbFeher,
                         szenzorTomb != null ? szenzorTomb.JobbErtek : 0f
                     ),
-                    lidar_szektor_min = lidar != null ? lidar.SzektorMinTavolsag : new float[0]
+                    lidar_szektor_min = lidar != null ? lidar.SzektorMinTavolsag : new float[0],
+                        collision_occurred = utkozesTortentAzUtolsoResetOta,
+                        collision_count = utkozesekSzamaAzUtolsoResetOta
                 });
                 break;
 
@@ -601,6 +633,8 @@ public class RoverGatewayServer : MonoBehaviour
                 rigidBody.position = kezdoPozicio;
                 rigidBody.rotation = kezdoForgatas;
                 allapot = RoverAllapot.IDLE;
+                utkozesTortentAzUtolsoResetOta = false;
+                utkozesekSzamaAzUtolsoResetOta = 0;
                 valasz = SikerValasz(
                     keres.RequestId,
                     "A hiba törölve; a rover visszaállt a kezdőhelyzetbe."
@@ -633,6 +667,8 @@ public class RoverGatewayServer : MonoBehaviour
                 RoverAzonnaliLeallitasa();
                 rigidBody.position = kezdoPozicio;
                 rigidBody.rotation = kezdoForgatas;
+                utkozesTortentAzUtolsoResetOta = false;
+                utkozesekSzamaAzUtolsoResetOta = 0;
                 valasz = SikerValasz(
                     keres.RequestId,
                     "A rover visszaallt a kezdohelyzetbe."

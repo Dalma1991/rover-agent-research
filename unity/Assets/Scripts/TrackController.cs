@@ -26,6 +26,7 @@ public class TrackController : MonoBehaviour
     private readonly List<AkadalyPeldany> akadalyok = new List<AkadalyPeldany>();
 
     private const int IvSzegmensSzam = 24; // hány szakaszból áll egy félkör
+    private const string AkadalyTagNev = "Akadaly"; // M10: utkozesdetektalashoz
 
     [Serializable]
     private class Pont3D
@@ -246,11 +247,15 @@ public class TrackController : MonoBehaviour
         {
             GameObject objektum = GameObject.CreatePrimitive(PrimitiveType.Cube);
             objektum.name = akadaly.id;
+                        // M10: "Akadaly" tag az utkozesdetektalashoz (lasd
+            // RoverGatewayServer.OnCollisionEnter). A tag maganak a
+            // Unity projektnek a Tags & Layers listajaban is szerepelnie
+            // kell (mar hozzaadva Project Settings-ben).
+            objektum.tag = AkadalyTagNev;
             objektum.transform.SetParent(transform);
             objektum.transform.position = akadaly.position_m.UnityVektor();
             objektum.transform.localScale = akadaly.size_m.UnityVektor();
             objektum.SetActive(false);
-
             akadalyok.Add(new AkadalyPeldany
             {
                 Objektum = objektum,

@@ -257,6 +257,51 @@ vegyes eredményként rögzítettük, a gyökérok pontos diagnosztizálását
 azonosítva, nem próbáltuk tovább vakon paraméter-hangolással
 "eltüntetni" a jelenséget.
 
+### 18. M10: ütközésdetektálás, lépésnaplózás, vonal-visszakeresés (M10 kötelező AI-használat)
+Az M10 mérföldkő elején a Claude-tól kértem, hogy a hivatalos
+feladatkiírás alapján állítson össze egy M10 tervet
+(`docs/m10-plan.md`), majd a repó tényleges állapotát egyeztetve vele
+derült ki két, korábban észrevétlen rés: a `docs/protocol.md` nem
+dokumentálta a már M08 óta létező `lidar_szektor_min` mezőt, és a
+rendszernek egyáltalán nem volt ütközésdetektálása (az "akadálykerülések
+száma" metrika valójában csak az AKADÁLY állapotba lépések számát
+mérte, nem a kerülés sikerességét). A Claude ezeket pótolta: `Akadaly`
+tag bevezetése (`TrackController.cs`, `TagManager.asset`),
+`OnCollisionEnter` kezelő és `collision_occurred`/`collision_count`
+mezők (`RoverGatewayServer.cs`, `observe` válasz), dokumentálva
+`docs/protocol.md`-ben, kizárólag diagnosztikai célként megjelölve.
+
+Emellett a Claude megírta a lépésenkénti diagnosztikai naplózást
+(`LepesNaplozo` osztály a baseline kontrollerben), egy heurisztikus
+oszcilláció-kereső elemzőszkriptet (`controllers/analyze_step_log.py`),
+és egy új, teszteletlen `VISSZATALALAS` állapotot az akadálykerülés
+utáni explicit vonal-visszakereséshez (az elkerülési iránnyal
+ellentétes irányba forogva keres, és `KERESES`-re eszkalál, ha nem
+talál vonalat). Az állapotgép mind a négy állapotára írt 9 unit tesztet
+(`tests/baseline_line_follower_test.py`, stub gateway-kliens, Unity
+nélkül futtatható) - mind zöld.
+
+**Emberi ellenőrzés (Unity Play mód):** manuálisan teszteltem az
+ütközésdetektálást Play módban - egy mindig aktív teszt-objektumot
+(`TesztAkadaly`) ideiglenesen `Akadaly` taggel ellátva, és a rover
+pozícióját kézzel ráállítva, az `OnCollisionEnter` helyesen és
+ismételten lefutott a Console naplóban. Ezzel megerősítést nyert,
+hogy a mechanizmus működik.
+
+A teszt közben egy fontos, nem tervezett módszertani problémát is
+feltártunk: ha a rover mélyen belelóg egy akadályba és ott marad, a
+fizikai motor minden lépésben újra meghívja az `OnCollisionEnter`-t,
+így egyetlen folyamatos ütközés a jelenlegi implementációval több
+tucat különálló eseményként számolódik (13-szor nőtt a számláló
+néhány másodperc alatt egyetlen beragadás során). Ezt dokumentáltuk a
+`docs/m10-plan.md`-ben, mint az éles mérés előtt kötelezően javítandó
+hibát - nem hallgattuk el és nem próbáltuk "belesimítani" az
+eredménybe.
+
+A `VISSZATALALAS` állapot tényleges Unity Play mód-os viselkedése
+még nem lett kipróbálva - ez a következő lépés.
+
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
