@@ -63,10 +63,18 @@ public class RoverGatewayServer : MonoBehaviour
     private const string AkadalyTagNev = "Akadaly";
     private bool utkozesTortentAzUtolsoResetOta = false;
     private int utkozesekSzamaAzUtolsoResetOta = 0;
+    // M10 javitas (2. probalkozas): a colliderenkenti be-/kilepes
+    // szamlalasa instabilnak bizonyult, amikor a rover tobb colliderje
+    // (alvaz + 4 kerek) egyszerre, melyen atfedesben van egy akadallyal
+    // - a fizikai motor ilyenkor bizonytalanul, oda-vissza jelzi az
+    // erintkezest. Ehelyett egy egyszeru, idoalapu "hutesi" ablakot
+    // hasznalunk: ha ket OnCollisionEnter kozott kevesebb, mint
+    // UtkozesCooldownMasodperc telik el, nem szamit uj utkozesnek.
+    private const float UtkozesCooldownMasodperc = 0.5f;
+    private float utolsoUtkozesIdopontja = float.NegativeInfinity;
     private TcpListener listener;
     private Thread listenerSzal;
     private volatile bool fut;
-
     private Vector3 mozgasIranya;
     private float hatralevoTavolsag;
     private float maximalisSebesseg;
@@ -266,18 +274,26 @@ public class RoverGatewayServer : MonoBehaviour
     // A rover kinematikus, az akadalyok statikus colliderek - ez a
     // kombinacio eleg ahhoz, hogy Unity generalja az utkozesi esemenyt,
     // mivel a roveren van (kinematikus) Rigidbody.
+
     private void OnCollisionEnter(Collision utkozes)
     {
         if (utkozes.collider != null && utkozes.collider.CompareTag(AkadalyTagNev))
         {
-            utkozesTortentAzUtolsoResetOta = true;
-            utkozesekSzamaAzUtolsoResetOta++;
-            naploUzenetek.Enqueue(
-                $"M10: utkozes eszlelve az akadallyal '{utkozes.collider.name}' " +
-                $"(osszesen {utkozesekSzamaAzUtolsoResetOta} az utolso reset ota)."
-            );
+            float most = Time.time;
+            if (most - utolsoUtkozesIdopontja > UtkozesCooldownMasodperc)
+            {
+                utkozesTortentAzUtolsoResetOta = true;
+                utkozesekSzamaAzUtolsoResetOta++;
+                naploUzenetek.Enqueue(
+                    $"M10: utkozes eszlelve az akadallyal '{utkozes.collider.name}' " +
+                    $"(osszesen {utkozesekSzamaAzUtolsoResetOta} az utolso reset ota)."
+                );
+            }
+            utolsoUtkozesIdopontja = most;
         }
     }
+
+
 
     private void OnApplicationQuit()
     {
@@ -635,6 +651,7 @@ public class RoverGatewayServer : MonoBehaviour
                 allapot = RoverAllapot.IDLE;
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
+                utolsoUtkozesIdopontja = float.NegativeInfinity;
                 valasz = SikerValasz(
                     keres.RequestId,
                     "A hiba törölve; a rover visszaállt a kezdőhelyzetbe."
@@ -669,6 +686,7 @@ public class RoverGatewayServer : MonoBehaviour
                 rigidBody.rotation = kezdoForgatas;
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
+                               utolsoUtkozesIdopontja = float.NegativeInfinity;
                 valasz = SikerValasz(
                     keres.RequestId,
                     "A rover visszaallt a kezdohelyzetbe."

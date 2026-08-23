@@ -301,6 +301,21 @@ eredménybe.
 A `VISSZATALALAS` állapot tényleges Unity Play mód-os viselkedése
 még nem lett kipróbálva - ez a következő lépés.
 
+**Utólagos javítás (ugyanaznap):** a fenti, dokumentált többszörös
+ütközés-számlálási hibát kijavítottuk. Az első próbálkozás (a
+`OnCollisionEnter`/`OnCollisionExit` pár segítségével számolt, hány
+akadállyal érintkezik éppen a rover) **nem vált be** - egy
+diagnosztikai naplózással feltártuk, hogy a rover több colliderje
+(alváz + 4 kerék) egyszerre, mélyen átfedésben egy akadállyal
+instabil, oda-vissza ugráló érintkezés-jelzéseket okozott a fizikai
+motorban, így a számláló továbbra is hamisan magas maradt. Ehelyett
+egy egyszerűbb, időalapú "hűtési" (cooldown) mechanizmusra váltottunk
+(0.5 másodperc): ez manuálisan tesztelve bevált - egy rögzített
+pozícióban a számláló nem nőtt tovább több mint két percig, míg a
+korábbi verzióval percenként több tucatszor nőtt volna.
+
+## Megjegyzések
+
 
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,

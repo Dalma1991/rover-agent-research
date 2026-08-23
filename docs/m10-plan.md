@@ -61,15 +61,18 @@ Napló helye: `logs/m10_lepes_naplo.jsonl` (`--lepes-naplo` kapcsolóval
   mindig aktív teszt-objektum (`TesztAkadaly`, ideiglenesen `Akadaly`
   taggel ellátva) helyére állítva az `OnCollisionEnter` helyesen és
   ismételten lefutott (`M10: utkozes eszlelve...` log-üzenet).
-- **Fontos, dokumentált módszertani felfedezés:** ha a rover mélyen
-  belelóg egy akadályba és ott marad, a fizikai motor minden lépésben
-  újra meghívja az `OnCollisionEnter`-t - egyetlen beragadás alatt a
-  számláló 13-szor is nőtt néhány másodperc alatt. A jelenlegi
-  számláló tehát egy folyamatos ütközést több különálló eseményként
-  számol. Ezt javítani kell (pl. `OnCollisionExit`-tel párosított
-  jelzővel: csak akkor számítson újra ütközésnek, ha közben a rover
-  ténylegesen elvált az akadálytól) **mielőtt éles mérésre
-  támaszkodnánk** rá - egyelőre csak dokumentálva, nem javítva.
+- - **Javítva és igazolva:** a többszörös ütközés-számlálás problémáját
+  egy időalapú "hűtési" (cooldown) mechanizmussal orvosoltuk
+  (`UtkozesCooldownMasodperc = 0.5f`): egy új ütközés csak akkor
+  számít, ha az előzőtől legalább fél másodperc telt el. Az első
+  próbálkozás (colliderenkénti be-/kilépés számlálása
+  `OnCollisionEnter`/`OnCollisionExit` párral) **nem vált be** - a
+  rover több colliderje (alváz + 4 kerék) egyszerre, mélyen átfedésben
+  egy akadállyal instabil, oda-vissza ugráló érintkezés-jelzéseket
+  produkált a fizikai motorban. Az időalapú megoldást manuálisan
+  teszteltük: egy rögzített pozícióban a számláló **nem nőtt tovább**
+  több mint két percig, míg a korábbi (hibás) verzióval percenként
+  több tucatszor nőtt volna.
 
 ### 3. Oszcilláció diagnosztizálása a lépésnaplóból (kész)
 Új `controllers/analyze_step_log.py` szkript: futásonként megkeresi az
