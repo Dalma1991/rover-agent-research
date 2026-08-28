@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "metadata": {
-    "name": "stadium-train-baseline",
+    "name": "stadium-train-baseline-always-visible",
     "type": "train",
     "seed": 2984003395
   },
@@ -20,13 +20,13 @@
       "id": "train-box-01",
       "position_m": { "x": 4.0, "y": 0.396, "z": 2.381 },
       "size_m": { "x": 0.873, "y": 0.792, "z": 0.789 },
-      "schedule": { "appear_at_s": 4.003, "visible_for_s": 6.976, "disappear_at_s": 10.979 }
+      "schedule": { "appear_at_s": 0.0, "visible_for_s": 100000.0, "disappear_at_s": 100000.0 }
     },
     {
       "id": "train-box-02",
       "position_m": { "x": -4.0, "y": 0.306, "z": 2.628 },
       "size_m": { "x": 0.818, "y": 0.613, "z": 0.571 },
-      "schedule": { "appear_at_s": 13.712, "visible_for_s": 5.397, "disappear_at_s": 19.109 }
+      "schedule": { "appear_at_s": 0.0, "visible_for_s": 100000.0, "disappear_at_s": 100000.0 }
     }
   ]
 }

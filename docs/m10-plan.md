@@ -216,6 +216,26 @@ Demonstrációs videó (`docs/videos/m10-akadalykerules-demo.mov`) egy
 valós, sikeres akadálykerülésről rögzítve, csökkentett (3x) Time
 Scale mellett a jobb követhetőség kedvéért.
 
-## Következő konkrét lépés
-Az M10 munkacsomagjai mind elkészültek és dokumentálva vannak. Hátra
-van: az M10 git tag és a GitHub Milestone/Issue lezárása.
+## Utólagos audit és javítás (ugyanaznap)
+Egy alapos, utólagos ellenőrzés három konkrét hiányosságot tárt fel,
+amit itt dokumentálunk, mert pontosan illik a projekt "őszinte
+hibadokumentáció" elvéhez:
+
+1. **Regressziós teszt-hiba (javítva):** a végleges mérés kedvéért
+   tartósan módosított `stadium-train-baseline.json` sosem lett
+   visszaszinkronizálva az M06-os determinisztikus generátorral,
+   emiatt a `tests/scenario_seed_test.py` pirosra vált. Javítás: a
+   fájlt visszaállítottuk a generátor-hű, eredeti időzítésre, a
+   végleges méréshez használt "örökké látható" változatot pedig
+   külön, névvel ellátott fájlba (`stadium-train-baseline-always-visible.json`)
+   különítettük el. A teljes tesztkészlet (`scenario_seed_test.py`,
+   `baseline_line_follower_test.py`, `protocol_fuzz_test.py`) most
+   zöld.
+2. **Nyers benchmark logok (javítva):** korábban csak az összesített
+   statisztika volt commitolva. Pótoltuk a `logs/m09_runs.jsonl`
+   fájlt és a végleges 30 futás szűrt, lépésenkénti naplóját
+   (`logs/m10_vegleges_30_futas_lepesnaplo.jsonl`).
+3. **Az elfogadási feltétel formális teljesülése (nyitott kérdés,
+   nem "javítható"):** a kiírás megfogalmazása szerint a rendszernek
+   "előre definiált akadályszcenáriók többségében ütközés nélkül"
+   kell visszatérnie a vonalra. A VI. fejezetben (Az
