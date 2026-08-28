@@ -238,4 +238,14 @@ hibadokumentáció" elvéhez:
 3. **Az elfogadási feltétel formális teljesülése (nyitott kérdés,
    nem "javítható"):** a kiírás megfogalmazása szerint a rendszernek
    "előre definiált akadályszcenáriók többségében ütközés nélkül"
-   kell visszatérnie a vonalra. A VI. fejezetben (Az
+   kell visszatérnie a vonalra. A VI. fejezetben (Az eredmények
+   összegzése) bemutatott, saját, integrált mérésünk ezt nem
+   teljesíti (30/30 futásban volt ütközés, 18/30-ban pályaelhagyás).
+   Ennek okát az M09-es, még nyitott oszcillációs problémára
+   vezetjük vissza - ezt nem tekintjük M10-specifikus hibának, de
+   formálisan nem állítjuk, hogy az elfogadási feltétel teljesül.
+
+## Következő konkrét lépés
+A fenti 1-2. pont javítva. A 3. pont (az integrált elfogadási
+feltétel formális teljesítése) az M09-es oszcillációs probléma
+gyökérokának megoldásától függ - ez M11+ munkaként azonosítva marad.
