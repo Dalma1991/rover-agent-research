@@ -68,3 +68,11 @@ controllerrel és neurális policy-vel egyaránt.
   két 30 futásos mérési sorozat (0/30 és 0/30 pályaelhagyás),
   dokumentált nyitott kérdéssel az akadálykerülés kétmodális
   eloszlásáról (lásd docs/m09-plan.md).
+- **m10**: ütközésdetektálás (`OnCollisionEnter`, időalapú cooldown
+  a többszörös számlálás ellen), lépésenkénti diagnosztikai naplózás,
+  irányított vonal-visszakeresés akadálykerülés után (`VISSZATALALAS`
+  állapot, 11/11 sikeres Unity Play mód-os teszten), explicit
+  zsákutca-észlelés és -eszkalálás, javított akadály-időzítés
+  (`reset_position`-höz kötve, nem a Play mód indításához) - végleges
+  30 futásos mérés dokumentált nyitott kérdéssel az M09-ben azonosított
+  oszcillációs probléma további megerősítéséről (lásd docs/m10-plan.md).
