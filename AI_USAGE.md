@@ -355,6 +355,59 @@ rossz argumentum-sorrenddel csúszott be. Mindkettőt a hibaüzenetek
 próbáltunk vakon, a tényleges fájltartalom ellenőrzése nélkül
 módosítani.
 
+**Akadály-időzítés javítása és végleges mérés (ugyanaznap):** a
+végleges 30 futásos mérési sorozat közben derült ki egy komoly,
+korábban észrevétlen hiba - az akadályok `schedule.appear_at_s`/
+`disappear_at_s` időzítése a Play mód *indításához* volt kötve, nem
+az egyes futások `reset_position` parancsához. Ez azt jelentette,
+hogy az akadályok gyakorlatilag csak egyszer, röviddel a Play mód
+elindítása után jelentek meg, utána egy teljes Play munkamenetben
+soha többé - így a korábbi mérési sorozatok jelentős része
+valójában akadály nélkül futott. A Claude-dal együtt azonosítottuk
+a gyökérokot (a `TrackController.Update()` a `Time.timeSinceLevelLoad`
+abszolút értékét használta), és bevezettünk egy
+`UjrakezdiAkadalyUtemezest()` nyilvános metódust, amit a
+`RoverGatewayServer` minden `reset_position` parancsnál meghív.
+Eközben egy másik hibát is találtunk és javítottunk: a
+`TrackController.FelepitAkadalyokat()` korábban sosem törölte a
+korábban létrehozott akadályokat újraépítés előtt, ami Editor-beli
+újrafordításoknál duplikálódáshoz és `MissingReferenceException`-höz
+vezetett.
+
+Menet közben kiderült egy további, gyakorlati korlát is: a 70x Time
+Scale miatt a hálózati parancsok oda-vissza útja alatt is több
+szimulált másodperc telik el, így az eredeti, rövid (5-7 másodperces)
+időzített akadály-ablakot TCP-n keresztül irányítva gyakorlatilag
+lehetetlen eltalálni. Emiatt a végleges méréshez **tudatosan és
+dokumentáltan** állandóan láthatóvá tettük az akadályokat (eltérve az
+eredeti, tervezett időzített szcenáriótól) - ezt a döntést és a
+korlátot a `docs/m10-plan.md`-ben egyértelműen jelöltük, nem
+próbáltuk elhallgatni vagy "véletlennek" beállítani.
+
+A végleges mérés (30 futás, mindkét akadály állandóan látható): átlag
+2.8 akadálykerülés/futás, 0 zsákutca, de **18/30 futásban
+pályaelhagyás** és átlag 20.9 ütközés/futás. A Claude egyértelműen
+jelezte, hogy ez nem az M10-es fejlesztések (ütközésdetektálás,
+VISSZATALALAS, zsákutca-kezelés) hibája - azok külön-külön, célzott
+teszteken igazoltan helyesen működnek -, hanem az M09-ben már ismert
+oszcillációs probléma élesebb megjelenése, mert az állandóan jelenlévő
+akadály nem ad esélyt a rovernek "megúszni" egy rossz elkerülési
+döntést. A gyökérok-javítást nem próbáltuk ebben a mérföldkőben
+megoldani, hanem explicit módon M11+ munkaként azonosítottuk.
+
+Ez a szakasz sok manuális Unity/Rider-műveletet igényelt (script-
+módosítások, Time Scale állítgatása, JSON-szerkesztés), és menet
+közben több félresikerült próbálkozás is volt, mire a Claude
+azonosította a tényleges gyökérokot - ezt szándékosan nem
+szépítettem el, mert a folyamat maga is tanulság: első ránézésre
+"nem működik az akadálykerülés" jelenség mögött végül egy
+infrastrukturális (időzítési) hiba állt, nem a vezérlési logika
+hibája.
+
+## Megjegyzések
+Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
+mielőtt bekerült a `src/main.py` fájlba.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.

@@ -201,11 +201,18 @@ A gyökérok-javítás (pl. az elkerülési stratégia finomítása ismételt
 találkozásoknál) M11+ munkaként azonosítva, nem ennek a
 mérföldkőnek a része.
 
-### 8. State-machine diagram, videók
-Az M09-es háromállapotú diagram (`docs/state_machine.svg`)
-frissítése a tervezett `VISSZATALALAS` állapottal, majd demonstrációs
-videók - még nincs kész.
+### 8. State-machine diagram, videók (diagram kész, videó hátra)
+**Pontosítás:** a `docs/state_machine.svg` valójában a protokoll-szintű
+(IDLE/MOVING/TURNING/ERROR) állapotgépet ábrázolja M05 óta, nem a
+baseline vonalkövető kontrollerét - ez korábban tévesen lett
+összekeverve a tervben. A baseline kontroller állapotgépének
+(VONALON/AKADALY/KERESES/VISSZATALALAS) eddig csak szöveges leírása
+létezett (`docs/m09-plan.md`), vizuális diagramja nem. Ezt pótoltuk:
+új fájl, `docs/baseline_state_machine.svg`, amely mind a négy
+állapotot és az M10-ben bevezetett átmeneteket (VISSZATALALAS,
+zsákutca-eszkalálás) is ábrázolja.
 
+Demonstrációs videó még nincs kész.
 ## Következő konkrét lépés
 State-machine diagram frissítése, demonstrációs videó, majd az M10
 git tag és a GitHub Milestone/Issue lezárása.
