@@ -90,7 +90,7 @@ a rover ismételten; első, gyors triázs-eszköznek szánjuk, nem végleges
 hiba-taxonómia-döntésnek. Éles naplóval (valódi Unity-futásból) még
 nincs kipróbálva.
 
-### 4. Explicit vonal-visszakeresési eljárás kerülés után (kész - teszteletlen stratégia)
+### 4. Explicit vonal-visszakeresési eljárás kerülés után (kész, validálva Unity Play módban)
 Új `VISSZATALALAS` állapot: az AKADÁLY állapot már nem közvetlenül
 VONALON-ra vált, amint a LiDAR szabadnak jelzi az elülső szektorokat,
 hanem a `VISSZATALALAS` állapotba lép. Ott a rendszer megjegyzi az
