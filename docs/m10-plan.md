@@ -201,7 +201,7 @@ A gyökérok-javítás (pl. az elkerülési stratégia finomítása ismételt
 találkozásoknál) M11+ munkaként azonosítva, nem ennek a
 mérföldkőnek a része.
 
-### 8. State-machine diagram, videók (diagram kész, videó hátra)
+### 8. State-machine diagram, videók (kész)
 **Pontosítás:** a `docs/state_machine.svg` valójában a protokoll-szintű
 (IDLE/MOVING/TURNING/ERROR) állapotgépet ábrázolja M05 óta, nem a
 baseline vonalkövető kontrollerét - ez korábban tévesen lett
@@ -212,12 +212,10 @@ létezett (`docs/m09-plan.md`), vizuális diagramja nem. Ezt pótoltuk:
 állapotot és az M10-ben bevezetett átmeneteket (VISSZATALALAS,
 zsákutca-eszkalálás) is ábrázolja.
 
-Demonstrációs videó még nincs kész.
-## Következő konkrét lépés
-State-machine diagram frissítése, demonstrációs videó, majd az M10
-git tag és a GitHub Milestone/Issue lezárása.
-Csak ezután érdemes a 30 futásos mérési sorozatot megismételni és az
-`analyze_step_log.py`-t éles logon lefuttatni.
+Demonstrációs videó (`docs/videos/m10-akadalykerules-demo.mov`) egy
+valós, sikeres akadálykerülésről rögzítve, csökkentett (3x) Time
+Scale mellett a jobb követhetőség kedvéért.
 
-Csak ezután érdemes a 30 futásos mérési sorozatot megismételni és az
-`analyze_step_log.py`-t éles logon lefuttatni.
+## Következő konkrét lépés
+Az M10 munkacsomagjai mind elkészültek és dokumentálva vannak. Hátra
+van: az M10 git tag és a GitHub Milestone/Issue lezárása.
