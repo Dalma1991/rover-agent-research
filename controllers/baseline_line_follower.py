@@ -309,10 +309,10 @@ def egy_lepes_akadaly(
 
     # M11: az AKADALY allapot korabban csak fordult, sosem haladt elore -
     # ez okozta a dokumentalt AKADALY<->VISSZATALALAS oszcillaciot (lasd
-    # docs/m11-plan.md). A javitas: forgatas utan mindig elore is haladunk,
+    # docs/m10-5-plan.md). A javitas: forgatas utan mindig elore is haladunk,
     # hogy tenyleges oldaltavolsagot nyerjunk az akadalytol. (Egy korabbi
     # kiserlet, ami ezt egy biztonsagos-tavolsag feltetelhez kototte,
-    # rontott az eredmenyen - lasd m11-plan.md, elvetve.)
+    # rontott az eredmenyen - lasd m10-5-plan.md, elvetve.)
     move_parancs = {
         "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
     }
