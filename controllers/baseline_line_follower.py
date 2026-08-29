@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Hagyományos (AI nélküli) vonalkövető baseline kontroller - M09/M10/M11.
-
+""""Hagyományos (AI nélküli) vonalkövető baseline kontroller - M09/M10/M10.5.
 Állapotgép (VONALON / KERESÉS / AKADÁLY) + P-szabályozó a bal/jobb
 szenzor intenzitáskülönbségére. A vezérlési döntések kizárólag az
 observe válasz sensor_left/center/right és lidar_szektor_min
@@ -307,7 +306,7 @@ def egy_lepes_akadaly(
     stat.parancsok_szama += 1
     kiadott_parancsok: list[dict[str, Any]] = [turn_parancs]
 
-    # M11: az AKADALY allapot korabban csak fordult, sosem haladt elore -
+    # M10.5: az AKADALY allapot korabban csak fordult, sosem haladt elore -
     # ez okozta a dokumentalt AKADALY<->VISSZATALALAS oszcillaciot (lasd
     # docs/m10-5-plan.md). A javitas: forgatas utan mindig elore is haladunk,
     # hogy tenyleges oldaltavolsagot nyerjunk az akadalytol. (Egy korabbi

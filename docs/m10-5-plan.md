@@ -1,4 +1,4 @@
-# M11 terv: az M09/M10-ben dokumentált oszcillációs jelenség gyökérok-vizsgálata
+# M10.5 terv: az M09/M10-ben dokumentált oszcillációs jelenség gyökérok-vizsgálata
 
 ## Cél
 
@@ -62,12 +62,12 @@ pályát** akadálytalálkozás után is.
 
 ### Végleges 30 futásos összehasonlító mérés
 
-| Mutató | M10 (javítás előtt) | M11 (javítás után) |
-| --- | --- | --- |
-| Pályaelhagyás | 18/30 (60%) | **1/30 (3.3%)** |
-| Akadálykerülés/futás, átlag | 2.8 | 2.5 |
-| Ütközés/futás, átlag | 20.9 | 21.3 |
-| Ütközött futások | 30/30 | 30/30 |
+| Mutató | M10 (javítás előtt) | M10.5 (javítás után) |
+| --- | --- |----------------------|
+| Pályaelhagyás | 18/30 (60%) | **1/30 (3.3%)**      |
+| Akadálykerülés/futás, átlag | 2.8 | 2.5                  |
+| Ütközés/futás, átlag | 20.9 | 21.3                 |
+| Ütközött futások | 30/30 | 30/30                |
 
 A pályaelhagyás drasztikus (60%→3.3%) csökkenése egyértelműen
 igazolja, hogy a gyökérok-diagnózis és a javítás iránya helyes volt:
