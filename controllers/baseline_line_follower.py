@@ -45,7 +45,7 @@ KERESES_FORDULAT_FOK = 3.0
 KERESES_MAX_LEPES = 40
 
 AKADALY_KUSZOB_BELEPES_M = 0.5
-AKADALY_KUSZOB_KILEPES_M = 0.8
+AKADALY_KUSZOB_KILEPES_M = 1.1
 AKADALY_FORDULAT_FOK = 15.0
 # M10: ha ennyi egymast koveto lepesig nem sikerul kikerulni az
 # akadalyt (pl. ket akadaly koze szorult a rover - zsakutca), a

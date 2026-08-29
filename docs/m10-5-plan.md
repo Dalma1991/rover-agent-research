@@ -129,3 +129,75 @@ verziójára, ami a nap folyamán a legjobb mért eredményt adta.
 Ezt a negatív eredményt tudatosan dokumentáljuk: nem minden
 plauzibilis javítási hipotézis igazolódik be, és ennek nyílt jelzése
 ugyanolyan értékes, mint a sikeres javításoké.
+
+
+## 5. munkacsomag: az AKADALY_KUSZOB_KILEPES_M paraméterkeresés (kész, javulással)
+
+A 4. munkacsomagban dokumentált ütközésszám-probléma (átlag 21.3
+ütközés/futás, akár 99-ig kiugró értékekkel) mögött feltételezésünk
+szerint az állhatott, hogy az AKADALY állapot kilépési küszöbe
+(`AKADALY_KUSZOB_KILEPES_M = 0.8`) túl szűk: a rover még mindig
+nagyon közel volt az akadályhoz, amikor "tisztának" ítélte a
+kilátást és visszafordult a vonal felé, ami könnyen újabb
+ütközéshez vezetett.
+
+Három érték kipróbálása, mindegyik azonos (70x) Time Scale mellett,
+30-30 futásos méréssel, a közvetlen összehasonlíthatóság érdekében.
+
+### Összehasonlító táblázat
+
+| `AKADALY_KUSZOB_KILEPES_M` | Pályaelhagyás | Ütközés/futás, átlag | Ütközés/futás, max |
+| --- | --- | --- | --- |
+| 0.8 (eredeti) | 1/30 (3.3%) | 21.3 | 99 |
+| 1.5 | 7/30 (23.3%) | 12.0 | 27 |
+| **1.1** | **0/30 (0%)** | **10.2** | 29 |
+
+### AKADALY_KUSZOB_KILEPES_M = 0.8 mérés részletei (30 futás, a 4. munkacsomagból)
+
+| Mutató | Érték |
+| --- | --- |
+| Parancsok száma, átlag ± szórás | 1227.8 ± 229.3 (min 573, max 1408) |
+| Vonalvesztések száma, átlag ± szórás | 17.0 ± 9.5 (min 4, max 38) |
+| Akadálykerülések száma, átlag ± szórás | 2.5 ± 3.1 (min 0, max 17) |
+| Zsákutcák száma | 0.0 (mind a 30 futásban) |
+| Pályaelhagyások | 1/30 futásban |
+| Ütközések száma, átlag ± szórás | 22.6 ± 24.6 (min 3, max 139) |
+| Ütközött futások | 30/30 futásban |
+
+### AKADALY_KUSZOB_KILEPES_M = 1.5 mérés részletei (30 futás)
+
+| Mutató | Érték |
+| --- | --- |
+| Parancsok száma, átlag ± szórás | 1105.2 ± 317.1 (min 485, max 1365) |
+| Vonalvesztések száma, átlag ± szórás | 17.7 ± 9.5 (min 4, max 32) |
+| Akadálykerülések száma, átlag ± szórás | 1.8 ± 0.9 (min 1, max 4) |
+| Zsákutcák száma | 0.0 (mind a 30 futásban) |
+| Pályaelhagyások | 7/30 futásban |
+| Ütközések száma, átlag ± szórás | 12.0 ± 7.5 (min 3, max 27) |
+| Ütközött futások | 30/30 futásban |
+
+### AKADALY_KUSZOB_KILEPES_M = 1.1 mérés részletei (30 futás)
+
+| Mutató | Érték |
+| --- | --- |
+| Parancsok száma, átlag ± szórás | 1268.4 ± 75.0 (min 1172, max 1368) |
+| Vonalvesztések száma, átlag ± szórás | 23.4 ± 10.2 (min 9, max 41) |
+| Akadálykerülések száma, átlag ± szórás | 1.7 ± 1.1 (min 0, max 4) |
+| Zsákutcák száma | 0.0 (mind a 30 futásban) |
+| Pályaelhagyások | **0/30 futásban** |
+| Ütközések száma, átlag ± szórás | **10.2 ± 7.5** (min 3, max 29) |
+| Ütközött futások | 30/30 futásban |
+
+Az 1.5-ös érték javította az ütközésszámot, de jelentősen rontott a
+pályaelhagyáson - a rover ekkor már túl messzire fordult/haladt el
+az akadálytól ahhoz, hogy megbízhatóan visszatalálja a vonalat. Az
+1.1-es köztes érték mindkét mutatóban a legjobb eredményt hozta:
+0/30 pályaelhagyás és a három beállítás közül a legalacsonyabb
+átlagos ütközésszám, elfogadható szórással.
+
+**Végleges beállítás: `AKADALY_KUSZOB_KILEPES_M = 1.1`.** Ez egy
+egyszerű, egydimenziós paraméterkeresés volt (nem rendszeres
+grid-search vagy optimalizáció) - finomabb hangolás (pl. 1.0-1.2
+között sűrűbb mintavétellel) még tovább javíthatná az eredményt,
+de a jelen munkamenet keretein belül ezt tekintjük kielégítő
+záró beállításnak.
