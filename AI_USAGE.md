@@ -404,9 +404,35 @@ szépítettem el, mert a folyamat maga is tanulság: első ránézésre
 infrastrukturális (időzítési) hiba állt, nem a vezérlési logika
 hibája.
 
-## Megjegyzések
-Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
-mielőtt bekerült a `src/main.py` fájlba.
+**M10.5 (ugyanaznap, utólagos gyökérok-javítás):** az M09/M10-ben
+dokumentált oszcillációs jelenség gyökérokát a Claude az
+`analyze_step_log.py` végleges mérési adaton történő lefuttatásával
+azonosította: az AKADALY állapot korábban kizárólag fordult, sosem
+haladt előre, ezért a rover valódi oldaltávolság-nyerés nélkül látta
+"tisztának" a kilátást egy kis elfordulás után. Két javítási
+kísérlet is történt, mindkettő őszintén dokumentálva:
+
+1. Első kísérlet (45°-os fordulás + előrehaladás minden lépésben):
+   Unity Play módos, videóval dokumentált teszt megmutatta, hogy a
+   rover nagy, tág köröket írt le az akadály körül, elhagyva a
+   vonalat - a diagnózis helyes volt, a megvalósítás túl durva.
+   Elvetve.
+2. Finomított javítás (15°-os fordulás + előrehaladás): videóval
+   megerősítve, hogy a rover következetesen körbejárja a pályát.
+   30 futásos mérés: pályaelhagyás 60%->3.3%.
+3. Második finomítási kísérlet (biztonsági távolság küszöb az
+   előrehaladáshoz): 30 futásos mérés nem mutatott javulást, sőt
+   rontott az eredményen. Elvetve.
+4. `AKADALY_KUSZOB_KILEPES_M` paraméterkeresés (0.8 -> 1.5 -> 1.1):
+   az 1.1-es érték minden mutatóban a legjobb eredményt adta:
+   pályaelhagyás 60%->0%, átlagos ütközésszám 20.9->10.2.
+
+Minden lépésnél a Claude adta a diagnózist és a konkrét kódjavaslatot,
+a felhasználó pedig Unity Play módban, kézzel (Rider-ben szerkesztve)
+vezette be a saját projektjébe, és videóval/naplóadattal ellenőrizte
+minden egyes kísérlet tényleges hatását - beleértve a két elvetett,
+negatív eredményű kísérletet is. Részletek: `docs/m10-5-plan.md`.
+
 
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,

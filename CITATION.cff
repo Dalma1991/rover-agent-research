@@ -7,8 +7,8 @@ authors:
     given-names: "Dalma"
     affiliation: "University of Miskolc"
 repository-code: "https://github.com/Dalma1991/rover-agent-research"
-version: "0.9.0"
-date-released: "2026-08-21"
+vversion: "0.10.5"
+date-released: "2026-08-29"
 license: MIT
 keywords:
   - robotics
