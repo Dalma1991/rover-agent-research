@@ -76,7 +76,7 @@ controllerrel és neurális policy-vel egyaránt.
   (`reset_position`-höz kötve, nem a Play mód indításához) - végleges
   30 futásos mérés dokumentált nyitott kérdéssel az M09-ben azonosított
   oszcillációs probléma további megerősítéséről (lásd docs/m10-plan.md).
-  - **m10.5** (nem hivatalos, utólagos finomítás): az M09/M10-ben
+- **m10.5** (nem hivatalos, utólagos finomítás): az M09/M10-ben
   dokumentált oszcillációs jelenség gyökérokának feltárása és
   javítása - az AKADALY állapot mostantól ténylegesen halad is
   előre a fordulás közben, és az `AKADALY_KUSZOB_KILEPES_M`
