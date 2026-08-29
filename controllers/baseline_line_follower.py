@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hagyományos (AI nélküli) vonalkövető baseline kontroller - M09/M10.
+"""Hagyományos (AI nélküli) vonalkövető baseline kontroller - M09/M10/M11.
 
 Állapotgép (VONALON / KERESÉS / AKADÁLY) + P-szabályozó a bal/jobb
 szenzor intenzitáskülönbségére. A vezérlési döntések kizárólag az
@@ -47,7 +47,7 @@ KERESES_MAX_LEPES = 40
 
 AKADALY_KUSZOB_BELEPES_M = 0.5
 AKADALY_KUSZOB_KILEPES_M = 0.8
-AKADALY_FORDULAT_FOK = 45.0
+AKADALY_FORDULAT_FOK = 15.0
 # M10: ha ennyi egymast koveto lepesig nem sikerul kikerulni az
 # akadalyt (pl. ket akadaly koze szorult a rover - zsakutca), a
 # tovabbi fordulgatas helyett a tagabb KERESES allapotra eszkalalunk.
@@ -307,8 +307,23 @@ def egy_lepes_akadaly(
     }
     kliens.kuld(turn_parancs)
     stat.parancsok_szama += 1
+
+    # M11: az AKADALY allapot korabban csak fordult, sosem haladt elore -
+    # ez azt eredmenyezte, hogy a rover valodi oldaltavolsag-nyeres nelkul
+    # latta "tisztanak" a kilatast egy kis elfordulas utan (meg mindig
+    # kozvetlenul az akadaly mellett allva), majd a VISSZATALALAS
+    # visszafordulasa egyenesen visszavitte az akadalyhoz - ez okozta a
+    # dokumentalt, ismetlodo AKADALY<->VISSZATALALAS ciklust (lasd
+    # docs/m09-plan.md, docs/m10-plan.md). Most a forgatas utan elore is
+    # haladunk, hogy tenyleges oldaltavolsagot nyerjunk az akadalytol.
+    move_parancs = {
+        "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
+    }
+    kliens.kuld(move_parancs)
+    stat.parancsok_szama += 1
+
     if naplo is not None:
-        naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [turn_parancs], Allapot.AKADALY)
+        naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [turn_parancs, move_parancs], Allapot.AKADALY)
     return Allapot.AKADALY
 
 def egy_lepes_visszatalalas(
