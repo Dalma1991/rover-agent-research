@@ -97,3 +97,35 @@ szétválasztása két fázisra) M12+ munkaként azonosítva.
 `move` parancs hozzáadva, ugyanazokkal a lépésparaméterekkel
 (`MOVE_LEPES_M`, `MOVE_SEBESSEG`), mint amiket a VONALON és a
 VISSZATALALAS állapotok is használnak.
+
+## 4. munkacsomag: második finomítási kísérlet - biztonsági távolság (elvetve)
+
+Feltételezés: az ütközések egy része onnan ered, hogy az AKADALY
+állapot **akkor is** előre halad, amikor a rover **még nagyon közel**
+van az akadályhoz (esetleg már érintkezésben) - ez fizikailag
+nekicsúsztathatja, mielőtt elég elfordult volna. Javasolt javítás:
+egy `AKADALY_BIZTONSAGOS_MOZGAS_M = 0.3` küszöb bevezetése, ami alatt
+a rover csak fordul, előrehaladás nélkül (mint az eredeti, M09-es
+viselkedés), és csak e küszöb felett halad is előre.
+
+**30 futásos összehasonlító mérés (ugyanazon a szcenárión):**
+
+| Mutató | 3. munkacsomag (csak fordulás+haladás) | 4. munkacsomag (+ biztonsági távolság) |
+| --- | --- | --- |
+| Pályaelhagyás | 1/30 | 3/30 |
+| Ütközés/futás, átlag | 21.3 | 22.6 |
+| Ütközés/futás, max | 99 | 139 |
+
+Az eredmény **nem mutatott javulást** - sőt, minden mutatóban kissé
+rosszabb lett, beleértve egy jelentősen megnövekedett maximális
+ütközésszámot (139). A hipotézis (a közeli előrehaladás okozza az
+ütközések egy részét) ezzel a konkrét megvalósítással nem nyert
+megerősítést; lehetséges, hogy a küszöbérték rosszul volt megválasztva,
+vagy hogy a feltételes mozgás megszakítása más módon zavarta meg az
+elkerülési dinamikát. **A módosítást elvetettük**, és visszaálltunk a
+3. munkacsomag változatlan, feltétel nélküli előrehaladást használó
+verziójára, ami a nap folyamán a legjobb mért eredményt adta.
+
+Ezt a negatív eredményt tudatosan dokumentáljuk: nem minden
+plauzibilis javítási hipotézis igazolódik be, és ennek nyílt jelzése
+ugyanolyan értékes, mint a sikeres javításoké.

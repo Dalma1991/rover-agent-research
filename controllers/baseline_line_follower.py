@@ -61,8 +61,6 @@ JOBB_SZEKTOROK = (4, 5)
 # ellentétes irányba (mivel a vonal feltehetően arra maradt) - ha ez
 # VISSZATALALAS_MAX_LEPES lépésen belül nem talál vonalat, a rendszer
 # átvált az általános, tágabb KERESÉS állapotra.
-# FONTOS: ez a stratégia egyelőre teszteletlen feltételezés, Unity/valós
-# futáson még nem lett kiértékelve.
 VISSZATALALAS_FORDULAT_FOK = 5.0
 VISSZATALALAS_MAX_LEPES = 15
 
@@ -307,23 +305,23 @@ def egy_lepes_akadaly(
     }
     kliens.kuld(turn_parancs)
     stat.parancsok_szama += 1
+    kiadott_parancsok: list[dict[str, Any]] = [turn_parancs]
 
     # M11: az AKADALY allapot korabban csak fordult, sosem haladt elore -
-    # ez azt eredmenyezte, hogy a rover valodi oldaltavolsag-nyeres nelkul
-    # latta "tisztanak" a kilatast egy kis elfordulas utan (meg mindig
-    # kozvetlenul az akadaly mellett allva), majd a VISSZATALALAS
-    # visszafordulasa egyenesen visszavitte az akadalyhoz - ez okozta a
-    # dokumentalt, ismetlodo AKADALY<->VISSZATALALAS ciklust (lasd
-    # docs/m09-plan.md, docs/m10-plan.md). Most a forgatas utan elore is
-    # haladunk, hogy tenyleges oldaltavolsagot nyerjunk az akadalytol.
+    # ez okozta a dokumentalt AKADALY<->VISSZATALALAS oszcillaciot (lasd
+    # docs/m11-plan.md). A javitas: forgatas utan mindig elore is haladunk,
+    # hogy tenyleges oldaltavolsagot nyerjunk az akadalytol. (Egy korabbi
+    # kiserlet, ami ezt egy biztonsagos-tavolsag feltetelhez kototte,
+    # rontott az eredmenyen - lasd m11-plan.md, elvetve.)
     move_parancs = {
         "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
     }
     kliens.kuld(move_parancs)
     stat.parancsok_szama += 1
+    kiadott_parancsok.append(move_parancs)
 
     if naplo is not None:
-        naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, [turn_parancs, move_parancs], Allapot.AKADALY)
+        naplo.rogzit(lepes_szam, Allapot.AKADALY, observe, kiadott_parancsok, Allapot.AKADALY)
     return Allapot.AKADALY
 
 def egy_lepes_visszatalalas(
