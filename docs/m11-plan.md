@@ -63,9 +63,8 @@ pontosan a replay-eszköz céljának megfelelő, további vizsgálatra
 érdemes jelenség (M11+ munkára utalva).
 
 ## Hátralévő munkacsomagok
-
-2. Replay-eszköz - egy epizód visszajátszása/vizualizálása a logból.
-3. Unity Edit/Play Mode és Python unit/integration tesztek kiegészítése.
+3. Unity Edit/Play Mode és Python unit/integration tesztek kiegészítése
+   (Python-oldal kész, Unity-oldal még hátravan - lásd 3. munkacsomag).
 4. CI-pipeline (GitHub Actions): Python tesztek, formázás, sémavalidáció,
    dokumentáció-ellenőrzés.
 5. Egyparancsos kísérletindítás és eredmény-összesítés.

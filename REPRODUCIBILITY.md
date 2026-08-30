@@ -81,7 +81,7 @@ git checkout m05   # vagy m01, m02, ..., m06
 
 ## 7. Ismert korlátok
 
--- A `protocol_fuzz_test.py` élő Unity-kapcsolatra támaszkodó tesztjei
+- A `protocol_fuzz_test.py` élő Unity-kapcsolatra támaszkodó tesztjei
   időnként megbízhatatlanná válnak (socket timeout) helyi hálózati/
   erőforrás-terhelés miatt - ez tesztinfrastruktúra-korlát, nem
   protokollhiba (lásd [AI_USAGE.md](AI_USAGE.md)). Eredetileg csak a
