@@ -81,10 +81,17 @@ git checkout m05   # vagy m01, m02, ..., m06
 
 ## 7. Ismert korlátok
 
-- A `protocol_fuzz_test.py` randomizált tesztciklusa (`test_move_randomizalt_tartomanyok`,
-  `test_turn_randomizalt_tartomanyok`) időnként megbízhatatlanná válik hosszabb
-  futás után helyi hálózati/erőforrás-terhelés miatt - ez tesztinfrastruktúra-korlát,
-  nem protokollhiba (lásd [AI_USAGE.md](AI_USAGE.md)).
+-- A `protocol_fuzz_test.py` élő Unity-kapcsolatra támaszkodó tesztjei
+  időnként megbízhatatlanná válnak (socket timeout) helyi hálózati/
+  erőforrás-terhelés miatt - ez tesztinfrastruktúra-korlát, nem
+  protokollhiba (lásd [AI_USAGE.md](AI_USAGE.md)). Eredetileg csak a
+  `test_move_randomizalt_tartomanyok` és `test_turn_randomizalt_tartomanyok`
+  teszteknél figyeltük meg ezt (M05), de egy M11-es futtatáskor
+  fordítva történt: pont ez a két teszt futott le sikeresen, míg a
+  `setUp()`-ban `reset_error` parancsra váró többi teszt bukott
+  timeout-tal - vagyis a jelenség általánosabb, mint az eredeti
+  megfigyelés sugallta, és bármelyik, hálózati választ váró tesztet
+  érintheti.
 - A Codex (JetBrains AI Assistant) havi kvótája M06 közben kimerült; az érintett
   fájlokat (`experiments/scenario_validator.py`, `tests/scenario_seed_test.py`,
   `unity/Assets/Scripts/TrackController.cs`) Claude írta, ez az `AI_USAGE.md`-ben
