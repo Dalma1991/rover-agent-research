@@ -34,6 +34,34 @@ A bekötést Unity Play módban, élesben is ellenőriztük: a naplósor
 helyesen tartalmazza az összes tervezett mezőt, a teljes tesztkészlet
 (10 teszt) zöld maradt.
 
+## 2. munkacsomag: replay-vizualizáció (kész)
+
+Létrehoztunk egy `controllers/replay_visualizer.py` szkriptet, ami a
+`logs/kiserlet_naplo.jsonl` alapján egy adott futás pálya-nyomvonalát
+rajzolja ki (matplotlib), állapot szerint színezve, az ütközéseket
+külön jelölve. Ez nem egy "valódi" replay (nem küldi újra a
+parancsokat Unity-nek), hanem egy egyszerű, utólagos vizualizáció -
+ez teljesíti a kiírás "legalább vizualizálja" minimumkövetelményét.
+
+A fejlesztés közben egy valódi, apró hibát találtunk és javítottunk:
+első próbálkozásra a `privilegizalt_diagnosztika.collision_occurred`
+mezőt használtuk az ütközések jelölésére, ami szinte a teljes
+útvonalat "ütközöttnek" jelölte. A forráskód vizsgálata (
+`RoverGatewayServer.cs`, `utkozesTortentAzUtolsoResetOta` változó)
+megerősítette: ez a mező "ragadós" - egyszer igazzá válva a teljes
+futás hátralévő részére igaz marad, nem csak az adott lépésre. A
+javítás a `collision_count` mező lépésenkénti **változásának**
+figyelését jelentette, ami helyesen csak az akadályok tényleges
+helyénél jelölt ütközést.
+
+Egy érdekes, a replay-eszköz által feltárt megfigyelés: egy
+konkrét futásban (`702a82a6`) történt néhány ütközés úgy, hogy a
+rover a teljes futás alatt VONALON állapotban maradt, sosem lépett
+AKADALY állapotba - ez arra utalhat, hogy a rover néha súrolja az
+akadályt anélkül, hogy a LiDAR időben észlelné. Ez a fajta megfigyelés
+pontosan a replay-eszköz céljának megfelelő, további vizsgálatra
+érdemes jelenség (M11+ munkára utalva).
+
 ## Hátralévő munkacsomagok
 
 2. Replay-eszköz - egy epizód visszajátszása/vizualizálása a logból.
