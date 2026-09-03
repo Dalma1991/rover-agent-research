@@ -83,11 +83,36 @@ hatáskörrel, ami szükséges a `.github/workflows/` alatti fájlok
 push-olásához - ezt a token jogosultságainak frissítésével oldottuk
 meg.
 
+## 5. munkacsomag: egyparancsos kísérletindítás (kész)
+
+Létrehoztuk a `controllers/futtat_kiserletet.py` szkriptet, ami egyetlen
+paranccsal lefuttat N darab baseline-futást egymás után, majd a végén
+automatikusan meghívja a `controllers/summarize_runs.py` összesítőt:
+
+```bash
+python3 controllers/futtat_kiserletet.py --futasok-szama 30
+```
+
+Az első éles, 3 futásos próbán a láncolt indítás hibátlanul működött,
+de az összesítő "30 futás"-t írt ki, mert a `summarize_runs.py`
+mindig a napló utolsó 30 sorát nézte, függetlenül attól, hány futás
+indult most. Javítás: a `summarize_runs.py` kapott egy `--utolso N`
+kapcsolót, és a `futtat_kiserletet.py` ezt a ténylegesen elindított
+futások számával hívja meg - így az összesítés pontosan az új
+futásokra vonatkozik (2 futásos ellenőrzés: `Osszegzes (2 futas)`).
+
+Ismert korlátok:
+- a szkript jelenleg csak a `baseline_line_follower.py`-t tudja
+  indítani; az agent-alapú és tanult kontrollerekhez (M12+) egy
+  `--controller` kapcsolóval kell bővíteni;
+- `--futasok-szama 1` esetén a `statistics.stdev` hibát dob (egy
+  elemből nincs szórás) - mérésekhez ez nem releváns, de érdemes
+  kezelni;
+- a run-szintű napló neve történeti okból `logs/m09_runs.jsonl`
+  maradt, bár M10 óta minden futás oda íródik.
+
 ## Hátralévő munkacsomagok
 3. Unity Edit/Play Mode és Python unit/integration tesztek kiegészítése
    (Python-oldal kész, Unity-oldal még hátravan - lásd 3. munkacsomag).
-4. CI-pipeline (GitHub Actions): Python tesztek, formázás, sémavalidáció,
-   dokumentáció-ellenőrzés.
-5. Egyparancsos kísérletindítás és eredmény-összesítés.
 6. `REPRODUCIBILITY.md` kiegészítése M07-M10.5-ig (jelenleg csak M06-ig
    részletes).

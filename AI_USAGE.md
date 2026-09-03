@@ -434,6 +434,36 @@ minden egyes kísérlet tényleges hatását - beleértve a két elvetett,
 negatív eredményű kísérletet is. Részletek: `docs/m10-5-plan.md`.
 
 
+### 19. M11: naplózási séma, replay, CI és egyparancsos kísérletindítás (M11 kötelező AI-használat)
+
+Az M11 minden munkacsomagjánál a Claude adta a tervet és a
+kódjavaslatot, a felhasználó Rider-ben/terminálban vezette be és
+Unity Play módban, élesben ellenőrizte:
+
+1. **Egységes naplózási séma** (`common/kiserlet_naplo.py`): a
+   vezérlési adatok és a privilegizált diagnosztika szándékos
+   szétválasztása két blokkra a Claude javaslata volt, hogy a "ne
+   használjon privilegizált Unity-pozíciót" elv a naplóból is
+   ellenőrizhető legyen.
+2. **Replay-vizualizáció** (`controllers/replay_visualizer.py`):
+   első verzióban a `collision_occurred` mezőt használtuk, ami a
+   teljes útvonalat "ütközöttnek" jelölte; a `RoverGatewayServer.cs`
+   forrásának átnézésével a Claude azonosította, hogy a mező ragadós,
+   és a `collision_count` lépésenkénti változására váltottunk.
+3. **CI-pipeline** (`.github/workflows/ci.yml`): a Claude írta a
+   workflow-t; a `protocol_fuzz_test.py` tudatos kihagyása (élő
+   Unity kell hozzá) közös döntés. A PAT `workflow` hatáskörének
+   hiányát a felhasználó oldotta meg.
+4. **Egyparancsos kísérletindítás** (`controllers/futtat_kiserletet.py`):
+   a Claude írta; az éles próbán a felhasználó vette észre, hogy az
+   összesítő 30 futást ír 3 helyett - a `--utolso` kapcsoló ennek a
+   javítása.
+
+Egy Unity-crash után `Assets/_Recovery/` mappa keletkezett; a Claude
+a jelenetfájlok objektumneveinek összevetésével (`grep m_Name`)
+igazolta, hogy a mentett `TrackScene.unity` teljes, a recovery csak
+duplikált, futásidőben generált akadályokat tartalmazott - törölve.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
