@@ -1,3 +1,37 @@
+# Tesztek - lefedettségi összefoglaló
+
+Összesen 29 automatizált teszt + 1 integrációs ellenőrzés. A CI
+(`.github/workflows/ci.yml`) a Unity-t nem igénylő 23 tesztet és a
+referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
+élő Unity Play módot igényel, ezért csak helyben fut.
+
+| Fájl | Tesztek | Mit fed le | Regressziós teszt korábbi hibára |
+|---|---|---|---|
+| `baseline_line_follower_test.py` | 10 | A vonalkövető állapotgép (VONALON / AKADALY / VISSZATALALAS / KERESES) minden átmenete, stub klienssel, Unity nélkül | M10: akadály elhagyása után VISSZATALALAS-ra vált, nem közvetlenül VONALON-ra; zsákutca-eszkaláció KERESES-re `ZSAKUTCA_AKADALY_MAX_LEPES` után; M09: keresés maximuma után pályaelhagyás jelzése |
+| `kiserlet_naplo_test.py` | 5 | M11 egységes naplóséma: mezők, több lépés hozzáfűzése, seed nélküli működés, privilegizált diagnosztika alapértéke, két naplózó közös fájlba | - (új modul) |
+| `replay_visualizer_test.py` | 4 | Futás betöltése run_id alapján, ütközések jelölése, hiányzó diagnosztika kezelése | M11: a "ragadós" `collision_occurred` mező nem jelölhet minden lépést ütközöttnek - a `collision_count` növekményét kell figyelni (a replay-eszköz fejlesztése közben talált hiba) |
+| `scenario_seed_test.py` | 4 | Szcenárió-generálás determinisztikus seedelése; a bejegyzett szcenáriófájl egyezik a generátor kimenetével | M10 audit: a `stadium-train-baseline.json`-t mérés miatt tartósan módosították - ez a teszt azóta megakadályozza, hogy a generátor-hű fájl észrevétlenül megváltozzon |
+| `protocol_fuzz_test.py` | 6 (Unity kell) | v1 protokoll: randomizált move/turn tartományok, hibás/csonka JSON, extra/duplikált mezők, idempotencia, MOVING állapotbeli második move (1300-as hibakód) | M05: a fuzz teszt által feltárt két eredeti hiba (szerver-lefagyás csonka JSON-nál, engedékeny validáció) |
+| `scripts/referencia_epizod.py` | integrációs | Commitolt 500 lépéses referencia-napló metrikái egyeznek az `elvart.json`-nal, replay-kép elkészül | M11 elfogadási feltétel: referenciaepizód friss klónból |
+
+Futtatás (Unity nélkül):
+
+```bash
+python3 tests/baseline_line_follower_test.py -v
+python3 tests/kiserlet_naplo_test.py -v
+python3 tests/replay_visualizer_test.py -v
+python3 tests/scenario_seed_test.py -v
+python3 scripts/referencia_epizod.py
+```
+
+Ami **nincs** lefedve automatizált teszttel (nyitott, M11 3. munkacsomag):
+a Unity-oldali komponensek (`ColorSensor`, `LidarSensor`, `TrackController`,
+`RoverGatewayServer` ütközésdetektálás) - ezeket eddig kézi, videóval és
+kalibrációs méréssel dokumentált Play módos tesztek fedik (`docs/sensors.md`,
+`docs/lidar.md`, `docs/m10-plan.md`).
+
+---
+
 # Rover Gateway v1 fuzz tesztek
 
 A `protocol_fuzz_test.py` a futó Unity Play Mode szervert TCP-n, a v1
