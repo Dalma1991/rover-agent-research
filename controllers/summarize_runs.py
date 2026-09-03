@@ -25,7 +25,6 @@ def utolso_n_futas(n: int) -> list[dict]:
 def osszegez(n: int = 30) -> None:
     futasok = utolso_n_futas(n)
 
-    lepesek = [f["lepesek_szama"] for f in futasok]
     parancsok = [f["parancsok_szama"] for f in futasok]
     vonalveszesek = [f["vonalvesztesek_szama"] for f in futasok]
     akadalykerulesek = [f["akadaly_kerulesek_szama"] for f in futasok]

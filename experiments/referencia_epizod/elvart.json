@@ -1,0 +1,19 @@
+{
+  "run_id": "97994315-a1a2-4ea9-9482-b8f2b46a819b",
+  "controller": "baseline_line_follower",
+  "backend": "unity_sim",
+  "seed": null,
+  "lepesek_szama": 500,
+  "parancsok_szama": 667,
+  "akadaly_belepesek": 1,
+  "kereses_belepesek": 34,
+  "visszatalalas_belepesek": 1,
+  "utkozesek_szama": 6,
+  "allapot_valtasok": {
+    "AKADALY->VISSZATALALAS": 1,
+    "KERESES->VONALON": 34,
+    "VISSZATALALAS->VONALON": 1,
+    "VONALON->AKADALY": 1,
+    "VONALON->KERESES": 34
+  }
+}
