@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python beallitasa
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Fuggosegek telepitese
+        run: |
+          python -m pip install --upgrade pip
+          pip install matplotlib
+
+      - name: Baseline kontroller tesztek
+        run: python3 tests/baseline_line_follower_test.py
+
+      - name: Kiserlet-naplo tesztek
+        run: python3 tests/kiserlet_naplo_test.py
+
+      - name: Replay-vizualizacio tesztek
+        run: python3 tests/replay_visualizer_test.py
+
+      - name: Szcenario seed reprodukalhatosagi teszt
+        run: python3 tests/scenario_seed_test.py
+
+      - name: Megjegyzes a kihagyott tesztrol
+        run: |
+          echo "A protocol_fuzz_test.py elo Unity-kapcsolatot igenyel, ezert CI-ban nem fut - lasd REPRODUCIBILITY.md, Ismert korlatok."
