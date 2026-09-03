@@ -62,6 +62,40 @@ pip install jsonschema
 python3 experiments/scenario_validator.py "experiments/scenarios/*.json"
 ```
 
+### Python unit tesztek (M09-M11, nem igényelnek futó Unity-t)
+
+```bash
+python3 tests/baseline_line_follower_test.py -v
+python3 tests/kiserlet_naplo_test.py -v
+python3 tests/replay_visualizer_test.py -v
+```
+
+Ugyanezeket futtatja automatikusan a GitHub Actions CI is minden
+`main`-re történő push-nál (`.github/workflows/ci.yml`).
+
+### Méréssorozat indítása és összesítése (M09-M11)
+
+Előfeltétel: Unity Play mód a `TrackScene`-nel. Az akadályok az
+alapértelmezett `stadium-train-baseline.json` szcenárióban időzítve,
+rövid ablakokban láthatók; az M10/M10.5 végleges mérések a
+`TrackController` Inspectorában átállított
+`stadium-train-baseline-always-visible.json` szcenárióval készültek.
+
+```bash
+# N futas egymas utan + automatikus osszesites (csak az uj futasokra)
+python3 controllers/futtat_kiserletet.py --futasok-szama 30
+
+# korabbi futasok utolagos osszesitese
+python3 controllers/summarize_runs.py --utolso 30
+
+# lepesenkenti naplo elemzese es replay-kep
+python3 controllers/analyze_step_log.py
+python3 controllers/replay_visualizer.py
+```
+
+A run-szintű napló a `logs/m09_runs.jsonl`, a lépésenkénti napló a
+`logs/kiserlet_naplo.jsonl` (M11 séma) fájlba íródik.
+
 ## 6. Mérföldkövek és a hozzájuk tartozó fő artifactok
 
 | Mérföldkő | Git tag | Fő fájlok |
@@ -72,11 +106,16 @@ python3 experiments/scenario_validator.py "experiments/scenarios/*.json"
 | M04 | `m04` | `unity/Assets/Prefabs/RoverChassis.prefab`, `docs/coordinate-system.md` |
 | M05 | `m05` | `docs/protocol.md`, `unity/Assets/Scripts/RoverGatewayServer.cs` (v1), `tests/protocol_fuzz_test.py`, `docs/state_machine.svg` |
 | M06 | `m06` | `docs/scenario.schema.json`, `docs/scenario-schema.md`, `scripts/generate_scenario_seed.py`, `scripts/generate_example_scenarios.py`, `experiments/scenario_validator.py`, `experiments/scenarios/*.json`, `tests/scenario_seed_test.py`, `unity/Assets/Scripts/TrackController.cs`, `docs/screenshots/m06-*.png` |
+| M07 | `m07` | `unity/Assets/Scripts/ColorSensor.cs`, `unity/Assets/Scripts/SensorArray.cs`, `unity/Assets/Scenes/TrackScene.unity`, `docs/sensors.md` |
+| M08 | `m08` | `unity/Assets/Scripts/LidarSensor.cs`, `docs/lidar.md` |
+| M09 | `m09` | `controllers/baseline_line_follower.py`, `controllers/summarize_runs.py`, `tests/baseline_line_follower_test.py`, `docs/m09-plan.md`, `docs/baseline_state_machine.svg`, `logs/m09_runs.jsonl` |
+| M10 | `m10` | `unity/Assets/Scripts/RoverGatewayServer.cs` (ütközésdetektálás), `controllers/analyze_step_log.py`, `docs/m10-plan.md`, `docs/videos/m10-akadalykerules-demo.mov`, `logs/m10_vegleges_30_futas_lepesnaplo.jsonl`, `experiments/scenarios/stadium-train-baseline-always-visible.json` |
+| M10.5 (nem hivatalos) | `m10-5` | `controllers/baseline_line_follower.py` (AKADALY előrehaladás, 15°, `AKADALY_KUSZOB_KILEPES_M`=1.1), `docs/m10-5-plan.md` |
 
 Egy adott mérföldkő állapotának pontos visszaállításához:
 
 ```bash
-git checkout m05   # vagy m01, m02, ..., m06
+git checkout m05   # vagy m01, m02, ..., m10, m10-5
 ```
 
 ## 7. Ismert korlátok
