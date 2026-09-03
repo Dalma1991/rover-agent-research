@@ -55,4 +55,11 @@ def osszegez(n: int = 30) -> None:
 
 
 if __name__ == "__main__":
-    osszegez()
+    import argparse
+    parser = argparse.ArgumentParser(description="Baseline futasi naplok osszegzese")
+    parser.add_argument(
+        "--utolso", type=int, default=30,
+        help="Hany legutobbi futast osszegezzen a naplobol (alapertelmezett: 30).",
+    )
+    args = parser.parse_args()
+    osszegez(args.utolso)

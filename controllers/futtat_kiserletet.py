@@ -49,7 +49,9 @@ def main() -> int:
             return eredmeny.returncode
 
     print("\n=== Osszesites futtatasa ===")
-    osszesito_eredmeny = subprocess.run([sys.executable, str(summarize_szkript)])
+    osszesito_eredmeny = subprocess.run(
+        [sys.executable, str(summarize_szkript), "--utolso", str(args.futasok_szama)]
+    )
     return osszesito_eredmeny.returncode
 
 
