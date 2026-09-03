@@ -96,6 +96,48 @@ python3 controllers/replay_visualizer.py
 A run-szintű napló a `logs/m09_runs.jsonl`, a lépésenkénti napló a
 `logs/kiserlet_naplo.jsonl` (M11 séma) fájlba íródik.
 
+## 5b. Referenciaepizód friss klónból (M11 elfogadási feltétel)
+
+Nem igényel futó Unity-t. A `experiments/referencia_epizod/` mappa
+egy teljes, 500 lépéses baseline-futás lépésenkénti naplóját
+tartalmazza (`referencia_epizod.jsonl`, M11 naplóséma, Unity
+szimulátor, `stadium-train-baseline-always-visible.json` szcenárió,
+M10.5-ös kontroller-paraméterek), valamint a belőle számított elvárt
+metrikákat (`elvart.json`).
+
+```bash
+git clone https://github.com/Dalma1991/rover-agent-research.git
+cd rover-agent-research
+pip install matplotlib
+python3 scripts/referencia_epizod.py
+```
+
+Elvárt kimenet: a szkript kiírja a metrikákat, `OK: a referenciaepizod
+metrikai megegyeznek az elvart ertekekkel.` üzenettel zár, és
+elkészíti a `docs/screenshots/referencia_replay.png` replay-képet.
+Az elvárt értékek (`experiments/referencia_epizod/elvart.json`):
+
+| Metrika | Érték |
+|---|---|
+| Lépések száma | 500 |
+| Mozgásparancsok (turn/move, observe nélkül) | 667 |
+| VONALON→AKADALY belépések | 1 |
+| AKADALY→VISSZATALALAS→VONALON | 1 → 1 |
+| VONALON→KERESES belépések | 34 |
+| Ütközések (collision_count növekmény) | 6 |
+| Zsákutca-eszkaláció (AKADALY→KERESES) | 0 |
+
+Ha bármelyik érték eltér, a szkript felsorolja az eltéréseket és
+nem-nulla kilépési kóddal tér vissza. Ugyanez a lépés a CI-ban is
+lefut minden push-nál, így a referenciaepizód reprodukálhatósága
+folyamatosan ellenőrzött.
+
+A CI (`.github/workflows/ci.yml`) ezen felül futtatja a Python
+teszteket, a szcenárió-séma validációt (`experiments/scenario_validator.py`),
+a statikus kódellenőrzést (`pyflakes`) és a dokumentáció-ellenőrzést
+(`scripts/ellenoriz_dokumentaciot.py`: a dokumentumokban hivatkozott
+fájlok verziókövetettek-e).
+
 ## 6. Mérföldkövek és a hozzájuk tartozó fő artifactok
 
 | Mérföldkő | Git tag | Fő fájlok |
