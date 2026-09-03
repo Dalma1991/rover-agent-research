@@ -1,5 +1,3 @@
-[![CI](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml/badge.svg)](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml)
-
 # Rover Gateway v1 fuzz tesztek
 
 A `protocol_fuzz_test.py` a futó Unity Play Mode szervert TCP-n, a v1

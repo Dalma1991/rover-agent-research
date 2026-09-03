@@ -1,3 +1,5 @@
+[![CI](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml/badge.svg)](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml)
+
 # rover-agent-research
 
 Kutatási projekt: *Simulation-Blind Two-Timescale Rover Control by
