@@ -62,6 +62,27 @@ akadályt anélkül, hogy a LiDAR időben észlelné. Ez a fajta megfigyelés
 pontosan a replay-eszköz céljának megfelelő, további vizsgálatra
 érdemes jelenség (M11+ munkára utalva).
 
+## 4. munkacsomag: CI-pipeline (kész)
+
+Létrehoztunk egy GitHub Actions workflow-t (`.github/workflows/ci.yml`),
+ami minden `main`-re történő push-nál és pull requestnél automatikusan
+lefuttatja a Python-tesztkészletet: `baseline_line_follower_test.py`,
+`kiserlet_naplo_test.py`, `replay_visualizer_test.py`,
+`scenario_seed_test.py`. A `protocol_fuzz_test.py`-t tudatosan
+kihagytuk a CI-ból, mivel élő Unity-kapcsolatot igényel, ami a
+GitHub Actions futtatókörnyezetben nem elérhető (lásd
+`REPRODUCIBILITY.md`, Ismert korlátok).
+
+Az első két futtatás mindkétszer sikeresen, kb. 32-38 másodperc
+alatt lefutott. A README tetejére egy CI badge-et is felvettünk,
+ami a build aktuális állapotát mutatja.
+
+A workflow-fájl feltöltésekor egy jogosultsági korlátba ütköztünk: a
+használt Personal Access Token alapból nem rendelkezett `workflow`
+hatáskörrel, ami szükséges a `.github/workflows/` alatti fájlok
+push-olásához - ezt a token jogosultságainak frissítésével oldottuk
+meg.
+
 ## Hátralévő munkacsomagok
 3. Unity Edit/Play Mode és Python unit/integration tesztek kiegészítése
    (Python-oldal kész, Unity-oldal még hátravan - lásd 3. munkacsomag).
