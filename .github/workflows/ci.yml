@@ -20,7 +20,7 @@ jobs:
       - name: Fuggosegek telepitese
         run: |
           python -m pip install --upgrade pip
-          pip install matplotlib jsonschema pyflakes black
+          pip install matplotlib jsonschema==4.25.1 pyflakes==3.4.0 black==25.11.0
 
       - name: Baseline kontroller tesztek
         run: python3 tests/baseline_line_follower_test.py
