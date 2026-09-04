@@ -7,7 +7,7 @@ kísérleti platformmá: egységes naplózás minden kontrollerhez,
 replay-eszköz, kiegészítő tesztek, CI-pipeline és egyparancsos
 kísérletindítás.
 
-## Állapot: LEZÁRVA (`m11` tag)
+## Állapot: LEZÁRVA (`m11` tag; az `m11.1` tag az utólagos CI-pótlást jelöli: black formázás-ellenőrzés és rögzített eszközverziók)
 
 Mind a hat munkacsomag kész. A kiírás (Table 19) elfogadási feltételei:
 - hibák logból visszakövethetők - igen (a "ragadós" `collision_occurred`
