@@ -7,6 +7,26 @@ kísérleti platformmá: egységes naplózás minden kontrollerhez,
 replay-eszköz, kiegészítő tesztek, CI-pipeline és egyparancsos
 kísérletindítás.
 
+## Állapot: LEZÁRVA (`m11` tag)
+
+Mind a hat munkacsomag kész. A kiírás (Table 19) elfogadási feltételei:
+- hibák logból visszakövethetők - igen (a "ragadós" `collision_occurred`
+  és a fantom-ív hiba is naplóból/tesztből került elő);
+- referenciaepizód friss klónból reprodukálható - igen
+  (`scripts/referencia_epizod.py`, Unity nélkül, CI-ban is fut);
+- CI zöld - igen (tesztek + sémavalidáció + pyflakes + dokumentáció-ellenőrzés).
+
+GitHub-bizonyítékok: `m11` tag, `REPRODUCIBILITY.md` (5b. fejezet + M11
+sor), CI badge a README-ben, replay videó
+(`docs/videos/m11-referencia-replay.gif`), `tests/README.md`
+lefedettségi összefoglaló.
+
+Az M11 során talált és javított örökölt hibák: (1) fantom fehér ív a
+pálya-geometriában (M07 óta, Unity Edit Mode teszt találta), (2) az
+összesítő mindig 30 futást nézett az indított N helyett, (3) pyflakes:
+nem használt változó/importok, (4) dokumentumok nem verziókövetett
+naplófájlokra hivatkoztak (CI doc-check találta).
+
 ## 1. munkacsomag: egységes naplózási séma (kész)
 
 Létrehoztunk egy új, önálló Python-csomagot (`common/kiserlet_naplo.py`),

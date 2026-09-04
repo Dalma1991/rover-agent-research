@@ -153,11 +153,12 @@ fájlok verziókövetettek-e).
 | M09 | `m09` | `controllers/baseline_line_follower.py`, `controllers/summarize_runs.py`, `tests/baseline_line_follower_test.py`, `docs/m09-plan.md`, `docs/baseline_state_machine.svg`, `logs/m09_runs.jsonl` |
 | M10 | `m10` | `unity/Assets/Scripts/RoverGatewayServer.cs` (ütközésdetektálás), `controllers/analyze_step_log.py`, `docs/m10-plan.md`, `docs/videos/m10-akadalykerules-demo.mov`, `logs/m10_vegleges_30_futas_lepesnaplo.jsonl`, `experiments/scenarios/stadium-train-baseline-always-visible.json` |
 | M10.5 (nem hivatalos) | `m10-5` | `controllers/baseline_line_follower.py` (AKADALY előrehaladás, 15°, `AKADALY_KUSZOB_KILEPES_M`=1.1), `docs/m10-5-plan.md` |
+| M11 | `m11` | `common/kiserlet_naplo.py`, `controllers/replay_visualizer.py` (`--video`), `controllers/futtat_kiserletet.py`, `controllers/summarize_runs.py` (`--utolso`), `scripts/referencia_epizod.py`, `scripts/ellenoriz_dokumentaciot.py`, `experiments/referencia_epizod/`, `unity/Assets/Tests/EditMode/TrackControllerGeometriaTeszt.cs`, `unity/Assets/Tests/PlayMode/TrackSceneTeszt.cs`, `unity/Assets/Scripts/TrackController.cs` (fantom-ív javítás), `tests/kiserlet_naplo_test.py`, `tests/replay_visualizer_test.py`, `tests/README.md`, `.github/workflows/ci.yml`, `docs/m11-plan.md`, `docs/videos/m11-referencia-replay.gif`, `docs/screenshots/referencia_replay.png`, `docs/screenshots/m11-unity-tests-editmode.png`, `docs/screenshots/m11-unity-tests-playmode.png` |
 
 Egy adott mérföldkő állapotának pontos visszaállításához:
 
 ```bash
-git checkout m05   # vagy m01, m02, ..., m10, m10-5
+git checkout m05   # vagy m01, m02, ..., m10, m10-5, m11
 ```
 
 ## 7. Ismert korlátok
