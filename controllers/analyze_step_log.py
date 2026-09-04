@@ -50,7 +50,9 @@ def sorok_beolvasasa(fajl: Path) -> list[dict[str, Any]]:
     return sorok
 
 
-def futasokra_csoportositva(bejegyzesek: Iterable[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+def futasokra_csoportositva(
+    bejegyzesek: Iterable[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
     futasok: dict[str, list[dict[str, Any]]] = {}
     for bejegyzes in bejegyzesek:
         futasok.setdefault(bejegyzes["run_id"], []).append(bejegyzes)

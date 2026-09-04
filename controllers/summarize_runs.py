@@ -34,30 +34,43 @@ def osszegez(n: int = 30) -> None:
     utkozott_futasok = sum(1 for f in futasok if f.get("utkozott", False))
 
     print(f"Osszegzes ({len(futasok)} futas):")
-    print(f"  Parancsok szama:      atlag={statistics.mean(parancsok):.1f}, "
-          f"szoras={statistics.stdev(parancsok):.1f}, "
-          f"min={min(parancsok)}, max={max(parancsok)}")
-    print(f"  Vonalvesztesek szama: atlag={statistics.mean(vonalveszesek):.1f}, "
-          f"szoras={statistics.stdev(vonalveszesek):.1f}, "
-          f"min={min(vonalveszesek)}, max={max(vonalveszesek)}")
-    print(f"  Akadalykerulesek:     atlag={statistics.mean(akadalykerulesek):.1f}, "
-          f"szoras={statistics.stdev(akadalykerulesek):.1f}, "
-          f"min={min(akadalykerulesek)}, max={max(akadalykerulesek)}")
-    print(f"  Zsakutcak szama:      atlag={statistics.mean(zsakutcak):.1f}, "
-          f"szoras={statistics.stdev(zsakutcak):.1f}, "
-          f"min={min(zsakutcak)}, max={max(zsakutcak)}")
+    print(
+        f"  Parancsok szama:      atlag={statistics.mean(parancsok):.1f}, "
+        f"szoras={statistics.stdev(parancsok):.1f}, "
+        f"min={min(parancsok)}, max={max(parancsok)}"
+    )
+    print(
+        f"  Vonalvesztesek szama: atlag={statistics.mean(vonalveszesek):.1f}, "
+        f"szoras={statistics.stdev(vonalveszesek):.1f}, "
+        f"min={min(vonalveszesek)}, max={max(vonalveszesek)}"
+    )
+    print(
+        f"  Akadalykerulesek:     atlag={statistics.mean(akadalykerulesek):.1f}, "
+        f"szoras={statistics.stdev(akadalykerulesek):.1f}, "
+        f"min={min(akadalykerulesek)}, max={max(akadalykerulesek)}"
+    )
+    print(
+        f"  Zsakutcak szama:      atlag={statistics.mean(zsakutcak):.1f}, "
+        f"szoras={statistics.stdev(zsakutcak):.1f}, "
+        f"min={min(zsakutcak)}, max={max(zsakutcak)}"
+    )
     print(f"  Palyaelhagyasok:      {palyaelhagyasok}/{len(futasok)} futasban")
-    print(f"  Utkozesek szama:      atlag={statistics.mean(utkozesek):.1f}, "
-          f"szoras={statistics.stdev(utkozesek):.1f}, "
-          f"min={min(utkozesek)}, max={max(utkozesek)}")
+    print(
+        f"  Utkozesek szama:      atlag={statistics.mean(utkozesek):.1f}, "
+        f"szoras={statistics.stdev(utkozesek):.1f}, "
+        f"min={min(utkozesek)}, max={max(utkozesek)}"
+    )
     print(f"  Utkozott futasok:     {utkozott_futasok}/{len(futasok)} futasban")
 
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Baseline futasi naplok osszegzese")
     parser.add_argument(
-        "--utolso", type=int, default=30,
+        "--utolso",
+        type=int,
+        default=30,
         help="Hany legutobbi futast osszegezzen a naplobol (alapertelmezett: 30).",
     )
     args = parser.parse_args()

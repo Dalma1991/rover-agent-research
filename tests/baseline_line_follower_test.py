@@ -131,9 +131,7 @@ class AllapotgepAtmenetekTest(unittest.TestCase):
 
     def test_visszatalalas_forgas_es_mozgas_utan_megtalalja_a_vonalat(self) -> None:
         stat = FutasStatisztika()
-        kliens = StubGatewayKliens(
-            [observe_valasz(white=False), observe_valasz(white=True)]
-        )
+        kliens = StubGatewayKliens([observe_valasz(white=False), observe_valasz(white=True)])
         uj_allapot = egy_lepes_visszatalalas(kliens, stat, [1], [0], None, 0)
         self.assertIs(uj_allapot, Allapot.VONALON)
 
@@ -144,9 +142,7 @@ class AllapotgepAtmenetekTest(unittest.TestCase):
         lepesszam = 0
         # +2 biztonsagi ratartas, hogy biztosan tuljussunk a korlaton.
         while lepesszam < VISSZATALALAS_MAX_LEPES + 2:
-            kliens = StubGatewayKliens(
-                [observe_valasz(white=False), observe_valasz(white=False)]
-            )
+            kliens = StubGatewayKliens([observe_valasz(white=False), observe_valasz(white=False)])
             allapot = egy_lepes_visszatalalas(
                 kliens, stat, [1], visszatalalas_lepesek, None, lepesszam
             )

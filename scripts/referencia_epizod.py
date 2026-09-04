@@ -38,11 +38,14 @@ def betolt() -> list[dict]:
 def metrikak(sorok: list[dict]) -> dict:
     run_idk = {s["run_id"] for s in sorok}
     if len(run_idk) != 1:
-        raise SystemExit(f"A referencia-naploban pontosan egy run_id-nak kell lennie, talalt: {len(run_idk)}")
+        raise SystemExit(
+            f"A referencia-naploban pontosan egy run_id-nak kell lennie, talalt: {len(run_idk)}"
+        )
 
     allapot_valtasok = Counter(
         f'{s["allapot_elotte"]}->{s["allapot_utana"]}'
-        for s in sorok if s["allapot_elotte"] != s["allapot_utana"]
+        for s in sorok
+        if s["allapot_elotte"] != s["allapot_utana"]
     )
     parancsok = sum(len(s.get("parancsok", [])) for s in sorok)
 
@@ -74,8 +77,14 @@ def metrikak(sorok: list[dict]) -> dict:
 def replay_kep(run_id: str) -> None:
     KEP.parent.mkdir(parents=True, exist_ok=True)
     parancs = [
-        sys.executable, str(GYOKER / "controllers" / "replay_visualizer.py"),
-        "--naplo-fajl", str(NAPLO), "--run-id", run_id, "--kimenet", str(KEP),
+        sys.executable,
+        str(GYOKER / "controllers" / "replay_visualizer.py"),
+        "--naplo-fajl",
+        str(NAPLO),
+        "--run-id",
+        run_id,
+        "--kimenet",
+        str(KEP),
     ]
     eredmeny = subprocess.run(parancs)
     if eredmeny.returncode != 0:
@@ -84,7 +93,9 @@ def replay_kep(run_id: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="M11 referenciaepizod ellenorzese")
-    parser.add_argument("--rogzit", action="store_true", help="Az elvart.json ujrairasa a jelenlegi ertekekkel.")
+    parser.add_argument(
+        "--rogzit", action="store_true", help="Az elvart.json ujrairasa a jelenlegi ertekekkel."
+    )
     parser.add_argument("--kep-nelkul", action="store_true", help="Ne keszitse el a replay-kepet.")
     args = parser.parse_args()
 

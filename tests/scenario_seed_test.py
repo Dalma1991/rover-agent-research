@@ -36,7 +36,8 @@ class SzcenarioSeedReprodukalhatosagTest(unittest.TestCase):
             elso = scenario_seed(tipus, nev)
             masodik = scenario_seed(tipus, nev)
             self.assertEqual(
-                elso, masodik,
+                elso,
+                masodik,
                 f"A '{tipus}:{nev}' seed nem stabil ismételt hívások között.",
             )
 
@@ -44,7 +45,8 @@ class SzcenarioSeedReprodukalhatosagTest(unittest.TestCase):
         """Különböző szcenárió-nevek (jó eséllyel) különböző seedet adnak."""
         seedek = [scenario_seed(tipus, nev) for tipus, nev, *_ in SCENARIOS]
         self.assertEqual(
-            len(seedek), len(set(seedek)),
+            len(seedek),
+            len(set(seedek)),
             "Két különböző szcenárió ugyanazt a seedet kapta - ez ütközés, "
             "vizsgáld meg a seed-képzés logikáját.",
         )
@@ -57,7 +59,8 @@ class SzcenarioSeedReprodukalhatosagTest(unittest.TestCase):
                 elso = obstacle(seed, tipus, index, hossz, sugar)
                 masodik = obstacle(seed, tipus, index, hossz, sugar)
                 self.assertEqual(
-                    elso, masodik,
+                    elso,
+                    masodik,
                     f"A(z) '{tipus}' szcenárió {index}. akadálya nem "
                     f"reprodukálható ugyanazzal a seeddel.",
                 )
@@ -88,14 +91,12 @@ class SzcenarioSeedReprodukalhatosagTest(unittest.TestCase):
                     "line_width_m": szelesseg,
                     "background_color_rgb": dict(zip(("r", "g", "b"), szin)),
                 },
-                "obstacles": [
-                    obstacle(seed, tipus, index, hossz, sugar)
-                    for index in range(darab)
-                ],
+                "obstacles": [obstacle(seed, tipus, index, hossz, sugar) for index in range(darab)],
             }
 
             self.assertEqual(
-                bejegyzett, ujragenaralt,
+                bejegyzett,
+                ujragenaralt,
                 f"A(z) {fajl_utvonal.name} fájl eltér a jelenlegi generátor "
                 f"kimenetétől - futtasd újra: "
                 f"python3 scripts/generate_example_scenarios.py",

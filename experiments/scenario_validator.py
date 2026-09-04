@@ -55,9 +55,7 @@ def validate_semantics(dokumentum: dict) -> list[str]:
     # 2. disappear_at_s = appear_at_s + visible_for_s (3 tizedesjegy pontossággal).
     for akadaly in dokumentum.get("obstacles", []):
         utemezes = akadaly.get("schedule", {})
-        vart = round(
-            utemezes.get("appear_at_s", 0) + utemezes.get("visible_for_s", 0), 3
-        )
+        vart = round(utemezes.get("appear_at_s", 0) + utemezes.get("visible_for_s", 0), 3)
         tenyleges = utemezes.get("disappear_at_s")
         if tenyleges is None or abs(vart - tenyleges) > 1e-6:
             hibak.append(
@@ -71,7 +69,9 @@ def validate_semantics(dokumentum: dict) -> list[str]:
     track = dokumentum.get("track", {})
     egyenes = track.get("straight_length_m", 0)
     sugar = track.get("turn_radius_m", 0)
-    x_hatar = sugar + max(o.get("size_m", {}).get("x", 0) for o in dokumentum.get("obstacles", [{"size_m": {}}]))
+    x_hatar = sugar + max(
+        o.get("size_m", {}).get("x", 0) for o in dokumentum.get("obstacles", [{"size_m": {}}])
+    )
     z_hatar = egyenes / 2 + sugar
 
     for akadaly in dokumentum.get("obstacles", []):

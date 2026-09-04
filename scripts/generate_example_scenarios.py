@@ -68,8 +68,7 @@ def main() -> None:
                 "background_color_rgb": dict(zip(("r", "g", "b"), color)),
             },
             "obstacles": [
-                obstacle(seed, scenario_type, index, length, radius)
-                for index in range(count)
+                obstacle(seed, scenario_type, index, length, radius) for index in range(count)
             ],
         }
         target = OUTPUT_DIR / f"{name}.json"

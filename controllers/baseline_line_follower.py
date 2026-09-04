@@ -40,9 +40,7 @@ ALAPERTELMEZETT_HOST = "127.0.0.1"
 ALAPERTELMEZETT_PORT = 8765
 MAXIMALIS_FRAME_MERET = 16 * 1024
 NAPLO_FAJL = Path(__file__).resolve().parent.parent / "logs" / "m09_runs.jsonl"
-KISERLET_NAPLO_FAJL = (
-    Path(__file__).resolve().parent.parent / "logs" / "kiserlet_naplo.jsonl"
-)
+KISERLET_NAPLO_FAJL = Path(__file__).resolve().parent.parent / "logs" / "kiserlet_naplo.jsonl"
 CONTROLLER_NEV = "baseline_line_follower"
 BACKEND_NEV = "unity_sim"
 
@@ -113,9 +111,7 @@ class GatewayKliens:
 
     def kuld(self, parancs: dict[str, Any]) -> dict[str, Any]:
         parancs = {"request_id": str(uuid4()), **parancs}
-        payload = json.dumps(
-            parancs, ensure_ascii=False, separators=(",", ":")
-        ).encode("utf-8")
+        payload = json.dumps(parancs, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         if not 1 <= len(payload) <= MAXIMALIS_FRAME_MERET:
             raise ValueError("A kimeno JSON tul nagy vagy ures.")
 
@@ -186,13 +182,27 @@ def egy_lepes_vonalon(
     if akadaly_elol(observe, AKADALY_KUSZOB_BELEPES_M):
         stat.akadaly_kerulesek_szama += 1
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), kiadott_parancsok, Allapot.VONALON.value, Allapot.AKADALY.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                kiadott_parancsok,
+                Allapot.VONALON.value,
+                Allapot.AKADALY.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.AKADALY
 
     if mindharom_nem_feher(observe):
         stat.vonalvesztesek_szama += 1
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), kiadott_parancsok, Allapot.VONALON.value, Allapot.KERESES.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                kiadott_parancsok,
+                Allapot.VONALON.value,
+                Allapot.KERESES.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.KERESES
 
     hiba = hibajel_szamitasa(observe)
@@ -200,21 +210,24 @@ def egy_lepes_vonalon(
         utolso_elojel[0] = 1 if hiba > 0 else -1
         korrekcio_fok = max(TURN_MIN_FOK, min(TURN_MAX_FOK, abs(hiba) * P_EROSITES))
         szog = korrekcio_fok if hiba > 0 else -korrekcio_fok
-        turn_parancs = {
-            "command": "turn", "angle_deg": szog, "max_angular_speed": TURN_SEBESSEG
-        }
+        turn_parancs = {"command": "turn", "angle_deg": szog, "max_angular_speed": TURN_SEBESSEG}
         kliens.kuld(turn_parancs)
         stat.parancsok_szama += 1
         kiadott_parancsok.append(turn_parancs)
 
-    move_parancs = {
-        "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
-    }
+    move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
     kliens.kuld(move_parancs)
     stat.parancsok_szama += 1
     kiadott_parancsok.append(move_parancs)
     if naplo is not None:
-        naplo.rogzit(lepes_szam, szenzor_mezok(observe), kiadott_parancsok, Allapot.VONALON.value, Allapot.VONALON.value, privilegizalt_diagnosztika_mezok(observe))
+        naplo.rogzit(
+            lepes_szam,
+            szenzor_mezok(observe),
+            kiadott_parancsok,
+            Allapot.VONALON.value,
+            Allapot.VONALON.value,
+            privilegizalt_diagnosztika_mezok(observe),
+        )
     return Allapot.VONALON
 
 
@@ -232,7 +245,14 @@ def egy_lepes_akadaly(
     if not akadaly_elol(observe, AKADALY_KUSZOB_KILEPES_M):
         akadaly_lepesek[0] = 0
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), [], Allapot.AKADALY.value, Allapot.VISSZATALALAS.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [],
+                Allapot.AKADALY.value,
+                Allapot.VISSZATALALAS.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.VISSZATALALAS
 
     akadaly_lepesek[0] += 1
@@ -240,7 +260,14 @@ def egy_lepes_akadaly(
         akadaly_lepesek[0] = 0
         stat.zsakutcak_szama += 1
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), [], Allapot.AKADALY.value, Allapot.KERESES.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [],
+                Allapot.AKADALY.value,
+                Allapot.KERESES.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.KERESES
 
     irany = szabadabb_oldal_elojele(observe)
@@ -254,15 +281,20 @@ def egy_lepes_akadaly(
     stat.parancsok_szama += 1
     kiadott_parancsok: list[dict[str, Any]] = [turn_parancs]
 
-    move_parancs = {
-        "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
-    }
+    move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
     kliens.kuld(move_parancs)
     stat.parancsok_szama += 1
     kiadott_parancsok.append(move_parancs)
 
     if naplo is not None:
-        naplo.rogzit(lepes_szam, szenzor_mezok(observe), kiadott_parancsok, Allapot.AKADALY.value, Allapot.AKADALY.value, privilegizalt_diagnosztika_mezok(observe))
+        naplo.rogzit(
+            lepes_szam,
+            szenzor_mezok(observe),
+            kiadott_parancsok,
+            Allapot.AKADALY.value,
+            Allapot.AKADALY.value,
+            privilegizalt_diagnosztika_mezok(observe),
+        )
     return Allapot.AKADALY
 
 
@@ -281,7 +313,14 @@ def egy_lepes_visszatalalas(
     if not mindharom_nem_feher(observe):
         visszatalalas_lepesek[0] = 0
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), kiadott_parancsok, Allapot.VISSZATALALAS.value, Allapot.VONALON.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                kiadott_parancsok,
+                Allapot.VISSZATALALAS.value,
+                Allapot.VONALON.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.VONALON
 
     irany_vissza = -utolso_elkerulesi_irany[0]
@@ -294,9 +333,7 @@ def egy_lepes_visszatalalas(
     stat.parancsok_szama += 1
     kiadott_parancsok.append(turn_parancs)
 
-    move_parancs = {
-        "command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG
-    }
+    move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
     kliens.kuld(move_parancs)
     stat.parancsok_szama += 1
     kiadott_parancsok.append(move_parancs)
@@ -308,18 +345,39 @@ def egy_lepes_visszatalalas(
     if not mindharom_nem_feher(observe2):
         visszatalalas_lepesek[0] = 0
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe2), kiadott_parancsok, Allapot.VISSZATALALAS.value, Allapot.VONALON.value, privilegizalt_diagnosztika_mezok(observe2))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe2),
+                kiadott_parancsok,
+                Allapot.VISSZATALALAS.value,
+                Allapot.VONALON.value,
+                privilegizalt_diagnosztika_mezok(observe2),
+            )
         return Allapot.VONALON
 
     if visszatalalas_lepesek[0] >= VISSZATALALAS_MAX_LEPES:
         visszatalalas_lepesek[0] = 0
         stat.vonalvesztesek_szama += 1
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe2), kiadott_parancsok, Allapot.VISSZATALALAS.value, Allapot.KERESES.value, privilegizalt_diagnosztika_mezok(observe2))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe2),
+                kiadott_parancsok,
+                Allapot.VISSZATALALAS.value,
+                Allapot.KERESES.value,
+                privilegizalt_diagnosztika_mezok(observe2),
+            )
         return Allapot.KERESES
 
     if naplo is not None:
-        naplo.rogzit(lepes_szam, szenzor_mezok(observe2), kiadott_parancsok, Allapot.VISSZATALALAS.value, Allapot.VISSZATALALAS.value, privilegizalt_diagnosztika_mezok(observe2))
+        naplo.rogzit(
+            lepes_szam,
+            szenzor_mezok(observe2),
+            kiadott_parancsok,
+            Allapot.VISSZATALALAS.value,
+            Allapot.VISSZATALALAS.value,
+            privilegizalt_diagnosztika_mezok(observe2),
+        )
     return Allapot.VISSZATALALAS
 
 
@@ -347,19 +405,37 @@ def egy_lepes_kereses(
     if not mindharom_nem_feher(observe):
         kereses_lepesek[0] = 0
         if naplo is not None:
-            naplo.rogzit(lepes_szam, szenzor_mezok(observe), [turn_parancs], Allapot.KERESES.value, Allapot.VONALON.value, privilegizalt_diagnosztika_mezok(observe))
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [turn_parancs],
+                Allapot.KERESES.value,
+                Allapot.VONALON.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
         return Allapot.VONALON
 
     if kereses_lepesek[0] >= KERESES_MAX_LEPES:
         stat.palyaelhagyas = True
 
     if naplo is not None:
-        naplo.rogzit(lepes_szam, szenzor_mezok(observe), [turn_parancs], Allapot.KERESES.value, Allapot.KERESES.value, privilegizalt_diagnosztika_mezok(observe))
+        naplo.rogzit(
+            lepes_szam,
+            szenzor_mezok(observe),
+            [turn_parancs],
+            Allapot.KERESES.value,
+            Allapot.KERESES.value,
+            privilegizalt_diagnosztika_mezok(observe),
+        )
     return Allapot.KERESES
 
 
 def futtat(
-    host: str, port: int, max_lepes: int, kiserlet_naplo_fajl: Path | None = KISERLET_NAPLO_FAJL, seed: int | None = None
+    host: str,
+    port: int,
+    max_lepes: int,
+    kiserlet_naplo_fajl: Path | None = KISERLET_NAPLO_FAJL,
+    seed: int | None = None,
 ) -> FutasStatisztika:
     kliens = GatewayKliens(host, port)
     stat = FutasStatisztika()
@@ -385,12 +461,15 @@ def futtat(
 
         while stat.lepesek_szama < max_lepes and not stat.palyaelhagyas:
             if allapot is Allapot.VONALON:
-                allapot = egy_lepes_vonalon(
-                    kliens, stat, utolso_elojel, naplo, stat.lepesek_szama
-                )
+                allapot = egy_lepes_vonalon(kliens, stat, utolso_elojel, naplo, stat.lepesek_szama)
             elif allapot is Allapot.AKADALY:
                 allapot = egy_lepes_akadaly(
-                    kliens, stat, utolso_elkerulesi_irany, akadaly_lepesek, naplo, stat.lepesek_szama
+                    kliens,
+                    stat,
+                    utolso_elkerulesi_irany,
+                    akadaly_lepesek,
+                    naplo,
+                    stat.lepesek_szama,
                 )
             elif allapot is Allapot.VISSZATALALAS:
                 allapot = egy_lepes_visszatalalas(

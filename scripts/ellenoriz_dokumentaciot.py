@@ -14,13 +14,19 @@ import subprocess
 from pathlib import Path
 
 GYOKER = Path(__file__).resolve().parent.parent
-FAJLOK = [GYOKER / "README.md", GYOKER / "REPRODUCIBILITY.md", *sorted((GYOKER / "docs").glob("*.md"))]
-MINTA = re.compile(r"`([A-Za-z0-9_./-]+\.(?:py|md|cs|json|yml|yaml|cff|svg|png|mov|mp4|jsonl|unity|prefab|asmdef))`")
+FAJLOK = [
+    GYOKER / "README.md",
+    GYOKER / "REPRODUCIBILITY.md",
+    *sorted((GYOKER / "docs").glob("*.md")),
+]
+MINTA = re.compile(
+    r"`([A-Za-z0-9_./-]+\.(?:py|md|cs|json|yml|yaml|cff|svg|png|mov|mp4|jsonl|unity|prefab|asmdef))`"
+)
 KIHAGY = ("http", "*")
 # Futasidoben generalt, szandekosan nem verziokovetett fajlok (.gitignore):
 # ezekre a dokumentacio hivatkozhat anelkul, hogy a repoban lennenek.
 FUTASIDOBEN_GENERALT = {
-    "logs/kiserlet_naplo.jsonl",   # M11 lepesenkenti naplo (minden futasnal bovul)
+    "logs/kiserlet_naplo.jsonl",  # M11 lepesenkenti naplo (minden futasnal bovul)
     "logs/m10_lepes_naplo.jsonl",  # M10 regi formatumu lepesnaplo (tortenetileg hivatkozott)
 }
 
@@ -31,7 +37,10 @@ def verziokovetett_fajlok() -> set[str]:
     # dokumentacio egyutt, egy commitban is atmehessen az ellenorzesen.
     kimenet = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
-        cwd=GYOKER, capture_output=True, text=True, check=True,
+        cwd=GYOKER,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     return set(kimenet.split())
 

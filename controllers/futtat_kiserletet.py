@@ -18,7 +18,9 @@ from pathlib import Path
 def main() -> int:
     parser = argparse.ArgumentParser(description="M11 egyparancsos kiserletinditas")
     parser.add_argument(
-        "--futasok-szama", type=int, default=30,
+        "--futasok-szama",
+        type=int,
+        default=30,
         help="Hany egymas utani futast inditson el (alapertelmezett: 30).",
     )
     parser.add_argument("--host", default="127.0.0.1")
@@ -35,10 +37,14 @@ def main() -> int:
     for i in range(1, args.futasok_szama + 1):
         print(f"--- Futas {i}/{args.futasok_szama} ---")
         parancs = [
-            sys.executable, str(baseline_szkript),
-            "--host", args.host,
-            "--port", str(args.port),
-            "--max-lepes", str(args.max_lepes),
+            sys.executable,
+            str(baseline_szkript),
+            "--host",
+            args.host,
+            "--port",
+            str(args.port),
+            "--max-lepes",
+            str(args.max_lepes),
         ]
         if args.seed is not None:
             parancs += ["--seed", str(args.seed)]

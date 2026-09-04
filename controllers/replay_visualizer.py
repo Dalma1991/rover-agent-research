@@ -85,7 +85,9 @@ def _utkozes_pontok(sorok: list[dict]) -> list[tuple[int, float, float]]:
     return ki
 
 
-def video(sorok: list[dict], cim: str, kimeneti_fajl: Path, fps: int = 20, lepes_per_kepkocka: int = 2) -> None:
+def video(
+    sorok: list[dict], cim: str, kimeneti_fajl: Path, fps: int = 20, lepes_per_kepkocka: int = 2
+) -> None:
     """Animalt replay: a nyomvonal lepesrol lepesre epul fel, a rover
     aktualis pozicioja es allapota kepkockankent frissul. GIF-be ment
     (Pillow iro, nem igenyel ffmpeg-et); .mp4 kiterjesztesnel ffmpeg-et
@@ -111,7 +113,7 @@ def video(sorok: list[dict], cim: str, kimeneti_fajl: Path, fps: int = 20, lepes
     ax.scatter([], [], color="black", marker="x", s=40, label="ütközés")
     ax.legend(loc="upper right", fontsize=8)
 
-    rover_pont, = ax.plot([], [], "o", color="black", markersize=8, zorder=6)
+    (rover_pont,) = ax.plot([], [], "o", color="black", markersize=8, zorder=6)
     utkozes_scatter = ax.scatter([], [], color="black", marker="x", s=40, zorder=5)
     cim_szoveg = ax.set_title(cim)
 
@@ -134,10 +136,14 @@ def video(sorok: list[dict], cim: str, kimeneti_fajl: Path, fps: int = 20, lepes
             rover_pont.set_data([szakaszok[0][0]], [szakaszok[0][1]])
         eddigi = [(x, z) for (i, x, z) in utkozesek if i <= n]
         utkozes_scatter.set_offsets(eddigi if eddigi else [[float("nan"), float("nan")]])
-        cim_szoveg.set_text(f"{cim}\nlépés {n}/{len(szakaszok)} - {allapot} - ütközés: {len(eddigi)}")
+        cim_szoveg.set_text(
+            f"{cim}\nlépés {n}/{len(szakaszok)} - {allapot} - ütközés: {len(eddigi)}"
+        )
         return rover_pont, utkozes_scatter, cim_szoveg
 
-    anim = animation.FuncAnimation(fig, frissit, frames=kepkockak, interval=1000 / fps, blit=False, repeat=False)
+    anim = animation.FuncAnimation(
+        fig, frissit, frames=kepkockak, interval=1000 / fps, blit=False, repeat=False
+    )
 
     kimeneti_fajl.parent.mkdir(parents=True, exist_ok=True)
     if kimeneti_fajl.suffix.lower() == ".mp4" and animation.writers.is_available("ffmpeg"):
@@ -163,8 +169,10 @@ def rajzol(sorok: list[dict], cim: str, kimeneti_fajl: Path) -> None:
         allapot = a.get("allapot_utana") or "VONALON"
         szin = ALLAPOT_SZINEK.get(allapot, "#888888")
         ax.plot(
-            [poz_a["x"], poz_b["x"]], [poz_a["z"], poz_b["z"]],
-            color=szin, linewidth=1.5,
+            [poz_a["x"], poz_b["x"]],
+            [poz_a["z"], poz_b["z"]],
+            color=szin,
+            linewidth=1.5,
         )
 
     # M11: a collision_occurred mezo "ragados" (igaz marad az elso
@@ -219,9 +227,13 @@ def main() -> int:
         default=None,
         help="Animált replay mentése ide (.gif Pillow-val, .mp4 ffmpeg-gel ha elérhető). Ha nincs megadva, csak a statikus kép készül.",
     )
-    parser.add_argument("--fps", type=int, default=20, help="Videó képkockasebessége (alapértelmezett: 20).")
     parser.add_argument(
-        "--lepes-per-kepkocka", type=int, default=2,
+        "--fps", type=int, default=20, help="Videó képkockasebessége (alapértelmezett: 20)."
+    )
+    parser.add_argument(
+        "--lepes-per-kepkocka",
+        type=int,
+        default=2,
         help="Hány naplózott lépés kerüljön egy képkockába (alapértelmezett: 2).",
     )
     args = parser.parse_args()
@@ -239,7 +251,9 @@ def main() -> int:
     cim = f"Replay - {controller} - run {run_id[:8]} ({len(sorok)} lépés)"
     rajzol(sorok, cim, kimenet)
     if args.video:
-        video(sorok, cim, Path(args.video), fps=args.fps, lepes_per_kepkocka=args.lepes_per_kepkocka)
+        video(
+            sorok, cim, Path(args.video), fps=args.fps, lepes_per_kepkocka=args.lepes_per_kepkocka
+        )
     return 0
 
 

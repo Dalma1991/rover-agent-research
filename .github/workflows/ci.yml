@@ -20,7 +20,7 @@ jobs:
       - name: Fuggosegek telepitese
         run: |
           python -m pip install --upgrade pip
-          pip install matplotlib jsonschema pyflakes
+          pip install matplotlib jsonschema pyflakes black
 
       - name: Baseline kontroller tesztek
         run: python3 tests/baseline_line_follower_test.py
@@ -39,6 +39,9 @@ jobs:
 
       - name: Szcenario-sema validacio
         run: python3 experiments/scenario_validator.py "experiments/scenarios/*.json"
+
+      - name: Formazas-ellenorzes (black --check)
+        run: python3 -m black --check --line-length 100 controllers common scripts experiments/scenario_validator.py tests
 
       - name: Statikus kodellenorzes (pyflakes)
         run: python3 -m pyflakes controllers common scripts experiments/scenario_validator.py tests

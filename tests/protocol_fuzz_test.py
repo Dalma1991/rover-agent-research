@@ -92,9 +92,7 @@ def uj_keres(command: str, **parameterek: Any) -> dict[str, Any]:
     return {"request_id": str(uuid4()), "command": command, **parameterek}
 
 
-def strukturalt_valasz_ellenorzese(
-    teszt: unittest.TestCase, valasz: dict[str, Any]
-) -> None:
+def strukturalt_valasz_ellenorzese(teszt: unittest.TestCase, valasz: dict[str, Any]) -> None:
     teszt.assertIn(valasz.get("status"), {"accepted", "completed", "failed"})
     teszt.assertIn(valasz.get("state"), {"IDLE", "MOVING", "TURNING", "ERROR"})
     teszt.assertIn("request_id", valasz)
@@ -157,13 +155,30 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
     def test_move_randomizalt_tartomanyok(self) -> None:
         rng = random.Random(SEED)
         ertekek = [
-            -math.inf, -1e30, -1.0, -0.0, 0.0, 0.009999,
-            0.01, 0.010001, 0.05, 0.50, 1.0, 1.999999, 2.0,
-            2.000001, 1e30, math.inf, math.nan,
+            -math.inf,
+            -1e30,
+            -1.0,
+            -0.0,
+            0.0,
+            0.009999,
+            0.01,
+            0.010001,
+            0.05,
+            0.50,
+            1.0,
+            1.999999,
+            2.0,
+            2.000001,
+            1e30,
+            math.inf,
+            math.nan,
         ]
 
         esetek: list[tuple[float, float]] = [
-            (0.01, 0.05), (2.0, 0.50), (0.01, 0.50), (2.0, 0.25),
+            (0.01, 0.05),
+            (2.0, 0.50),
+            (0.01, 0.50),
+            (2.0, 0.25),
         ]
         for _ in range(RANDOM_ESETSZAM):
             if rng.random() < 0.55:
@@ -180,9 +195,7 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
         for distance, speed in esetek:
             with self.subTest(distance_m=distance, max_speed=speed):
                 self.biztosit_idle_allapotot()
-                valasz = keres(uj_keres(
-                    "move", distance_m=distance, max_speed=speed
-                ))
+                valasz = keres(uj_keres("move", distance_m=distance, max_speed=speed))
                 strukturalt_valasz_ellenorzese(self, valasz)
                 veges = math.isfinite(distance) and math.isfinite(speed)
                 ervenyes = veges and 0.01 <= distance <= 2.0 and 0.05 <= speed <= 0.50
@@ -195,12 +208,29 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
     def test_turn_randomizalt_tartomanyok(self) -> None:
         rng = random.Random(SEED + 1)
         ertekek = [
-            -math.inf, -1e30, -181.0, -180.0, -1.0, -0.999999,
-            0.0, 0.999999, 1.0, 5.0, 45.0, 179.999, 180.0,
-            181.0, 1e30, math.inf, math.nan,
+            -math.inf,
+            -1e30,
+            -181.0,
+            -180.0,
+            -1.0,
+            -0.999999,
+            0.0,
+            0.999999,
+            1.0,
+            5.0,
+            45.0,
+            179.999,
+            180.0,
+            181.0,
+            1e30,
+            math.inf,
+            math.nan,
         ]
         esetek: list[tuple[float, float]] = [
-            (-180.0, 45.0), (180.0, 45.0), (-1.0, 5.0), (1.0, 5.0),
+            (-180.0, 45.0),
+            (180.0, 45.0),
+            (-1.0, 5.0),
+            (1.0, 5.0),
         ]
         for _ in range(RANDOM_ESETSZAM):
             if rng.random() < 0.55:
@@ -216,14 +246,11 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
         for angle, angular_speed in esetek:
             with self.subTest(angle_deg=angle, max_angular_speed=angular_speed):
                 self.biztosit_idle_allapotot()
-                valasz = keres(uj_keres(
-                    "turn", angle_deg=angle, max_angular_speed=angular_speed
-                ))
+                valasz = keres(uj_keres("turn", angle_deg=angle, max_angular_speed=angular_speed))
                 strukturalt_valasz_ellenorzese(self, valasz)
                 veges = math.isfinite(angle) and math.isfinite(angular_speed)
                 ervenyes = (
-                    veges and -180 <= angle <= 180 and abs(angle) >= 1
-                    and 5 <= angular_speed <= 45
+                    veges and -180 <= angle <= 180 and abs(angle) >= 1 and 5 <= angular_speed <= 45
                 )
                 if ervenyes:
                     self.assertIn(valasz["status"], {"accepted", "completed"}, valasz)
@@ -238,22 +265,30 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
         dupla_command_id = str(uuid4())
         dupla_szam_id = str(uuid4())
         fuzz_payloadok = [
-            "{", "}", "[]", "null", "true", "123", "{\"request_id\":",
-            "{\"request_id\":\"x\",\"command\":\"observe\"}",
-            "{\"command\":\"observe\"}",
+            "{",
+            "}",
+            "[]",
+            "null",
+            "true",
+            "123",
+            '{"request_id":',
+            '{"request_id":"x","command":"observe"}',
+            '{"command":"observe"}',
             json.dumps({"request_id": request_id}),
             json.dumps({"request_id": request_id, "command": 123}),
             json.dumps({"request_id": request_id, "command": "move"}),
-            json.dumps({
-                "request_id": request_id, "command": "move",
-                "distance_m": "1.0", "max_speed": 0.2,
-            }),
+            json.dumps(
+                {
+                    "request_id": request_id,
+                    "command": "move",
+                    "distance_m": "1.0",
+                    "max_speed": 0.2,
+                }
+            ),
             # A v1 zárt sémaként kezelendő: extra és duplikált mező is hiba.
             f'{{"request_id":"{extra_id}","command":"observe","extra":1}}',
-            f'{{"request_id":"{dupla_id}","request_id":"{dupla_id}",'
-            '"command":"observe"}',
-            f'{{"request_id":"{dupla_command_id}","command":"observe",'
-            '"command":"stop"}',
+            f'{{"request_id":"{dupla_id}","request_id":"{dupla_id}",' '"command":"observe"}',
+            f'{{"request_id":"{dupla_command_id}","command":"observe",' '"command":"stop"}',
             f'{{"request_id":"{dupla_szam_id}","command":"move",'
             '"distance_m":0.2,"distance_m":0.3,"max_speed":0.2}',
         ]
@@ -268,22 +303,18 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
 
     def test_extra_es_duplikalt_mezok_hibakodja(self) -> None:
         extra_id = str(uuid4())
-        extra = nyers_keres(
-            f'{{"request_id":"{extra_id}","command":"observe","extra":1}}'
-        )
+        extra = nyers_keres(f'{{"request_id":"{extra_id}","command":"observe","extra":1}}')
         self.assertHiba(extra, 1102)
 
         dupla_id = str(uuid4())
         dupla_request_id = nyers_keres(
-            f'{{"request_id":"{dupla_id}","request_id":"{dupla_id}",'
-            '"command":"observe"}'
+            f'{{"request_id":"{dupla_id}","request_id":"{dupla_id}",' '"command":"observe"}'
         )
         self.assertHiba(dupla_request_id, 1103)
 
         dupla_command_id = str(uuid4())
         dupla_command = nyers_keres(
-            f'{{"request_id":"{dupla_command_id}","command":"observe",'
-            '"command":"stop"}'
+            f'{{"request_id":"{dupla_command_id}","command":"observe",' '"command":"stop"}'
         )
         self.assertHiba(dupla_command, 1103)
 
@@ -324,9 +355,9 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
                     self.fail(f"A rover nem került MOVING állapotba: {statusz}")
                 time.sleep(0.02)
 
-            masodik = keres(uj_keres(
-                "move", distance_m=0.10, max_speed=0.50
-            ), timeout=ROVID_TIMEOUT)
+            masodik = keres(
+                uj_keres("move", distance_m=0.10, max_speed=0.50), timeout=ROVID_TIMEOUT
+            )
             self.assertHiba(masodik, 1300)
             self.assertEqual(masodik["error"]["name"], "COMMAND_NOT_ALLOWED_IN_STATE")
 

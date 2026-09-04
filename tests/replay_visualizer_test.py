@@ -39,11 +39,35 @@ class UtkozesDetektalasTest(unittest.TestCase):
         collision_occurred 'ragados' mezo, de a collision_count valtozasa
         csak a tenyleges uj utkozeseket jeloli."""
         sorok = [
-            {"privilegizalt_diagnosztika": {"position": _pozicio(0, 0), "collision_occurred": False, "collision_count": 0}},
-            {"privilegizalt_diagnosztika": {"position": _pozicio(1, 0), "collision_occurred": True, "collision_count": 1}},
+            {
+                "privilegizalt_diagnosztika": {
+                    "position": _pozicio(0, 0),
+                    "collision_occurred": False,
+                    "collision_count": 0,
+                }
+            },
+            {
+                "privilegizalt_diagnosztika": {
+                    "position": _pozicio(1, 0),
+                    "collision_occurred": True,
+                    "collision_count": 1,
+                }
+            },
             # a collision_occurred "ragadva" marad True-n, de nincs UJ utkozes:
-            {"privilegizalt_diagnosztika": {"position": _pozicio(2, 0), "collision_occurred": True, "collision_count": 1}},
-            {"privilegizalt_diagnosztika": {"position": _pozicio(3, 0), "collision_occurred": True, "collision_count": 1}},
+            {
+                "privilegizalt_diagnosztika": {
+                    "position": _pozicio(2, 0),
+                    "collision_occurred": True,
+                    "collision_count": 1,
+                }
+            },
+            {
+                "privilegizalt_diagnosztika": {
+                    "position": _pozicio(3, 0),
+                    "collision_occurred": True,
+                    "collision_count": 1,
+                }
+            },
         ]
         utkozes_x, utkozes_z = utkozesek_kigyujtese(sorok)
         self.assertEqual(utkozes_x, [1])
