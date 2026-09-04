@@ -1,6 +1,6 @@
 # Tesztek - lefedettségi összefoglaló
 
-Összesen 29 automatizált teszt + 1 integrációs ellenőrzés. A CI
+Összesen 29 Python-teszt + 10 Unity-teszt + 1 integrációs ellenőrzés. A CI
 (`.github/workflows/ci.yml`) a Unity-t nem igénylő 23 tesztet és a
 referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
 élő Unity Play módot igényel, ezért csak helyben fut.
@@ -24,10 +24,24 @@ python3 tests/scenario_seed_test.py -v
 python3 scripts/referencia_epizod.py
 ```
 
-Ami **nincs** lefedve automatizált teszttel (nyitott, M11 3. munkacsomag):
-a Unity-oldali komponensek (`ColorSensor`, `LidarSensor`, `TrackController`,
-`RoverGatewayServer` ütközésdetektálás) - ezeket eddig kézi, videóval és
-kalibrációs méréssel dokumentált Play módos tesztek fedik (`docs/sensors.md`,
+## Unity-tesztek (`unity/Assets/Tests/`, Unity Test Runner)
+
+| Fájl | Mód | Tesztek | Mit fed le | Regressziós teszt korábbi hibára |
+|---|---|---|---|---|
+| `unity/Assets/Tests/EditMode/TrackControllerGeometriaTeszt.cs` | Edit | 5 | `TrackController.TavolsagAKozepvonaltol`: egyenes, ív, pálya közepe, vonalszélesség-küszöb | M11: fantom-ív a stadion belsejében (a `TavolsagIvtol` teljes körhöz mért, nem félkörívhez; M07 óta lappangó hiba, e teszt találta) |
+| `unity/Assets/Tests/PlayMode/TrackSceneTeszt.cs` | Play | 3 | `TrackScene` betöltése, kötelező komponensek; Lidar sugárszám és hatótáv; középső színszenzor és pálya-geometria konzisztenciája | M07 kalibráció: szenzor-ítélet = geometria-ítélet |
+| `unity/Assets/Tests/PlayMode/MovementControllerPlayModeTests.cs` | Play | 2 | `MovementController` move és reset_position (korai mérföldkövekből) | - |
+
+Futtatás: Unity → Window → General → Test Runner → EditMode / PlayMode →
+Run All (Play mód ne fusson közben). Eredmény: 10/10 zöld
+(`docs/screenshots/m11-unity-tests-editmode.png`,
+`docs/screenshots/m11-unity-tests-playmode.png`). A Unity-tesztek nem
+futnak a CI-ban (Unity-licenc kell hozzá) - ez M12+ nyitott pont.
+
+Ami **nincs** lefedve automatizált teszttel: a `RoverGatewayServer`
+ütközésdetektálása és protokoll-kezelése Unity-oldalról (a Python fuzz
+teszt élő Unity ellen fedi), valamint a `ColorSensor` zaj/kimaradás
+paraméterei (kézi kalibrációval dokumentálva: `docs/sensors.md`,
 `docs/lidar.md`, `docs/m10-plan.md`).
 
 ---

@@ -77,6 +77,48 @@ python3 controllers/replay_visualizer.py \
   --run-id 97994315 --video docs/videos/m11-referencia-replay.gif
 ```
 
+## 3. munkacsomag: Unity Edit/Play Mode és Python tesztek (kész)
+
+Python-oldal: 23 Unity-t nem igénylő teszt + 6 fuzz teszt + a
+referenciaepizód integrációs ellenőrzése (részletek: `tests/README.md`).
+
+Unity-oldal (`unity/Assets/Tests/`):
+- **Edit Mode** (`unity/Assets/Tests/EditMode/TrackControllerGeometriaTeszt.cs`, 5 teszt): a
+  `TrackController.TavolsagAKozepvonaltol` geometriája jelenet nélkül -
+  egyenes szakasz, ív, pálya közepe, vonalszélesség-küszöb, fantom-ív.
+- **Play Mode** (`unity/Assets/Tests/PlayMode/TrackSceneTeszt.cs`, 3 teszt + a korai
+  mérföldkövekből örökölt `MovementControllerPlayModeTests.cs` 2 tesztje):
+  a `TrackScene` betöltődik a kötelező komponensekkel; a Lidar a beállított
+  sugárszámmal, hatótávon belüli értékekkel mér; a középső színszenzor
+  ítélete (fehér/nem fehér) megegyezik a pálya-geometria ítéletével.
+  A jelenetet `EditorSceneManager.LoadSceneInPlayMode` tölti be, így nem
+  kell a Build Settings-be venni.
+
+Eredmény: 5/5 Edit Mode és 5/5 Play Mode zöld
+(`docs/screenshots/m11-unity-tests-editmode.png`,
+`docs/screenshots/m11-unity-tests-playmode.png`).
+
+**A tesztek első futtatása valódi hibát talált.** A `PalyaKozepen` teszt a
+(0, 0) pontra 4 m helyett 2 m távolságot kapott: a `TavolsagIvtol` a
+teljes körhöz mérte a távolságot, nem a félkörívhez. Következmény: a
+stadion belsejében egy "fantom" fehér ív futott (a felső kör alsó és az
+alsó kör felső fele, pl. a (0, ±2) pontokon 0 távolsággal), ahol a
+`ColorSensor` tévesen teljes fehéret mért volna - egy KERESES közben
+befelé sodródó rover nem létező vonalra találhatott. A hiba M07 óta
+lappangott. Javítás: a félkörív csak a saját oldalán érvényes (irány
+paraméter), a másik oldalon a végpontjait az egyenes szakaszok fedik.
+Regressziós teszt: `FantomIv_AStadionBelsejeben_NincsVonalon`.
+
+Tanulságok:
+- egy mappában csak egy `.asmdef` lehet;
+- `"includePlatforms": ["Editor"]` Edit Mode-assemblyvé teszi a tesztet -
+  Play Mode-hoz üres platformlista kell, az Editor-API `#if UNITY_EDITOR`
+  mögé;
+- a `[ExecuteAlways]` TrackController Edit módban is legenerálja az
+  akadályokat, és ezek a jelenetfájlba kerülhetnek mentéskor - commit
+  előtt `git diff` a `TrackScene.unity`-n; M12+ apró javítás:
+  `HideFlags.DontSave` az Edit módban generált objektumokra.
+
 ## 4. munkacsomag: CI-pipeline (kész)
 
 Létrehoztunk egy GitHub Actions workflow-t (`.github/workflows/ci.yml`),
@@ -127,7 +169,10 @@ Ismert korlátok:
   maradt, bár M10 óta minden futás oda íródik.
 
 ## Hátralévő munkacsomagok
-3. Unity Edit/Play Mode és Python unit/integration tesztek kiegészítése
-   (Python-oldal kész, Unity-oldal még hátravan - lásd 3. munkacsomag).
-6. `REPRODUCIBILITY.md` kiegészítése M07-M10.5-ig (jelenleg csak M06-ig
-   részletes).
+Nincs. Mind a hat munkacsomag kész; a lezárás (tag, README, CITATION,
+Milestone, retrospektív Issue) az M11 zárásakor történik.
+
+Nyitott, M12+ pontok: valódi parancs-visszajátszás Unity-ben; Unity-tesztek
+futtatása CI-ban (Unity licenc/GameCI); `HideFlags.DontSave` az
+`ExecuteAlways` által Edit módban generált akadályokra; `--controller`
+kapcsoló a `futtat_kiserletet.py`-ban.

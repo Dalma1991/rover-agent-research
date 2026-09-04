@@ -481,6 +481,21 @@ Unity Play módban, élesben ellenőrizte:
    melyik korábbi hibára regressziós; a felhasználó ellenőrizte az
    állításokat.
 
+8. **Unity Edit/Play Mode tesztek**: a Claude írta a tesztfájlokat és
+   az asmdef-eket a repó forrásának átolvasása alapján (publikus API:
+   `TavolsagAKozepvonaltol`, `LidarSensor.NyersTavolsagok`,
+   `ColorSensor.FeherVonalon`); a felhasználó futtatta a Unity Test
+   Runnerben és a Unity-hibaüzenetek alapján közösen javítottuk az
+   assembly-beállításokat (egy mappa - egy asmdef; Play Mode-hoz üres
+   `includePlatforms`). Kiderült, hogy a repóban a korai mérföldkövek
+   óta volt Play Mode teszt (`MovementControllerPlayModeTests.cs`), ami
+   a dokumentációból hiányzott. **Az első futtatás egy valódi, M07 óta
+   lappangó geometriai hibát talált** (fantom fehér ív a stadion
+   belsejében, lásd `docs/m11-plan.md` 3. munkacsomag): a Claude
+   azonosította az okot a teszt hibaüzenetéből, javasolta a javítást
+   és a regressziós tesztet, a felhasználó Unity-ben ellenőrizte
+   (5/5 + 5/5 zöld).
+
 Egy Unity-crash után `Assets/_Recovery/` mappa keletkezett; a Claude
 a jelenetfájlok objektumneveinek összevetésével (`grep m_Name`)
 igazolta, hogy a mentett `TrackScene.unity` teljes, a recovery csak

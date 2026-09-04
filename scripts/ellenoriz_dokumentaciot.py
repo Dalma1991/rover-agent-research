@@ -26,8 +26,12 @@ FUTASIDOBEN_GENERALT = {
 
 
 def verziokovetett_fajlok() -> set[str]:
+    # Verziokovetett + uj, meg nem commitolt, de nem ignoralt fajlok
+    # (--others --exclude-standard), hogy egy uj fajl es a ra hivatkozo
+    # dokumentacio egyutt, egy commitban is atmehessen az ellenorzesen.
     kimenet = subprocess.run(
-        ["git", "ls-files"], cwd=GYOKER, capture_output=True, text=True, check=True
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        cwd=GYOKER, capture_output=True, text=True, check=True,
     ).stdout
     return set(kimenet.split())
 
