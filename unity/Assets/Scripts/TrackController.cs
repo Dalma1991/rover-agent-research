@@ -333,14 +333,16 @@ public class TrackController : MonoBehaviour
             TavolsagEgyenestol(x, z, -sugar, -felHossz, felHossz)
         );
 
+        // Also felkoriv: kozeppont (0, -felHossz), csak z <= -felHossz oldalon.
         legkisebbTavolsag = Mathf.Min(
             legkisebbTavolsag,
-            TavolsagIvtol(x, z, 0f, -felHossz, sugar)
+            TavolsagIvtol(x, z, 0f, -felHossz, sugar, -1f)
         );
 
+        // Felso felkoriv: kozeppont (0, +felHossz), csak z >= +felHossz oldalon.
         legkisebbTavolsag = Mathf.Min(
             legkisebbTavolsag,
-            TavolsagIvtol(x, z, 0f, felHossz, sugar)
+            TavolsagIvtol(x, z, 0f, felHossz, sugar, +1f)
         );
 
         tavolsagM = legkisebbTavolsag;
@@ -355,10 +357,20 @@ public class TrackController : MonoBehaviour
         return Mathf.Sqrt(dx * dx + dz * dz);
     }
 
-    private float TavolsagIvtol(float x, float z, float kozepX, float kozepZ, float sugar)
+    // M11 javitas (Edit Mode teszt talalta): korabban a teljes korhoz merte
+    // a tavolsagot, ezert a stadion belsejeben egy "fantom" felkoriv is
+    // vonalnak szamitott (pl. a (0, +-2) pontokban 0 tavolsag), ahol a
+    // ColorSensor tevesen feheret mert volna. A felkoriv csak a sajat
+    // oldalan (irany * (z - kozepZ) >= 0) ervenyes; a masik oldalon a ket
+    // vegpontjat az egyenes szakaszok mar lefedik.
+    private float TavolsagIvtol(float x, float z, float kozepX, float kozepZ, float sugar, float irany)
     {
         float dx = x - kozepX;
         float dz = z - kozepZ;
+        if (dz * irany < 0f)
+        {
+            return float.PositiveInfinity;
+        }
         float tavKozepponttol = Mathf.Sqrt(dx * dx + dz * dz);
         return Mathf.Abs(tavKozepponttol - sugar);
     }
