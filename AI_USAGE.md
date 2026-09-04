@@ -459,6 +459,28 @@ Unity Play módban, élesben ellenőrizte:
    összesítő 30 futást ír 3 helyett - a `--utolso` kapcsoló ennek a
    javítása.
 
+5. **Referenciaepizód és CI-bővítés** (elfogadási feltétel): a Claude
+   javasolta, hogy a friss klónból reprodukálható referenciaepizód
+   ne élő Unity-futásra, hanem egy commitolt lépésnaplóra épüljön
+   (`experiments/referencia_epizod/`), és a metrika-ellenőrzés
+   (`scripts/referencia_epizod.py`) a CI-ban is fusson. A CI-t a
+   kiírás négy előírt elemére bővítettük (tesztek, sémavalidáció,
+   pyflakes, dokumentáció-ellenőrzés). A pyflakes három valódi
+   hibát talált (nem használt változó/importok), a
+   dokumentáció-ellenőrzés (`scripts/ellenoriz_dokumentaciot.py`)
+   pedig helyben zöld volt, CI-ban piros: a dokumentumok
+   `.gitignore`-olt naplófájlokra hivatkoztak. A javítás nem lazítás
+   volt, hanem `git ls-files` alapú ellenőrzés + a futásidőben
+   generált fájlok explicit, kommentált listája - így helyben és
+   friss klónban azonos eredményt ad.
+6. **Replay videó** (`--video` kapcsoló): a Claude implementálta
+   matplotlib `FuncAnimation`-nel, a felhasználó a referenciaepizódon
+   generálta és ellenőrizte (`docs/videos/m11-referencia-replay.gif`).
+7. **Lefedettségi összefoglaló** (`tests/README.md`): a Claude
+   állította össze a 29 teszt táblázatát azzal, hogy melyik teszt
+   melyik korábbi hibára regressziós; a felhasználó ellenőrizte az
+   állításokat.
+
 Egy Unity-crash után `Assets/_Recovery/` mappa keletkezett; a Claude
 a jelenetfájlok objektumneveinek összevetésével (`grep m_Name`)
 igazolta, hogy a mentett `TrackScene.unity` teljes, a recovery csak

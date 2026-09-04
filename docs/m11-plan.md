@@ -62,6 +62,21 @@ akadályt anélkül, hogy a LiDAR időben észlelné. Ez a fajta megfigyelés
 pontosan a replay-eszköz céljának megfelelő, további vizsgálatra
 érdemes jelenség (M11+ munkára utalva).
 
+### 2b. Animált replay (videó)
+
+A `replay_visualizer.py` `--video` kapcsolója animált változatot készít:
+a nyomvonal lépésről lépésre épül fel, a rover aktuális pozíciója és
+állapota, valamint az addigi ütközések száma képkockánként frissül.
+GIF-be ment (Pillow, ffmpeg nélkül), `.mp4` kiterjesztésnél ffmpeg-et
+használ, ha elérhető. A referenciaepizód videója:
+`docs/videos/m11-referencia-replay.gif` (500 lépés, 251 képkocka, 20 fps).
+
+```bash
+python3 controllers/replay_visualizer.py \
+  --naplo-fajl experiments/referencia_epizod/referencia_epizod.jsonl \
+  --run-id 97994315 --video docs/videos/m11-referencia-replay.gif
+```
+
 ## 4. munkacsomag: CI-pipeline (kész)
 
 Létrehoztunk egy GitHub Actions workflow-t (`.github/workflows/ci.yml`),
