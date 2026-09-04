@@ -91,8 +91,8 @@ controllerrel és neurális policy-vel egyaránt.
   képpel és animált videóval (`controllers/replay_visualizer.py`),
   egyparancsos méréssorozat-indítás automatikus összesítéssel
   (`controllers/futtat_kiserletet.py`), Unity Edit/Play Mode tesztek
-  (10, mind zöld) + 29 Python-teszt, négyelemű CI (tesztek,
-  sémavalidáció, pyflakes, dokumentáció-ellenőrzés) és Unity nélkül,
+  (10, mind zöld) + 29 Python-teszt, CI (tesztek, sémavalidáció,
+  black formázás, pyflakes, dokumentáció-ellenőrzés) és Unity nélkül,
   friss klónból reprodukálható referenciaepizód
   (`scripts/referencia_epizod.py`). Az M11 tesztjei két örökölt hibát
   találtak és javítottak: fantom fehér ív a pálya-geometriában (M07 óta)

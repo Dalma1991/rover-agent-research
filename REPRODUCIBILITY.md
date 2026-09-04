@@ -134,7 +134,7 @@ folyamatosan ellenőrzött.
 
 A CI (`.github/workflows/ci.yml`) ezen felül futtatja a Python
 teszteket, a szcenárió-séma validációt (`experiments/scenario_validator.py`),
-a statikus kódellenőrzést (`pyflakes`) és a dokumentáció-ellenőrzést
+a formázás-ellenőrzést (`black --check`), a statikus kódellenőrzést (`pyflakes`) és a dokumentáció-ellenőrzést
 (`scripts/ellenoriz_dokumentaciot.py`: a dokumentumokban hivatkozott
 fájlok verziókövetettek-e).
 

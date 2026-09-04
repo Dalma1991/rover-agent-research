@@ -14,7 +14,7 @@ Mind a hat munkacsomag kész. A kiírás (Table 19) elfogadási feltételei:
   és a fantom-ív hiba is naplóból/tesztből került elő);
 - referenciaepizód friss klónból reprodukálható - igen
   (`scripts/referencia_epizod.py`, Unity nélkül, CI-ban is fut);
-- CI zöld - igen (tesztek + sémavalidáció + pyflakes + dokumentáció-ellenőrzés).
+- CI zöld - igen (tesztek + sémavalidáció + black formázás-ellenőrzés + pyflakes + dokumentáció-ellenőrzés).
 
 GitHub-bizonyítékok: `m11` tag, `REPRODUCIBILITY.md` (5b. fejezet + M11
 sor), CI badge a README-ben, replay videó
