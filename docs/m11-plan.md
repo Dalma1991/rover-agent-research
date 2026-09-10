@@ -192,7 +192,10 @@ Ismert korlátok:
 Nincs. Mind a hat munkacsomag kész; a lezárás (tag, README, CITATION,
 Milestone, retrospektív Issue) az M11 zárásakor történik.
 
-Nyitott, M12+ pontok: valódi parancs-visszajátszás Unity-ben; Unity-tesztek
-futtatása CI-ban (Unity licenc/GameCI); `HideFlags.DontSave` az
-`ExecuteAlways` által Edit módban generált akadályokra; `--controller`
-kapcsoló a `futtat_kiserletet.py`-ban.
+Nyitott, M13+ pontok: valódi parancs-visszajátszás Unity-ben; Unity-tesztek
+futtatása CI-ban (Unity licenc/GameCI).
+
+Az M12 után elvégezve: `HideFlags.DontSave` az `ExecuteAlways` által Edit
+módban generált akadályokra (a `TrackScene.unity` így nem szennyeződik
+mentéskor), és a `--controller` kapcsoló a `futtat_kiserletet.py`-ban, amivel
+az M13+ agent-alapú és tanult kontrollerek ugyanazzal a recepttel mérhetők.
