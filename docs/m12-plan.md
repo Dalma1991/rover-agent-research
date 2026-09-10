@@ -139,12 +139,21 @@ történt, mert az megosztott history-t írna felül.
 Nincs - mind a négy munkacsomag kész. Lezáráskor (tag, README,
 CITATION, AI_USAGE.md) a szokásos M-sorozat mintát követjük.
 
-Nyitott, M12+ pontok:
-- a lidar-szektor - vonalszenzor geometriai leképezés explicit
-  dokumentálása az `observe` eszközleírásban;
-- ajánlott biztonsági küszöb az akadálytávolsághoz az eszközleírásban
-  (jelenleg csak az ügynök saját, dokumentálatlan óvatossága biztosítja);
-- a `reset_position` munkamenet-keretre gyakorolt hatásának tisztázása;
+## 5. munkacsomag: biztonsági átvizsgálás (kész)
+
+Külön AI-munkamenetben végzett security review (`docs/m12-security-review.md`,
+nyers kimenet: `docs/m12/security-review-raw.txt`): 8 találat, ebből 5 javítva
+kódban vagy dokumentációban, 2 nyitva hagyva M13+-ra, 1 megfigyelés. A vak
+kiértékelés három dokumentációs hiányossága is javítva az eszközleírásokban.
+A javításokhoz 7 regressziós teszt készült (`tests/adapter_test.py`, összesen 18).
+
+Nyitott, M13+ pontok:
+- az időkorlát csak parancsok között ellenőrződik, egy hosszú blokkoló `move`
+  a limit fölé viheti a tényleges munkamenet-időt (watchdog-szál kellene);
+- a backend típusa válaszidőből kikövetkeztethető (a mock azonnal válaszol,
+  a Unity a mozgás idejéig blokkol) - elvi korlát;
+- a mock backend "túl kényelmes": a vak futás alatt a rover végig tökéletesen
+  a vonal közepén maradt, ezért a korrekciós logika nem került próbára;
 - egy második vak kiértékelés valódi kanyarban/részleges fehér
   esetén, hogy a line-following korrekciós logika (`turn` időzítése)
   is kipróbálásra kerüljön - a jelen futás alatt a vonal végig
