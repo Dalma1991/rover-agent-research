@@ -10,7 +10,7 @@ biztonságosan, a szimulátor-részletek elrejtésével teszi elérhetővé -
 úgy, hogy az agent a saját szenzoraira legyen utalva, ne egy
 privilegizált pozícióadatra.
 
-## Állapot: FOLYAMATBAN
+## Állapot: LEZÁRVA (`m12` tag)
 
 A tervezett munkacsomagok:
 1. backend-absztrakció (kész)

@@ -86,6 +86,16 @@ controllerrel és neurális policy-vel egyaránt.
   átlagos ütközésszám 20.9->10.2 (30 futásos méréssel igazolva).
   Két elvetett javítási kísérlet is dokumentálva (lásd
   docs/m10-5-plan.md).
+- **m12**: agent-facing MCP-adapter. Az `adapter/` réteg hat MCP-eszközön
+  (`observe`, `move`, `turn`, `stop`, `reset_position`, `session_status`)
+  keresztül teszi vezérelhetővé a rovert AI-agentek számára. Backend-absztrakció
+  (Unity TCP vagy mock, az agent számára megkülönböztethetetlenül), biztonsági
+  réteg (paraméter-validáció a rover előtt, munkamenet-korlátok, automatikus
+  stop, a privilegizált szimulátor-mezők elrejtése), 18 mock teszt, exportált
+  tool schema. Egy vak kiértékelésben egy külön Claude Code munkamenet
+  kizárólag az eszközleírásokból vezette a rovert 20 lépésen át, egy másik
+  pedig biztonsági átvizsgálást végzett — a nyolc találatból öt javítva.
+  Részletek: docs/m12-plan.md, docs/m12-security-review.md.
 - **m11**: reprodukálható kísérleti platform. Egységes lépésenkénti
   naplóséma (`common/kiserlet_naplo.py`), replay-vizualizáció statikus
   képpel és animált videóval (`controllers/replay_visualizer.py`),

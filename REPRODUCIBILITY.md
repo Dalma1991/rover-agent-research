@@ -138,6 +138,40 @@ a formázás-ellenőrzést (`black --check`), a statikus kódellenőrzést (`pyf
 (`scripts/ellenoriz_dokumentaciot.py`: a dokumentumokban hivatkozott
 fájlok verziókövetettek-e).
 
+## 5c. Az M12 MCP-adapter indítása és ellenőrzése
+
+Az adapter magja (`adapter/backend.py`, `adapter/orseg.py`) és a tesztek
+Python 3.9-en futnak, az MCP-szerver viszont Python 3.10+-t igényel. A projekt
+virtuális környezetét nem kell váltani; az MCP-szerver külön indul:
+
+```bash
+# tesztek (Unity nélkül, a projekt 3.9-es venv-jéből)
+python3 tests/adapter_test.py -v
+
+# MCP-szerver mock backenddel (izolált 3.12-es környezetben)
+uv run --no-project --python 3.12 --with mcp \
+  python adapter/mcp_szerver.py --backend mock --mock-akadalyokkal
+
+# MCP-szerver élő Unity ellen (Play mód szükséges)
+uv run --no-project --python 3.12 --with mcp \
+  python adapter/mcp_szerver.py --backend unity
+
+# a tool schema újraexportálása / ellenőrzése
+uv run --no-project --python 3.12 --with mcp python scripts/export_tool_schema.py
+uv run --no-project --python 3.12 --with mcp python scripts/export_tool_schema.py --ellenoriz
+```
+
+Claude Code-hoz így regisztrálható (a repó gyökeréből):
+
+```bash
+claude mcp add rover -- "$HOME/.local/bin/uv" run --no-project --python 3.12 \
+  --with mcp python "$PWD/adapter/mcp_szerver.py" --backend mock --mock-akadalyokkal
+claude mcp list
+```
+
+Fontos: az `uv run`-t a repó gyökerében **`--no-project` nélkül ne** futtasd,
+mert az `uv` sajátjaként kezeli és újraépíti a projekt `.venv`-jét.
+
 ## 6. Mérföldkövek és a hozzájuk tartozó fő artifactok
 
 | Mérföldkő | Git tag | Fő fájlok |
@@ -153,13 +187,14 @@ fájlok verziókövetettek-e).
 | M09 | `m09` | `controllers/baseline_line_follower.py`, `controllers/summarize_runs.py`, `tests/baseline_line_follower_test.py`, `docs/m09-plan.md`, `docs/baseline_state_machine.svg`, `logs/m09_runs.jsonl` |
 | M10 | `m10` | `unity/Assets/Scripts/RoverGatewayServer.cs` (ütközésdetektálás), `controllers/analyze_step_log.py`, `docs/m10-plan.md`, `docs/videos/m10-akadalykerules-demo.mov`, `logs/m10_vegleges_30_futas_lepesnaplo.jsonl`, `experiments/scenarios/stadium-train-baseline-always-visible.json` |
 | M10.5 (nem hivatalos) | `m10-5` | `controllers/baseline_line_follower.py` (AKADALY előrehaladás, 15°, `AKADALY_KUSZOB_KILEPES_M`=1.1), `docs/m10-5-plan.md` |
+| M12 | `m12` | `adapter/backend.py`, `adapter/orseg.py`, `adapter/mcp_szerver.py`, `tests/adapter_test.py`, `scripts/export_tool_schema.py`, `docs/m12-plan.md`, `docs/m12-security-review.md`, `docs/m12-tool-schema.json`, `docs/m12/agent-session-raw.txt`, `docs/m12/security-review-raw.txt` |
 | M11 | `m11` | `common/kiserlet_naplo.py`, `controllers/replay_visualizer.py` (`--video`), `controllers/futtat_kiserletet.py`, `controllers/summarize_runs.py` (`--utolso`), `scripts/referencia_epizod.py`, `scripts/ellenoriz_dokumentaciot.py`, `experiments/referencia_epizod/`, `unity/Assets/Tests/EditMode/TrackControllerGeometriaTeszt.cs`, `unity/Assets/Tests/PlayMode/TrackSceneTeszt.cs`, `unity/Assets/Scripts/TrackController.cs` (fantom-ív javítás), `tests/kiserlet_naplo_test.py`, `tests/replay_visualizer_test.py`, `tests/README.md`, `.github/workflows/ci.yml`, `docs/m11-plan.md`, `docs/videos/m11-referencia-replay.gif`, `docs/screenshots/referencia_replay.png`, `docs/screenshots/m11-unity-tests-editmode.png`, `docs/screenshots/m11-unity-tests-playmode.png` |
 | M11.1 (utólagos CI-pótlás) | `m11.1` | `.github/workflows/ci.yml` (`black --check`, rögzített verziók), `pyproject.toml` |
 
 Egy adott mérföldkő állapotának pontos visszaállításához:
 
 ```bash
-git checkout m05   # vagy m01, m02, ..., m10, m10-5, m11, m11.1
+git checkout m05   # vagy m01, m02, ..., m10, m10-5, m11, m11.1, m12
 ```
 
 ## 7. Ismert korlátok
