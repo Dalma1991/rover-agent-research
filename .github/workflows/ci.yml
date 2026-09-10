@@ -34,6 +34,9 @@ jobs:
       - name: Szcenario seed reprodukalhatosagi teszt
         run: python3 tests/scenario_seed_test.py
 
+      - name: Adapter tesztek (M12, mock backend)
+        run: python3 tests/adapter_test.py
+
       - name: Referenciaepizod ellenorzese (M11 elfogadasi feltetel)
         run: python3 scripts/referencia_epizod.py
 
@@ -41,10 +44,10 @@ jobs:
         run: python3 experiments/scenario_validator.py "experiments/scenarios/*.json"
 
       - name: Formazas-ellenorzes (black --check)
-        run: python3 -m black --check --line-length 100 controllers common scripts experiments/scenario_validator.py tests
+        run: python3 -m black --check --line-length 100 adapter controllers common scripts experiments/scenario_validator.py tests
 
       - name: Statikus kodellenorzes (pyflakes)
-        run: python3 -m pyflakes controllers common scripts experiments/scenario_validator.py tests
+        run: python3 -m pyflakes adapter controllers common scripts experiments/scenario_validator.py tests
 
       - name: Dokumentacio-ellenorzes (hivatkozott fajlok leteznek)
         run: python3 scripts/ellenoriz_dokumentaciot.py
