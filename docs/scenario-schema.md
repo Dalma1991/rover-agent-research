@@ -86,7 +86,31 @@ Az elkészülő példák:
 
 - `stadium-train-baseline.json`;
 - `stadium-dev-scheduled.json`;
-- `stadium-test-hidden.json`.
+- `stadium-test-holdout.json`.
+
+## Train / dev / test szeparáció — fontos korlát
+
+A három szcenárió szerepe eltérő: a `train` a kontrollerek hangolásához, a
+`dev` a fejlesztés közbeni próbákhoz, a `test` pedig a végső kiértékeléshez
+készült.
+
+**A szeparáció azonban névleges, nem titkosított.** A `test` szcenárió a
+generáló seeddel együtt kezdettől fogva a nyilvános repóban van (eredetileg
+`stadium-test-hidden.json` néven, ami félrevezető volt — az M12-ben ezért
+`stadium-test-holdout.json`-ra neveztük át). Ez azt jelenti, hogy:
+
+- **ami igazolható**: a baseline kontroller (M09-M10.5) hangolása kizárólag a
+  `stadium-train-baseline` szcenárión történt — ez a commit-történetből és a
+  mérési naplókból (`logs/`, `docs/m10-plan.md`, `docs/m10-5-plan.md`)
+  ellenőrizhető, egyetlen mérés sem futott a `test` szcenárión;
+- **amit nem lehet állítani**: hogy a `test` szcenárió "rejtett" lett volna a
+  fejlesztés során a szó módszertani értelmében.
+
+Az M13+ agent-kísérleteknél a valódi holdout-szcenáriókat a repón kívül kell
+tartani, és csak a tartalmi hash-üket commitolni, hogy a szeparáció
+igazolható legyen. A jelenlegi `test` szcenárió eredményeit ezzel a
+fenntartással kell értelmezni.
+
 
 Az explicit akadálylista a generálás rögzített eredménye. A futtatónak
 nem szabad azt betöltéskor újragenerálnia; a seed a reprodukálhatóságot és

@@ -16,7 +16,7 @@ OUTPUT_DIR = ROOT / "experiments" / "scenarios"
 SCENARIOS = (
     ("train", "stadium-train-baseline", 12.0, 4.0, 0.18, (28, 32, 28), 2),
     ("dev", "stadium-dev-scheduled", 10.0, 3.5, 0.20, (35, 38, 42), 1),
-    ("test", "stadium-test-hidden", 14.0, 4.5, 0.16, (22, 25, 31), 2),
+    ("test", "stadium-test-holdout", 14.0, 4.5, 0.16, (22, 25, 31), 2),
 )
 
 
