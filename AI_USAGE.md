@@ -540,6 +540,35 @@ kódjavaslatot, a felhasználó vezette be és ellenőrizte a teszteket:
    history-rewrite/force-push nélkül, mert az megosztott history-t
    írna felül), a felhasználó jóváhagyta a megközelítést és a push-ot.
 
+### 21. M12 biztonsági átvizsgálás és a talált hibák javítása
+
+A kiírás M12-es kötelező AI-használati pontjához egy **külön, tiszta Claude
+Code munkamenet** olvasta el az `adapter/` három modulját, és készített
+biztonsági átvizsgálást (nyers kimenet: `docs/m12/security-review-raw.txt`,
+strukturált összefoglaló: `docs/m12-security-review.md`). Nyolc találat
+született, súlyosság szerint rendezve, fájl- és sorhivatkozásokkal.
+
+Öt találatot javítottunk (a Claude adta a javítás kódját, a felhasználó
+ellenőrizte és hagyta jóvá): egységes, fail-safe backend-hibakezelés a
+kivétel-szivárgás ellen; ütközésjelzés az `observe` válaszában; a `stop()`
+javítása lezárt munkamenetben; az elutasított hívások beszámítása a
+parancskeretbe; `assert` helyett `raise`. Kettő nyitva maradt M13+-ra
+(wall-clock időkorlát, időzítés-alapú backend-felismerés), egy megfigyelés.
+
+Két döntés a felhasználóé volt. Az egyik: a `collision_detected` bool
+bevezetése az `observe`-ban, tudatos eltérésként az eredeti "minden
+ütközés-adat rejtve" elvtől — indoklás a `docs/m12-security-review.md`
+2. sorában. A másik: a `.venv` véletlen verziókövetését `.gitignore` +
+`git rm --cached` úton javítottuk, nem history-átírással, mert az a
+mérföldkő-tageket is áthelyezné.
+
+Módszertani megjegyzés a kutatáshoz: a nyolc találat egyikét sem fogta meg a
+11 meglévő unit teszt — egyik sem szimulált hálózati hibát, lezárt backendet
+vagy ütközés utáni állapotot. A javításokhoz 7 regressziós teszt készült.
+Ugyanez a minta ismétlődött az M11-ben is (fantom-ív hiba), tehát az
+"AI-generált kód + AI-generált teszt" páros vakfoltjai rendszeresek: a tesztek
+a boldog útvonalat fedik, a hibaágakat nem.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
