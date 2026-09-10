@@ -4,12 +4,19 @@ Feladatai (a kiiras M12 pontjai szerint):
 - csak a szukseges muveleteket engedi at (observe, move, turn, stop,
   reset_position) - get_status/reset_error es minden mas parancs le van tiltva;
 - minden parametert a backend ELOTT validal: ervenytelen hivas nem jut el a
-  roverhez, hanem rovid, egyertelmu hibauzenettel ter vissza;
+  roverhez, hanem rovid, egyertelmu hibauzenettel ter vissza (es fogyaszt a
+  parancskeretbol, hogy egy hibas agent ne probalkozhasson korlatlanul);
 - session-limitek: max parancsszam, max idotartam, max osszes megtett tavolsag;
   limit atlepesekor automatikus stop, es a session lezarul;
 - backend-rejtes: a valaszbol eltavolitja a privilegizalt szimulator-mezoket
   (position, speed, collision_*), igy az agent nem tudja meg, hogy Unity vagy
-  mock all mogotte, es nem is tamaszkodhat "isteni" pozicioadatra.
+  mock all mogotte. Kivetel az utkozesjelzes: az observe valaszaba bekerul egy
+  collision_detected bool (volt-e utkozes az utolso observe ota), mert
+  bumper/IMU egy valodi roveren is lenne - a kumulativ szamlalo tovabbra sem
+  szivarog ki;
+- a backend barmilyen hibaja (halozat, protokoll, dekodolas) egyseges
+  ADAPTER_BACKEND_ERROR valaszt ad es lezarja a sessiont, hogy a kivetel
+  szovegebol se lehessen a backend tipusara kovetkeztetni.
 
 Az adapter sajat hibai (nem a v1 protokoll hibakodjai) "ADAPTER_" prefixszel
 jelennek meg, hogy a naplobol egyertelmu legyen, hol akadt el a hivas.
@@ -36,6 +43,10 @@ from adapter.backend import (
 
 ENGEDELYEZETT_PARANCSOK = ("observe", "move", "turn", "stop", "reset_position")
 ELREJTETT_MEZOK = ("position", "speed", "collision_occurred", "collision_count")
+# Az utkozes-erzekelo (bumper/IMU) egy valodi roveren is letezne, ezert az agent
+# megkapja - de csak "az utolso observe ota tortent-e utkozes" bool formaban, nem
+# a szimulator kumulativ szamlalojakent (abbol statisztika lenne visszafejtheto).
+UTKOZES_MEZO = "collision_detected"
 
 
 @dataclass(frozen=True)
@@ -55,6 +66,12 @@ class SessionAllapot:
     lezarva: bool = False
     lezaras_oka: str | None = None
     elutasitott: int = 0
+    utolso_utkozes_szamlalo: int = 0
+    utkozes_az_utolso_parancs_ota: bool = False
+
+
+class BackendHiba(Exception):
+    """A backend elerhetetlen vagy ertelmezhetetlen valaszt adott."""
 
 
 def _adapter_hiba(nev: str, uzenet: str) -> dict[str, Any]:
@@ -126,10 +143,19 @@ class Orseg:
         return self._vegrehajt({"command": "turn", "angle_deg": szog, "max_angular_speed": seb})
 
     def stop(self) -> dict[str, Any]:
-        # A stop mindig atmegy, lezart sessionben is (biztonsagi muvelet).
-        valasz = self._backend.kuld({"command": "stop"})
+        """A stop mindig atmegy, lezart sessionben is (biztonsagi muvelet).
+
+        Ha a session mar lezarult, a backend is le van zarva - ilyenkor nem
+        probalunk ujra kuldeni (az mar hibahoz vezetne), hanem nyugtazzuk, hogy
+        a rover a lezaraskor kikuldott stop miatt all.
+        """
+        if self.session.lezarva:
+            return {
+                "status": "completed",
+                "note": "the rover was already stopped when the session closed",
+            }
         self.session.parancsok += 1
-        return self._szur(valasz)
+        return self._backend_hivas({"command": "stop"})
 
     def reset_position(self) -> dict[str, Any]:
         return self._vegrehajt({"command": "reset_position"})
@@ -150,22 +176,54 @@ class Orseg:
         }
 
     def lezar(self, ok: str) -> None:
-        if not self.session.lezarva:
-            self.session.lezarva = True
-            self.session.lezaras_oka = ok
+        """A session lezarasa: eloszor stop, aztan a backend bontasa.
+
+        A stop es a close hibaja sem terjedhet tovabb - a lezaras mindig
+        befejezodik, kulonben egy halozati hiba miatt "felig nyitva" maradna a
+        session.
+        """
+        if self.session.lezarva:
+            return
+        self.session.lezarva = True
+        self.session.lezaras_oka = ok
+        try:
+            self._backend.kuld({"command": "stop"})
+        except Exception:  # noqa: BLE001
+            pass
+        finally:
             try:
-                self._backend.kuld({"command": "stop"})
-            finally:
                 self._backend.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _lezar_backend_nelkul(self, ok: str) -> None:
+        """Lezaras, amikor a backend mar bizonyitottan nem valaszol: nem
+        probalunk stopot kuldeni, csak bontjuk a kapcsolatot."""
+        if self.session.lezarva:
+            return
+        self.session.lezarva = True
+        self.session.lezaras_oka = ok
+        try:
+            self._backend.close()
+        except Exception:  # noqa: BLE001
+            pass
 
     # --- belso ----------------------------------------------------------------
 
     def _elutasit(self, hiba: dict[str, Any]) -> dict[str, Any]:
+        """Elutasitott hivas: a parancskeretbe is beleszamit.
+
+        Enelkul egy hibas vagy rosszindulatu agent korlatlanul probalkozhatna
+        ervenytelen parametereku hivasokkal, mert azok nem fogyasztanak keretet.
+        """
         self.session.elutasitott += 1
+        self.session.parancsok += 1
         return hiba
 
     def _vegrehajt(self, parancs: dict[str, Any]) -> dict[str, Any]:
-        assert parancs["command"] in ENGEDELYEZETT_PARANCSOK
+        # Nem assert: az -O kapcsoloval futo Python kihagyna a biztonsagi ellenorzest.
+        if parancs["command"] not in ENGEDELYEZETT_PARANCSOK:
+            raise ValueError(f"Az adapter nem tovabbithat ilyen parancsot: {parancs['command']!r}")
         if self.session.lezarva:
             return self._elutasit(
                 _adapter_hiba(
@@ -183,9 +241,46 @@ class Orseg:
                 _adapter_hiba("ADAPTER_SESSION_CLOSED", "session closed: time limit reached")
             )
         self.session.parancsok += 1
-        valasz = self._backend.kuld(parancs)
+        return self._backend_hivas(parancs)
+
+    def _backend_hivas(self, parancs: dict[str, Any]) -> dict[str, Any]:
+        """A backend hivasa ugy, hogy semmilyen belso kivetel ne juthasson ki.
+
+        Barmilyen I/O-, protokoll- vagy dekodolasi hiba eseten a session
+        lezarul (fail-safe), es az agent egyseges, backend-fuggetlen hibat kap:
+        a kivetel tipusa es szovege soha nem szivarog ki, mert abbol
+        kikovetkeztetheto lenne a mogottes backend tipusa.
+        """
+        try:
+            valasz = self._backend.kuld(parancs)
+        except Exception:  # noqa: BLE001 - szandekosan minden kivetel
+            self._lezar_backend_nelkul("backend error")
+            return self._elutasit(
+                _adapter_hiba("ADAPTER_BACKEND_ERROR", "the rover is not reachable; session closed")
+            )
+        if not isinstance(valasz, dict):
+            self._lezar_backend_nelkul("backend error")
+            return self._elutasit(
+                _adapter_hiba("ADAPTER_BACKEND_ERROR", "the rover is not reachable; session closed")
+            )
         return self._szur(valasz)
 
-    @staticmethod
-    def _szur(valasz: dict[str, Any]) -> dict[str, Any]:
-        return {k: v for k, v in valasz.items() if k not in ELREJTETT_MEZOK and k != "request_id"}
+    def _szur(self, valasz: dict[str, Any]) -> dict[str, Any]:
+        """Privilegizalt mezok eltavolitasa + utkozesjelzes szamitasa.
+
+        A backend kumulativ collision_count-jat nem adjuk tovabb, de a
+        novekmenyebol eloallitjuk az "utolso observe ota volt-e utkozes"
+        jelzest, es azt az observe valaszaba tesszuk (lasd UTKOZES_MEZO).
+        """
+        szamlalo = valasz.get("collision_count")
+        if isinstance(szamlalo, int):
+            if szamlalo > self.session.utolso_utkozes_szamlalo:
+                self.session.utkozes_az_utolso_parancs_ota = True
+            self.session.utolso_utkozes_szamlalo = szamlalo
+
+        szurt = {k: v for k, v in valasz.items() if k not in ELREJTETT_MEZOK and k != "request_id"}
+        if "sensor_center" in szurt:
+            szurt[UTKOZES_MEZO] = self.session.utkozes_az_utolso_parancs_ota
+            # Az observe leolvassa a jelzest, es nullazza a kovetkezo parancsig.
+            self.session.utkozes_az_utolso_parancs_ota = False
+        return szurt

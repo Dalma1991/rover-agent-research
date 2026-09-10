@@ -3,11 +3,11 @@
     "name": "rover",
     "version": "0.12.0"
   },
-  "instructions": "Egy vonalkoveto rover vezerlese egy stadion alaku palyan. A rover harom szinszenzorral (bal/kozep/jobb) latja a feher vonalat, es egy 6 szektoros Lidarral az akadalyokat. Minden lepesnel eloszor hivj observe-ot, majd dontsd el a kovetkezo move/turn parancsot. A munkamenet korlatozott (parancsszam, ido, ossztavolsag): a session_status megmutatja, mennyi maradt. Nincs hozzaferesed a rover valos pozciojahoz - csak a szenzorokra tamaszkodhatsz.",
+  "instructions": "Egy vonalkoveto rover vezerlese egy stadion alaku palyan. A rover harom szinszenzorral (bal/kozep/jobb) latja a feher vonalat, es egy 6 szektoros Lidarral az akadalyokat. Minden lepesnel eloszor hivj observe-ot, majd dontsd el a kovetkezo move/turn parancsot. A munkamenet korlatozott (parancsszam, ido, ossztavolsag): a session_status megmutatja, mennyi maradt (az elutasitott hivasok is fogyasztanak a parancskeretbol). Nincs hozzaferesed a rover valos pozciojahoz vagy sebessegehez - csak a szenzorokra tamaszkodhatsz. Ha egy hivas ADAPTER_BACKEND_ERROR-t ad, a rover elerhetetlenne valt es a munkamenet lezarult; ilyenkor ne probalkozz tovabb.",
   "tools": [
     {
       "name": "observe",
-      "description": "Leolvassa a rover szenzorait. Visszaadja a harom szinszenzort (sensor_left, sensor_center, sensor_right; mindegyik 'white' logikai es 'intensity' 0-1 ertekkel), valamint a lidar_szektor_min listat: 6 szektor legkozelebbi akadalytavolsaga meterben, balrol jobbra, a rover elotti 180 fokos legyezoben (10.0 = nincs akadaly hatotavon belul). Minden allapotban hivhato, nem mozgatja a rovert.",
+      "description": "Leolvassa a rover szenzorait. Minden allapotban hivhato, nem mozgatja a rovert. Visszaadott mezok: sensor_left / sensor_center / sensor_right a harom lefele nezo szinszenzor (egymastol 6 cm-re): 'white' = a feher vonal folott van-e, 'intensity' 0-1 folytonos ertek (1.0 = pontosan a vonal kozepen, 0.0 = a vonaltol legalabb 10 cm-re); vonalkovetesnel a bal es jobb szenzor intensity-kulonbsege adja a korrekcio iranyat. A lidar_szektor_min 6 szam: a rover elotti 180 fokos legyezo hat, egyenkent 30 fokos szektoranak legkozelebbi akadalytavolsaga meterben, balrol jobbra ([0] = 90-60 fok balra, [2] = 30-0 balra, [3] = 0-30 jobbra, [5] = 60-90 jobbra); a 10.0 azt jelenti, hogy az adott szektorban nincs akadaly hatotavon belul. A rover kb. 0.35 m szeles, ezert a [2] es [3] szektorban 0.5 m alatti ertek utkozessel fenyeget - ilyenkor fordulj, ne haladj tovabb. A collision_detected jelzi, volt-e utkozes az elozo observe ota (bumper/gyorsulasmero): ha true, ne ismeteld ugyanazt a parancsot. A rover valos pozicioja es sebessege nem lekerdezheto.",
       "input_schema": {
         "properties": {},
         "type": "object",
@@ -16,7 +16,7 @@
     },
     {
       "name": "move",
-      "description": "Elore mozgatja a rovert. distance_m: 0.01-1.00 meter. max_speed: 0.05-0.50 m/s (alapertelmezett 0.2). A parancs a mozgas befejezesekor ter vissza. Tartomanyon kivuli vagy nem szamertek eseten a hivas elutasitasra kerul (status: rejected), a rover nem mozdul. A munkamenet ossztavolsag-kerete is korlatozza.",
+      "description": "Elore mozgatja a rovert. distance_m: 0.01-1.00 meter. max_speed: 0.05-0.50 m/s (alapertelmezett 0.2). A parancs a mozgas befejezesekor ter vissza. Tartomanyon kivuli vagy nem szamertek eseten a hivas elutasitasra kerul (status: rejected), a rover nem mozdul; az elutasitott hivas is fogyaszt a parancskeretbol. FIGYELEM: a 'completed' status nem jelenti, hogy a rover a teljes tavolsagot megtette - akadalynak utkozve hamarabb megall, es a megtett tavolsagot nem lehet lekerdezni; a kovetkezo observe collision_detected mezoje jelzi, ha ez tortent. Az ossztavolsag-keretbe mindig a KERT tavolsag szamit bele.",
       "input_schema": {
         "properties": {
           "distance_m": {
@@ -38,7 +38,7 @@
     },
     {
       "name": "turn",
-      "description": "Elforgatja a rovert a helyben. angle_deg: -180 es 180 kozott, az abszolut erteke legalabb 1; pozitiv = jobbra, negativ = balra. max_angular_speed: 5-45 fok/s (alapertelmezett 30). Tartomanyon kivuli ertek eseten a hivas elutasitasra kerul, a rover nem mozdul.",
+      "description": "Elforgatja a rovert a helyben. angle_deg: -180 es 180 kozott, az abszolut erteke legalabb 1; pozitiv = jobbra, negativ = balra. max_angular_speed: 5-45 fok/s (alapertelmezett 30). Tartomanyon kivuli ertek eseten a hivas elutasitasra kerul, a rover nem mozdul; az elutasitott hivas is fogyaszt a parancskeretbol.",
       "input_schema": {
         "properties": {
           "angle_deg": {
@@ -60,7 +60,7 @@
     },
     {
       "name": "stop",
-      "description": "Azonnal leallitja a rovert. Barmikor hivhato, idempotens (ha mar all, nem tortenik semmi). Lezart munkamenetben is mukodik.",
+      "description": "Azonnal leallitja a rovert. Barmikor hivhato, idempotens (ha mar all, nem tortenik semmi). Lezart munkamenetben is hivhato: ilyenkor a rover mar all (a lezaras automatikusan leallitotta), a valasz ezt nyugtazza.",
       "input_schema": {
         "properties": {},
         "type": "object",
@@ -69,7 +69,7 @@
     },
     {
       "name": "reset_position",
-      "description": "Visszaallitja a rovert a kezdo pozicioba es iranyba. Kiserleti futasok kozott hasznalatos, hogy minden futas azonos allapotbol induljon. Csak allo roveren mukodik.",
+      "description": "Visszaallitja a rovert a kezdo pozicioba es iranyba. Kiserleti futasok kozott hasznalatos, hogy minden futas azonos allapotbol induljon. Csak allo roveren mukodik. Fogyaszt a parancskeretbol, de az ossztavolsag-keretbe nem szamit bele.",
       "input_schema": {
         "properties": {},
         "type": "object",
@@ -78,7 +78,7 @@
     },
     {
       "name": "session_status",
-      "description": "Megmutatja a munkamenet felhasznalt es maximalis kereteit: parancsszam, eltelt ido, megtett ossztavolsag, egy move maximalis hossza, elutasitott hivasok szama, valamint hogy a munkamenet le van-e mar zarva es miert. Nem szamit bele a parancskeretbe.",
+      "description": "Megmutatja a munkamenet felhasznalt es maximalis kereteit: parancsszam, eltelt ido, megtett ossztavolsag, egy move maximalis hossza, elutasitott hivasok szama, valamint hogy a munkamenet le van-e mar zarva es miert. Nem szamit bele a parancskeretbe. A limit elerese eseten a rover automatikusan leall, es a tovabbi vezerlo hivasok ADAPTER_SESSION_CLOSED hibaval terulnek vissza.",
       "input_schema": {
         "properties": {},
         "type": "object",

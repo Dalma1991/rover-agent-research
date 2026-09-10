@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -9,7 +10,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from adapter.backend import MockAkadaly, MockBackend, tavolsag_a_kozepvonaltol  # noqa: E402
-from adapter.orseg import ELREJTETT_MEZOK, Orseg, SessionKorlatok  # noqa: E402
+from adapter.orseg import (  # noqa: E402
+    ELREJTETT_MEZOK,
+    UTKOZES_MEZO,
+    Orseg,
+    SessionKorlatok,
+)
 
 
 class MockBackendTeszt(unittest.TestCase):
@@ -123,6 +129,92 @@ class OrsegTeszt(unittest.TestCase):
             "closed",
         ):
             self.assertIn(k, s)
+
+
+class HibasBackend:
+    """Backend, ami a megadott hivasszam utan kivetelt dob (halozati hiba)."""
+
+    def __init__(self, hibatol: int = 0, kivetel=None) -> None:
+        self.hivasok = 0
+        self.hibatol = hibatol
+        self.kivetel = kivetel or ConnectionError("A kapcsolat varatlanul megszakadt.")
+        self.lezarva = False
+
+    def kuld(self, parancs):
+        self.hivasok += 1
+        if self.hivasok > self.hibatol:
+            raise self.kivetel
+        return {"status": "completed", "state": "IDLE"}
+
+    def close(self) -> None:
+        self.lezarva = True
+
+
+class BiztonsagiJavitasokTeszt(unittest.TestCase):
+    """A M12 security review talalatainak regresszios tesztjei."""
+
+    def test_1_backend_kivetel_nem_szivarog_ki(self):
+        backend = HibasBackend()
+        orseg = Orseg(backend)
+        valasz = orseg.observe()
+        self.assertEqual(valasz["error"]["code"], "ADAPTER_BACKEND_ERROR")
+        self.assertNotIn("ConnectionError", json.dumps(valasz))
+        self.assertNotIn("megszakadt", json.dumps(valasz))
+        self.assertTrue(orseg.session.lezarva, "backend-hiba eseten a session lezarul")
+        self.assertTrue(backend.lezarva, "a backendet le kell zarni")
+
+    def test_1b_nem_dict_valasz_is_kezelve(self):
+        class RosszValaszBackend(HibasBackend):
+            def kuld(self, parancs):
+                return "nem dict"
+
+        orseg = Orseg(RosszValaszBackend())
+        self.assertEqual(orseg.observe()["error"]["code"], "ADAPTER_BACKEND_ERROR")
+
+    def test_2_utkozesjelzes_lathato_de_a_szamlalo_nem(self):
+        backend = MockBackend(akadalyok=[MockAkadaly(x=4.0, z=0.5)])
+        orseg = Orseg(backend)
+        elso = orseg.observe()
+        self.assertFalse(elso[UTKOZES_MEZO], "meg nem volt utkozes")
+        orseg.move(0.5)
+        masodik = orseg.observe()
+        self.assertTrue(masodik[UTKOZES_MEZO], "az utkozest jeleznie kell")
+        for mezo in ELREJTETT_MEZOK:
+            self.assertNotIn(mezo, masodik, f"{mezo} nem szivaroghat ki")
+        harmadik = orseg.observe()
+        self.assertFalse(harmadik[UTKOZES_MEZO], "a jelzes az observe utan nullazodik")
+
+    def test_3_stop_lezart_sessionben_nem_hasznalja_a_backendet(self):
+        backend = MockBackend()
+        orseg = Orseg(backend, SessionKorlatok(max_parancs=1))
+        orseg.observe()
+        orseg.observe()
+        self.assertTrue(orseg.session.lezarva)
+        hivasok = len(backend.parancsnaplo)
+        valasz = orseg.stop()
+        self.assertEqual(valasz["status"], "completed")
+        self.assertEqual(len(backend.parancsnaplo), hivasok, "lezart backendre nem kuldunk")
+
+    def test_4_elutasitott_hivas_is_fogyasztja_a_keretet(self):
+        orseg = Orseg(MockBackend(), SessionKorlatok(max_parancs=3))
+        for _ in range(3):
+            self.assertEqual(orseg.move(99.0)["status"], "rejected")
+        self.assertEqual(orseg.session.parancsok, 3)
+        self.assertEqual(orseg.observe()["error"]["code"], "ADAPTER_SESSION_CLOSED")
+
+    def test_7_tiltott_parancs_raise_nem_assert(self):
+        orseg = Orseg(MockBackend())
+        with self.assertRaises(ValueError):
+            orseg._vegrehajt({"command": "reset_error"})
+
+    def test_lezaras_hibas_backenddel_sem_dob(self):
+        class MindigHibas(HibasBackend):
+            def close(self) -> None:
+                raise OSError("close hiba")
+
+        orseg = Orseg(MindigHibas())
+        orseg.lezar("teszt")
+        self.assertTrue(orseg.session.lezarva)
 
 
 if __name__ == "__main__":
