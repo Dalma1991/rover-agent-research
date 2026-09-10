@@ -17,3 +17,8 @@ unity/Builds/
 *.unityproj
 sysinfo.txt
 crashlytics-build.txt
+
+# Python
+.venv/
+__pycache__/
+*.pyc
