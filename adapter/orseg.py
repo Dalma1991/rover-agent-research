@@ -2,7 +2,9 @@
 
 Feladatai (a kiiras M12 pontjai szerint):
 - csak a szukseges muveleteket engedi at (observe, move, turn, stop,
-  reset_position) - get_status/reset_error es minden mas parancs le van tiltva;
+  reset_position) - get_status/reset_error es minden mas parancs le van tiltva.
+  A reset_position az adapter szintjen engedelyezett, de az MCP-szerver NEM
+  teszi ki agent-eszkozkent (lasd a metodus docstringjet);
 - minden parametert a backend ELOTT validal: ervenytelen hivas nem jut el a
   roverhez, hanem rovid, egyertelmu hibauzenettel ter vissza (es fogyaszt a
   parancskeretbol, hogy egy hibas agent ne probalkozhasson korlatlanul);
@@ -158,6 +160,13 @@ class Orseg:
         return self._backend_hivas({"command": "stop"})
 
     def reset_position(self) -> dict[str, Any]:
+        """Kiserletvezetoi muvelet: a rover visszaallitasa a kezdo pozicioba.
+
+        NEM agent-eszkoz (az MCP-szerver nem teszi ki): egy valodi rovert nem
+        lehet teleportalni, ezert a muvelet leteze maga is elarulna, hogy
+        szimulacio all a backend mogott. A kiserleti futasok kozotti resetet a
+        meresindito szkript vegzi ezen a metoduson keresztul.
+        """
         return self._vegrehajt({"command": "reset_position"})
 
     def session_status(self) -> dict[str, Any]:

@@ -29,6 +29,20 @@ igazított biztonsági küszöb, az `intensity` folytonos jelentése
 vonalkövetéshez, valamint a `reset_position` munkamenet-keretre gyakorolt
 hatása.
 
+## Utólagos kiegészítés: a `reset_position` mint backend-jelzés
+
+Egy külső átvizsgálás felvetette, hogy a `reset_position` eszköz maga is
+szimulátor-specifikus: egy valódi rovert nem lehet teleportálni, tehát a
+művelet puszta létezése elárulja, hogy szimuláció áll a backend mögött —
+ugyanaz a 4. kérdés ("szivárog-e ki bármi, aminek rejtve kellene maradnia"),
+amit a review az adatmezőkre vizsgált.
+
+**Kezelés**: a `reset_position` kikerült az agent eszközkészletéből (az
+MCP-szerver már csak öt eszközt tesz ki: `observe`, `move`, `turn`, `stop`,
+`session_status`). Az `Orseg.reset_position()` metódus megmarad, de kizárólag
+kísérletvezetői műveletként, a mérésindító szkript számára — így az agent
+eszközei pontosan azok, amik egy valódi roveren is léteznének.
+
 ## Mit nem talált a review
 
 A 11 eredeti unit teszt mindegyike zölden futott a fenti hibák mellett is:

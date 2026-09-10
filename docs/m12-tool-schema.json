@@ -68,15 +68,6 @@
       }
     },
     {
-      "name": "reset_position",
-      "description": "Visszaallitja a rovert a kezdo pozicioba es iranyba. Kiserleti futasok kozott hasznalatos, hogy minden futas azonos allapotbol induljon. Csak allo roveren mukodik. Fogyaszt a parancskeretbol, de az ossztavolsag-keretbe nem szamit bele.",
-      "input_schema": {
-        "properties": {},
-        "type": "object",
-        "title": "reset_positionArguments"
-      }
-    },
-    {
       "name": "session_status",
       "description": "Megmutatja a munkamenet felhasznalt es maximalis kereteit: parancsszam, eltelt ido, megtett ossztavolsag, egy move maximalis hossza, elutasitott hivasok szama, valamint hogy a munkamenet le van-e mar zarva es miert. Nem szamit bele a parancskeretbe. A limit elerese eseten a rover automatikusan leall, es a tovabbi vezerlo hivasok ADAPTER_SESSION_CLOSED hibaval terulnek vissza.",
       "input_schema": {

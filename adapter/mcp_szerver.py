@@ -1,7 +1,13 @@
 """MCP-szerver a rover vezerlesehez (M12, 3. munkacsomag).
 
 Az agent (Claude Code) ezen a hat eszkozon keresztul latja a rovert:
-observe, move, turn, stop, reset_position, session_status.
+observe, move, turn, stop, session_status.
+
+A reset_position SZANDEKOSAN nem agent-eszkoz: egy valodi rovert nem lehet
+teleportalni, tehat ez a muvelet elarulna, hogy szimulacio all mogotte (lasd
+docs/m12-security-review.md). A kiserleti futasok kozotti pozicio-resetet a
+meresinditó szkript vegzi kozvetlenul a backenden, az Orseg.reset_position()
+metoduson keresztul.
 
 Amit az agent NEM kap meg:
 - shell- vagy fajlrendszer-hozzaferest,
@@ -122,18 +128,6 @@ def turn(angle_deg: float, max_angular_speed: float = 30.0) -> dict[str, Any]:
 )
 def stop() -> dict[str, Any]:
     return orseg().stop()
-
-
-@szerver.tool(
-    description=(
-        "Visszaallitja a rovert a kezdo pozicioba es iranyba. Kiserleti "
-        "futasok kozott hasznalatos, hogy minden futas azonos allapotbol "
-        "induljon. Csak allo roveren mukodik. Fogyaszt a parancskeretbol, de "
-        "az ossztavolsag-keretbe nem szamit bele."
-    )
-)
-def reset_position() -> dict[str, Any]:
-    return orseg().reset_position()
 
 
 @szerver.tool(

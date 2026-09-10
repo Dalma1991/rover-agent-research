@@ -58,9 +58,9 @@ használatával Unity nélkül futnak, bekerültek a CI-ba (`8689686`:
 
 ## 3. munkacsomag: MCP-szerver és exportált tool schema (kész)
 
-`adapter/mcp_szerver.py`: hat MCP-eszközt regisztrál az `Orseg`
+`adapter/mcp_szerver.py`: öt MCP-eszközt regisztrál az `Orseg`
 metódusaira építve - `observe`, `move`, `turn`, `stop`,
-`reset_position`, `session_status`. Az agent felé csak ez a hat eszköz
+`reset_position`, `session_status`. Az agent felé csak ez a öt eszköz
 látszik; nincs shell- vagy fájlrendszer-hozzáférése, és a
 `--backend mock`/`--backend unity` választás a kísérletvezetőé, nem az
 agenté - a szerver stderr-jére írja ki, melyik fut, az MCP-csatornára
