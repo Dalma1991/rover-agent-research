@@ -288,6 +288,15 @@ public class TrackController : MonoBehaviour
             // Unity projektnek a Tags & Layers listajaban is szerepelnie
             // kell (ProjectSettings/TagManager.asset - mar hozzaadva).
             objektum.tag = AkadalyTagNev;
+            // M13: az [ExecuteAlways] miatt ez Edit modban is lefut, es a
+            // generalt akadalyok bekerulnenek a TrackScene.unity fajlba
+            // (M11-ben ez tenyleg megtortent, kezzel kellett visszaallitani).
+            // A DontSave jelzes miatt a jelenet mentesekor kimaradnak - futas
+            // idejen a FelepitAkadalyokat() ugyis ujragenerálja oket.
+            if (!Application.isPlaying)
+            {
+                objektum.hideFlags = HideFlags.DontSave;
+            }
             objektum.transform.SetParent(transform);
             objektum.transform.position = akadaly.position_m.UnityVektor();
             objektum.transform.localScale = akadaly.size_m.UnityVektor();

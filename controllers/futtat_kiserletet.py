@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """M11: egyparancsos kiserletinditas es eredmeny-osszesites.
 
-Lefuttat N darab baseline_line_follower.py futast egymas utan, majd
-a vegen automatikusan lefuttatja a summarize_runs.py-t az osszesitett
-eredmenyekkel. Igy nem kell kulon-kulon inditani a mereset es az
-osszesitest.
+Lefuttat N darab kontroller-futast egymas utan, majd a vegen automatikusan
+lefuttatja a summarize_runs.py-t az osszesitett eredmenyekkel. Igy nem kell
+kulon-kulon inditani a mereset es az osszesitest.
+
+A --controller kapcsoloval barmelyik, a controllers/ mappaban levo kontroller
+merheto ugyanezzel a receptel (M13+: agent-alapu es tanult kontrollerek), amig
+elfogadja a --host/--port/--max-lepes kapcsolokat es a kozos naploformatumba ir.
 """
 
 from __future__ import annotations
@@ -23,6 +26,14 @@ def main() -> int:
         default=30,
         help="Hany egymas utani futast inditson el (alapertelmezett: 30).",
     )
+    parser.add_argument(
+        "--controller",
+        default="baseline_line_follower.py",
+        help=(
+            "A futtatando kontroller a controllers/ mappaban vagy teljes utvonalkent "
+            "(alapertelmezett: baseline_line_follower.py)."
+        ),
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-lepes", type=int, default=500)
@@ -30,15 +41,21 @@ def main() -> int:
     args = parser.parse_args()
 
     projekt_gyoker = Path(__file__).resolve().parent.parent
-    baseline_szkript = projekt_gyoker / "controllers" / "baseline_line_follower.py"
+    megadott = Path(args.controller)
+    kontroller_szkript = (
+        megadott if megadott.is_absolute() else projekt_gyoker / "controllers" / megadott
+    )
+    if not kontroller_szkript.is_file():
+        print(f"Nincs ilyen kontroller: {kontroller_szkript}", file=sys.stderr)
+        return 2
     summarize_szkript = projekt_gyoker / "controllers" / "summarize_runs.py"
 
-    print(f"=== {args.futasok_szama} futas inditasa ===")
+    print(f"=== {args.futasok_szama} futas inditasa ({kontroller_szkript.name}) ===")
     for i in range(1, args.futasok_szama + 1):
         print(f"--- Futas {i}/{args.futasok_szama} ---")
         parancs = [
             sys.executable,
-            str(baseline_szkript),
+            str(kontroller_szkript),
             "--host",
             args.host,
             "--port",
