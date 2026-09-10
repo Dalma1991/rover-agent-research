@@ -501,6 +501,45 @@ a jelenetfájlok objektumneveinek összevetésével (`grep m_Name`)
 igazolta, hogy a mentett `TrackScene.unity` teljes, a recovery csak
 duplikált, futásidőben generált akadályokat tartalmazott - törölve.
 
+### 20. M12: agent-interfész - backend-absztrakció, biztonsági réteg, MCP-szerver, vak API-kiértékelés (M12 kötelező AI-használat)
+
+Az M12 minden munkacsomagjánál a Claude adta a tervet és a
+kódjavaslatot, a felhasználó vezette be és ellenőrizte a teszteket:
+
+1. **Backend-absztrakció és biztonsági réteg** (`adapter/backend.py`,
+   `adapter/orseg.py`): a Claude tervezte meg a `Backend` protokollt
+   (Unity TCP + memóriabeli mock, azonos interfésszel) és az "őrség"
+   réteget (parancsszűrés, paraméter-validáció a backend előtt,
+   session-limitek, privilegizált mezők elrejtése). A `MockBackend`
+   a pálya-geometriát az M11-ben javított
+   `TavolsagAKozepvonaltol`-logika Python-párjaként számolja, hogy
+   Unity nélkül is determinisztikus tesztek fussanak. 11 adapter-teszt,
+   bekerült a CI-ba.
+2. **MCP-szerver** (`adapter/mcp_szerver.py`) és exportált tool schema
+   (`scripts/export_tool_schema.py` → `docs/m12-tool-schema.json`): a
+   Claude írta mindkettőt; a hat eszköz (`observe`/`move`/`turn`/
+   `stop`/`reset_position`/`session_status`) leírását is a Claude
+   fogalmazta meg, a felhasználó indította el élesben (`uv run`).
+3. **Vak API-használhatósági kiértékelés**: a felhasználó egy önálló
+   Claude Code munkamenetet indított azzal az explicit utasítással,
+   hogy a forráskódot ne olvassa el, kizárólag az MCP-eszközök
+   nevéből/leírásából vezesse a rovert kb. 20 lépésen át egy stadion
+   alakú pályán, majd értékelje az API érthetőségét. A nyers kimenet:
+   `docs/m12/agent-session-raw.txt`. A kiértékelő agent több érdemi,
+   dokumentálatlan hiányosságot azonosított (lidar-szektor - fizikai
+   irány leképezés, ajánlott biztonsági küszöb hiánya, `reset_position`
+   keret-hatásának tisztázatlansága) - ezek a lépéshez tartozó
+   `docs/m12-plan.md` 4. munkacsomagjában részletesek, jegyzőkönyvezve
+   mint M12+ nyitott pontok, nem javítva még.
+4. **Hiba: `.venv` véletlen verziókövetése**: a 3. munkacsomag
+   commitjakor a teljes Python virtualenv (3207 fájl, ~90 MB)
+   véletlenül bekerült a git indexbe és fel is lett push-olva, mert a
+   `.venv/` sosem volt a `.gitignore`-ban. A folytatás munkamenetében
+   a Claude vette észre a `git show --stat` áttekintésekor, javasolta
+   a javítást (`.gitignore` bővítése + `git rm -r --cached`, tudatosan
+   history-rewrite/force-push nélkül, mert az megosztott history-t
+   írna felül), a felhasználó jóváhagyta a megközelítést és a push-ot.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.
