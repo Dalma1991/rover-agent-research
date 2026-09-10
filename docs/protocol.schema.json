@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/rover/protocol.schema.json",
+  "title": "Rover Gateway v1 protokoll",
+  "description": "A rover TCP/JSON vezérlőprotokolljának kérés- és válaszüzenetei (v1, M05-ben lefagyasztva, additív bővítésekkel).",
+  "$defs": {
+    "request_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "description": "UUID v4, 36 karakter."
+    },
+    "vektor3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      }
+    },
+    "szinszenzor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "white",
+        "intensity"
+      ],
+      "properties": {
+        "white": {
+          "type": "boolean",
+          "description": "A mert intenzitas a kuszob felett van-e."
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Nyers, zajjal terhelt mert ertek."
+        }
+      }
+    },
+    "allapot": {
+      "enum": [
+        "IDLE",
+        "MOVING",
+        "TURNING",
+        "ERROR"
+      ]
+    },
+    "hiba": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "name",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "enum": [
+            1101,
+            1102,
+            1103,
+            1104,
+            1200,
+            1202,
+            1203,
+            1300,
+            1400,
+            1401,
+            1500,
+            1501,
+            1502,
+            1600
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "keres": {
+      "title": "Kérés",
+      "type": "object",
+      "required": [
+        "request_id",
+        "command"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "command": {
+          "enum": [
+            "observe",
+            "move",
+            "turn",
+            "stop",
+            "get_status",
+            "reset_error",
+            "reset_position"
+          ]
+        },
+        "distance_m": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 2.0,
+          "description": "Csak move-nal, kotelezo."
+        },
+        "max_speed": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 0.5,
+          "description": "Csak move-nal, kotelezo."
+        },
+        "angle_deg": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Csak turn-nel, kotelezo; abs(angle_deg) >= 1."
+        },
+        "max_angular_speed": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 45,
+          "description": "Csak turn-nel, kotelezo."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "command": {
+                "const": "move"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "then": {
+            "required": [
+              "distance_m",
+              "max_speed"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "command": {
+                "const": "turn"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "then": {
+            "required": [
+              "angle_deg",
+              "max_angular_speed"
+            ]
+          }
+        }
+      ]
+    },
+    "valasz": {
+      "title": "Válasz",
+      "type": "object",
+      "required": [
+        "request_id",
+        "status",
+        "state"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "completed",
+            "failed"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/allapot"
+        },
+        "error": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/hiba"
+            }
+          ]
+        },
+        "protocol_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "position": {
+          "$ref": "#/$defs/vektor3",
+          "description": "Privilegizalt diagnosztika (M09 ota nem hasznalhato vezerlesre)."
+        },
+        "speed": {
+          "type": "number"
+        },
+        "sensor_mode": {
+          "enum": [
+            "single",
+            "three"
+          ]
+        },
+        "sensor_left": {
+          "$ref": "#/$defs/szinszenzor"
+        },
+        "sensor_center": {
+          "$ref": "#/$defs/szinszenzor"
+        },
+        "sensor_right": {
+          "$ref": "#/$defs/szinszenzor"
+        },
+        "lidar_szektor_min": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0.0
+          },
+          "description": "M08: szektoronkenti minimalis akadalytavolsag (m), balrol jobbra."
+        },
+        "collision_occurred": {
+          "type": "boolean",
+          "description": "M10: privilegizalt diagnosztika."
+        },
+        "collision_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "M10: privilegizalt diagnosztika."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/keres"
+    },
+    {
+      "$ref": "#/$defs/valasz"
+    }
+  ]
+}

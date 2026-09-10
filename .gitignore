@@ -22,3 +22,6 @@ crashlytics-build.txt
 .venv/
 __pycache__/
 *.pyc
+
+# Az uv run --no-project mellekterméke, nem a projekt fuggoseg-lockja
+uv.lock

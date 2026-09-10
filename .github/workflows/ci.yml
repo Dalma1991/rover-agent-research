@@ -46,6 +46,9 @@ jobs:
       - name: Formazas-ellenorzes (black --check)
         run: python3 -m black --check --line-length 100 adapter controllers common scripts experiments/scenario_validator.py tests
 
+      - name: Protokoll-sema ellenorzese
+        run: python3 scripts/ellenoriz_protokoll_semat.py
+
       - name: Statikus kodellenorzes (pyflakes)
         run: python3 -m pyflakes adapter controllers common scripts experiments/scenario_validator.py tests
 

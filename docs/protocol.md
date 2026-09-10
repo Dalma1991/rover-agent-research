@@ -46,6 +46,21 @@ mérföldkőtől kezdve — a vonalérzékelő szenzorok állapotát. Minden
 - `sensor_mode`: `"single"`, ha csak a középső szenzor aktív,
   `"three"`, ha a bal-közép-jobb háromszenzoros elrendezés aktív
   (lásd `docs/sensors.md`).
+- `lidar_szektor_min`: 6 elemű lista (`float[]`), a rover előtti
+  180 fokos legyező hat, egyenként 30 fokos szektorának legkisebb
+  mért akadálytávolsága méterben, balról jobbra rendezve. A
+  `LidarSensor.MaxHatotav` (alapértelmezetten 10.0) érték azt
+  jelenti, hogy az adott szektorban nincs akadály hatótávon belül.
+  Ha a jelenetben nincs `LidarSensor`, a mező üres tömb. Az M08
+  mérföldkőnél került be; a `position`/`speed`-del ellentétben ez
+  **nem** privilegizált információ, egy valódi roveren is elérhető
+  lenne (lásd `docs/lidar.md`).
+- `collision_occurred` / `collision_count`: az M10 mérföldkőnél
+  bevezetett ütközésdetektálás. **Privilegizált diagnosztika**: a
+  controllerek nem használhatják vezérlésre, csak naplózásra és
+  kiértékelésre. Az M12 adapter az agent elől elrejti a kumulatív
+  számlálót, és helyette csak egy `collision_detected` logikai
+  jelzést ad tovább (lásd `docs/m12-security-review.md`).
 - `sensor_left` / `sensor_center` / `sensor_right`: az adott
   szenzor aktuális mérése. `single` módban a `sensor_left` és
   `sensor_right` mezők jelen vannak, de nem tükröznek valós mérést
@@ -217,6 +232,12 @@ idempotenciát. Jövőbeli munkaként érdemes a fuzz tesztet izolált
 CI-környezetben vagy stabilabb hálózati és erőforrás-körülmények között
 futtatni.
 
+## Formális séma
+
+A protokoll kérés- és válaszüzeneteinek formális JSON Schema leírása:
+`docs/protocol.schema.json`. Ez gépi validációra használható (a
+szcenárió-sémához hasonlóan), és a fuzz tesztek referenciája.
+
 ## Verziótörténet (v1 keretében, additív bővítések)
 
 - **M09**: az `observe` válasz kibővítve `sensor_mode`,
@@ -224,6 +245,12 @@ futtatni.
   hagyományos (AI nélküli) baseline controller kizárólag
   szenzoradatra tudjon támaszkodni, ne a privilegizált
   `position`/`speed` mezőkre.
+- **M08**: az `observe` válasz kibővítve a `lidar_szektor_min`
+  mezővel (6 szektoros, szektoronkénti minimális akadálytávolság).
+- **M10**: az `observe` válasz kibővítve a `collision_occurred` és
+  `collision_count` privilegizált diagnosztikai mezőkkel.
+- **M12**: a protokoll formális JSON Schema leírást kapott
+  (`docs/protocol.schema.json`); maga a protokoll nem változott.
 - **M09**: uj `reset_position` parancs - IDLE allapotbol hivhato
   pozicio-reset a kiserleti futasok kozotti reprodukalhatosaghoz
   (korabban csak a `reset_error` allitotta vissza a kezdopoziciot,
