@@ -1,0 +1,302 @@
+[
+  {
+    "lepesek": 1023,
+    "kor_arany": 0.8476,
+    "teljes_kor": false,
+    "megtett_ut_m": 77.92,
+    "hatekonysag": 0.5344,
+    "vonalon_arany": 0.1945,
+    "utkozesek": 51,
+    "run_id": "eecf7f40-51b1-4e3d-a5b1-0619a1635b04"
+  },
+  {
+    "lepesek": 1123,
+    "kor_arany": 1.1568,
+    "teljes_kor": true,
+    "megtett_ut_m": 82.94,
+    "hatekonysag": 0.6853,
+    "vonalon_arany": 0.3767,
+    "utkozesek": 91,
+    "run_id": "e82e9eee-96fe-4a4d-849f-ee5e230dc608"
+  },
+  {
+    "lepesek": 652,
+    "kor_arany": 0.7911,
+    "teljes_kor": false,
+    "megtett_ut_m": 48.83,
+    "hatekonysag": 0.796,
+    "vonalon_arany": 0.4018,
+    "utkozesek": 11,
+    "run_id": "6f34dcd4-f19d-4609-ba46-dfc0ec33e941"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.5734,
+    "teljes_kor": true,
+    "megtett_ut_m": 112.53,
+    "hatekonysag": 0.687,
+    "vonalon_arany": 0.4213,
+    "utkozesek": 99,
+    "run_id": "e81106aa-a6a8-4e34-aa6c-a2669056dd07"
+  },
+  {
+    "lepesek": 210,
+    "kor_arany": 0.1001,
+    "teljes_kor": false,
+    "megtett_ut_m": 16.27,
+    "hatekonysag": 0.3021,
+    "vonalon_arany": 0.2286,
+    "utkozesek": 5,
+    "run_id": "5ca2c4ad-19bf-4091-9e2a-fc7b59abd0fb"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.9596,
+    "teljes_kor": true,
+    "megtett_ut_m": 110.63,
+    "hatekonysag": 0.8703,
+    "vonalon_arany": 0.4427,
+    "utkozesek": 90,
+    "run_id": "df5b2c77-f80f-451c-a523-2546801e7ae4"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 0.1192,
+    "teljes_kor": false,
+    "megtett_ut_m": 113.16,
+    "hatekonysag": 0.0518,
+    "vonalon_arany": 0.2827,
+    "utkozesek": 128,
+    "run_id": "2e1fce84-6e01-4f46-bfee-46bf7eb0ccfb"
+  },
+  {
+    "lepesek": 687,
+    "kor_arany": 0.8494,
+    "teljes_kor": false,
+    "megtett_ut_m": 51.49,
+    "hatekonysag": 0.8105,
+    "vonalon_arany": 0.3974,
+    "utkozesek": 47,
+    "run_id": "3d1148c3-3d9b-42dd-915b-c4a5cf9fffac"
+  },
+  {
+    "lepesek": 212,
+    "kor_arany": 0.1045,
+    "teljes_kor": false,
+    "megtett_ut_m": 16.42,
+    "hatekonysag": 0.3126,
+    "vonalon_arany": 0.2547,
+    "utkozesek": 3,
+    "run_id": "24dd293b-a979-4b81-a3a7-3f1010d61579"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.1035,
+    "teljes_kor": true,
+    "megtett_ut_m": 108.53,
+    "hatekonysag": 0.4995,
+    "vonalon_arany": 0.2507,
+    "utkozesek": 238,
+    "run_id": "3d5449a0-405f-4365-834f-4b3fc3577bae"
+  },
+  {
+    "lepesek": 1073,
+    "kor_arany": 0.1039,
+    "teljes_kor": false,
+    "megtett_ut_m": 80.6,
+    "hatekonysag": 0.0634,
+    "vonalon_arany": 0.2125,
+    "utkozesek": 92,
+    "run_id": "2d0ea056-04ca-44d9-9cb9-8133fb6860f4"
+  },
+  {
+    "lepesek": 213,
+    "kor_arany": 0.1491,
+    "teljes_kor": false,
+    "megtett_ut_m": 16.4,
+    "hatekonysag": 0.4466,
+    "vonalon_arany": 0.2441,
+    "utkozesek": 9,
+    "run_id": "af79402a-ceae-42a6-aab5-ba93ac23acd8"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 0.129,
+    "teljes_kor": false,
+    "megtett_ut_m": 113.19,
+    "hatekonysag": 0.056,
+    "vonalon_arany": 0.2193,
+    "utkozesek": 158,
+    "run_id": "24e1eb82-740e-47b2-9e04-6d9528bf9dfc"
+  },
+  {
+    "lepesek": 447,
+    "kor_arany": 0.1235,
+    "teljes_kor": false,
+    "megtett_ut_m": 31.62,
+    "hatekonysag": 0.1919,
+    "vonalon_arany": 0.1544,
+    "utkozesek": 74,
+    "run_id": "207fa779-15d9-4ce7-a6b3-c8eb7db18e31"
+  },
+  {
+    "lepesek": 1171,
+    "kor_arany": 0.1513,
+    "teljes_kor": false,
+    "megtett_ut_m": 87.87,
+    "hatekonysag": 0.0846,
+    "vonalon_arany": 0.3151,
+    "utkozesek": 70,
+    "run_id": "b5c3c11a-96cf-4c1b-a191-c21dfdd3fa8c"
+  },
+  {
+    "lepesek": 661,
+    "kor_arany": 0.8007,
+    "teljes_kor": false,
+    "megtett_ut_m": 49.45,
+    "hatekonysag": 0.7957,
+    "vonalon_arany": 0.3858,
+    "utkozesek": 20,
+    "run_id": "977c63dd-c5c5-4189-bc9c-2c94c69add20"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 0.5676,
+    "teljes_kor": false,
+    "megtett_ut_m": 108.95,
+    "hatekonysag": 0.256,
+    "vonalon_arany": 0.2553,
+    "utkozesek": 163,
+    "run_id": "fea454dc-5158-4494-907e-57f559240e29"
+  },
+  {
+    "lepesek": 983,
+    "kor_arany": 1.1173,
+    "teljes_kor": true,
+    "megtett_ut_m": 73.0,
+    "hatekonysag": 0.752,
+    "vonalon_arany": 0.4171,
+    "utkozesek": 43,
+    "run_id": "aecc043d-3ae0-4405-a883-85551986fe8e"
+  },
+  {
+    "lepesek": 876,
+    "kor_arany": 0.2276,
+    "teljes_kor": false,
+    "megtett_ut_m": 64.42,
+    "hatekonysag": 0.1736,
+    "vonalon_arany": 0.1084,
+    "utkozesek": 138,
+    "run_id": "246ccd07-f15e-45f4-b684-02e04af33930"
+  },
+  {
+    "lepesek": 751,
+    "kor_arany": 0.8512,
+    "teljes_kor": false,
+    "megtett_ut_m": 54.76,
+    "hatekonysag": 0.7637,
+    "vonalon_arany": 0.3702,
+    "utkozesek": 59,
+    "run_id": "1c0145e3-675d-4884-83a9-d77e7a66e7c2"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 0.4711,
+    "teljes_kor": false,
+    "megtett_ut_m": 111.72,
+    "hatekonysag": 0.2072,
+    "vonalon_arany": 0.2787,
+    "utkozesek": 136,
+    "run_id": "a855ac12-d48d-4864-82bf-f7cdcfb7afd7"
+  },
+  {
+    "lepesek": 213,
+    "kor_arany": 0.1021,
+    "teljes_kor": false,
+    "megtett_ut_m": 16.36,
+    "hatekonysag": 0.3066,
+    "vonalon_arany": 0.2676,
+    "utkozesek": 5,
+    "run_id": "525c2d59-c11a-4e70-8c2a-84111c2d5789"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.6896,
+    "teljes_kor": true,
+    "megtett_ut_m": 109.17,
+    "hatekonysag": 0.7604,
+    "vonalon_arany": 0.4173,
+    "utkozesek": 81,
+    "run_id": "9b0bdcf0-a55c-482b-8742-d08b9ff56308"
+  },
+  {
+    "lepesek": 982,
+    "kor_arany": 1.0976,
+    "teljes_kor": true,
+    "megtett_ut_m": 73.43,
+    "hatekonysag": 0.7344,
+    "vonalon_arany": 0.4338,
+    "utkozesek": 58,
+    "run_id": "60c56914-1c80-4367-a6fc-b1b8b55b2f93"
+  },
+  {
+    "lepesek": 213,
+    "kor_arany": 0.1002,
+    "teljes_kor": false,
+    "megtett_ut_m": 16.28,
+    "hatekonysag": 0.3022,
+    "vonalon_arany": 0.2066,
+    "utkozesek": 5,
+    "run_id": "2b21ba23-46da-48e0-b18c-8b9858a64d74"
+  },
+  {
+    "lepesek": 1145,
+    "kor_arany": 0.151,
+    "teljes_kor": false,
+    "megtett_ut_m": 87.05,
+    "hatekonysag": 0.0852,
+    "vonalon_arany": 0.3153,
+    "utkozesek": 55,
+    "run_id": "dd2c0e2d-0a22-411d-81cf-ba3cc06904fb"
+  },
+  {
+    "lepesek": 1315,
+    "kor_arany": 0.9192,
+    "teljes_kor": false,
+    "megtett_ut_m": 97.1,
+    "hatekonysag": 0.4651,
+    "vonalon_arany": 0.1643,
+    "utkozesek": 141,
+    "run_id": "3284d8b5-5368-47c5-ad48-1dd9b8e4d32c"
+  },
+  {
+    "lepesek": 591,
+    "kor_arany": 0.1587,
+    "teljes_kor": false,
+    "megtett_ut_m": 45.16,
+    "hatekonysag": 0.1727,
+    "vonalon_arany": 0.1387,
+    "utkozesek": 34,
+    "run_id": "8517093c-0e15-4739-964f-d2ce9cdf24c7"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.6108,
+    "teljes_kor": true,
+    "megtett_ut_m": 110.58,
+    "hatekonysag": 0.7157,
+    "vonalon_arany": 0.4493,
+    "utkozesek": 87,
+    "run_id": "bed50f43-cd94-422e-83c2-c948aeef03e9"
+  },
+  {
+    "lepesek": 1500,
+    "kor_arany": 1.5647,
+    "teljes_kor": true,
+    "megtett_ut_m": 109.57,
+    "hatekonysag": 0.7017,
+    "vonalon_arany": 0.3667,
+    "utkozesek": 132,
+    "run_id": "92b82d11-725e-410a-b71f-2deb4c403bfa"
+  }
+]

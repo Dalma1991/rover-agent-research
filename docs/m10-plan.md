@@ -1,5 +1,13 @@
 # M10 terv: akadálykerülés és visszatalálás a vonalra
 
+> **Utólagos megjegyzés (M10.6, 2026-09-11).** Az itt közölt mérések a
+> `TrackController` fantom-ív hibájával készültek (M07 óta lappangott, az M11-ben
+> javítva), ezért **érvénytelenek**: a rover a lépések 73%-ában nem a valódi
+> vonalon volt. Az újramérés és az M10-es elfogadási feltétel őszinte
+> értékelése: `docs/m10-6-plan.md`. Az elfogadási feltétel (ütközésmentes
+> visszatérés a vonalra a szcenáriók többségében) **nem teljesül**.
+
+
 ## Cél
 
 Az M09 baseline kiegészítése **teljes, determinisztikus**

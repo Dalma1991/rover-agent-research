@@ -569,6 +569,34 @@ Ugyanez a minta ismétlődött az M11-ben is (fantom-ív hiba), tehát az
 "AI-generált kód + AI-generált teszt" páros vakfoltjai rendszeresek: a tesztek
 a boldog útvonalat fedik, a hibaágakat nem.
 
+### 22. M10.6: az akadálykerülés újramérése és javítása
+
+Kiindulópont egy külső, szigorú audit volt, ami több ponton nyitva találta az
+M10-es elfogadási feltételt. A Claude ebből azt emelte ki, hogy a mérések
+**érvényessége** a kérdéses, nem csak az eredménye: az M11-ben javított
+fantom-ív hiba visszamenőleg is hatott, és ezt a `kor_metrika.py`-val
+számszerűsítettük (a rover a lépések 73%-ában nem a valódi vonalon volt).
+
+A munka menete: a Claude a lépésenkénti naplóból diagnosztizálta a három
+állapotgép-hibát (AKADALY korai kilépés, VISSZATALALAS visszafordulás az
+akadályba, KERESES helyben forgás), írta a javításokat és a hozzájuk tartozó
+érvelést; a felhasználó futtatta a méréseket Unity Play módban, és a mérési
+eredmények döntöttek minden lépésnél. Két tanulságos mozzanat:
+
+- A **táguló spirál** hipotézist a mérés megcáfolta (163 ütközés/futás, a
+  lépések 9%-ában volt a vonalon a 30% helyett). A javaslat logikusnak tűnt —
+  a sikertelen futások mind 1.4-1.5 m-re álltak meg, épp a körív átmérőjén
+  kívül —, mégis rontott. A visszavonás és a cáfolat dokumentálása a mérési
+  fegyelem része, nem kudarc.
+- A mérés közben négy **azonos** futás (121 lépés, 0.0 m megtett út) vezetett
+  egy M09 óta lappangó hiba felfedezéséhez: ERROR-állapotból a
+  `reset_position` nem hoz ki, mert az csak IDLE-ben működik.
+
+A hangolást négy iteráció után **szándékosan abbahagytuk**: az utolsó kettő
+nem hozott javulást, és a további paraméterezés a train-szcenárióra való
+túlillesztés felé vitt volna. Az M10-es kapu ezért nyitva marad, őszintén
+dokumentálva (`docs/m10-6-plan.md`) — negatív eredményként, megnevezett okkal.
+
 ## Megjegyzések
 Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
 mielőtt bekerült a `src/main.py` fájlba.

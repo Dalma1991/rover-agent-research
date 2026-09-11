@@ -86,6 +86,16 @@ controllerrel és neurális policy-vel egyaránt.
   átlagos ütközésszám 20.9->10.2 (30 futásos méréssel igazolva).
   Két elvetett javítási kísérlet is dokumentálva (lásd
   docs/m10-5-plan.md).
+- **m10.6** (nem hivatalos, utólagos javítás): az akadálykerülés újramérése
+  a javított pálya-geometriával. Kiderült, hogy az M09-M10.5 mérések a fantom
+  fehér ív miatt érvénytelenek voltak (a rover a lépések 73%-ában nem a valódi
+  vonalon volt), és hogy a teljesített kör 500 lépéses kerettel matematikailag
+  kizárt volt. Négy hiba javítva (AKADALY elhaladási fázis, VISSZATALALAS
+  visszatérés az elkerülésbe, KERESES körív helyben forgás helyett, ERROR-ból
+  való reset), új metrika: task success. Végleges mérés (30 futás):
+  task success 0/30 → **9/30**, de **ütközésmentes futás 0/30** — az M10
+  elfogadási feltétele ezzel **továbbra sem teljesül**. Részletek és a
+  mérési adatok: docs/m10-6-plan.md.
 - **m12**: agent-facing MCP-adapter. Az `adapter/` réteg öt MCP-eszközön
   (`observe`, `move`, `turn`, `stop`, `session_status`)
   keresztül teszi vezérelhetővé a rovert AI-agentek számára. Backend-absztrakció

@@ -25,3 +25,4 @@ __pycache__/
 
 # Az uv run --no-project mellekterméke, nem a projekt fuggoseg-lockja
 uv.lock
+logs/m10_6_vegleges_30_futas_lepesnaplo.jsonl

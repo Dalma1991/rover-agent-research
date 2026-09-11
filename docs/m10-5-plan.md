@@ -1,4 +1,9 @@
 # M10.5 terv: az M09/M10-ben dokumentált oszcillációs jelenség gyökérok-vizsgálata
+> **Utólagos megjegyzés (M10.6, 2026-09-11).** Az itt közölt "pályaelhagyás
+> 60% → 0%" eredmény a fantom-ív hibával készült: a pályát elhagyó rover is
+> talált egy (nem létező) vonalat, amit követhetett, ezért a javulás részben
+> mérési műtermék. Újramérés: `docs/m10-6-plan.md`.
+
 
 ## Cél
 
