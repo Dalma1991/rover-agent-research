@@ -52,17 +52,42 @@ TURN_SEBESSEG = 20.0
 P_EROSITES = 8.0
 HOLTSAV = 0.02
 
-KERESES_FORDULAT_FOK = 3.0
-KERESES_MAX_LEPES = 40
+# M10.6: a KERESES mostantol nem helyben forog, hanem korivet ir le (turn + move),
+# mert akadalykerules utan a rover fel meterre is kerulhet a vonaltol - helyben
+# forgassal egy ilyen tavoli vonal matematikailag megtalalhatatlan.
+# A korív sugara: MOVE_LEPES_M / radian(KERESES_FORDULAT_FOK) ~ 1.15 m, atmeroje
+# ~2.3 m; a MAX_LEPES egy teljes kort fed le (360 / 4 = 90 lepes).
+KERESES_FORDULAT_FOK = 4.0
+KERESES_MAX_LEPES = 90
+# M10.6b: taguló spiral. A fix sugarú korív (r = MOVE_LEPES_M / radian(szog))
+# csak akkor talalja meg a vonalat, ha az az atmerojen belul van - a meresek
+# szerint a sikertelen futasok mind 1.4-1.5 m-re alltak meg a vonaltol, epp a
+# 2.3 m atmeroju kor hatarán kivul. Ezert a fordulat szoget lepesenkent
+# csokkentjuk (a sugarat noveljuk), amig el nem erjuk a minimumot: igy a
+# nyomvonal taguló spiral, ami barmilyen tavoli vonalat metsz.
+# M10.6b meres: a taguló spiral (8 fok -> 2 fok, 120 lepes) rontott - a rover
+# nem esett ki, de 9.6 m-nyi kanyargas kozben eltavolodott a vonaltol es
+# folyamatosan utkozott (163 utkozes/futas, a lepesek 9%-aban volt a vonalon).
+# Ezert a spiral kikapcsolva (csokkenes = 0), a keresés fix, szűk korív marad.
+KERESES_SPIRAL_CSOKKENES = 0.0
+KERESES_FORDULAT_MIN_FOK = 2.0
 
 AKADALY_KUSZOB_BELEPES_M = 0.5
 AKADALY_KUSZOB_KILEPES_M = 1.1
 AKADALY_FORDULAT_FOK = 15.0
+# M10.6: az akadaly akkor van tenylegesen megkerulve, ha nem csak elottunk, hanem
+# az elkerules oldalan (mellettunk) is szabad az ut. Enelkul a rover mar akkor
+# "tisztanak" latta a helyzetet, amikor az akadaly meg mellette volt, es a
+# VISSZATALALAS visszafordulasa egyenesen bele vitte.
+AKADALY_KUSZOB_OLDAL_M = 1.0
 ZSAKUTCA_AKADALY_MAX_LEPES = 20
 ELOLSO_SZEKTOROK = (2, 3)
 BAL_SZEKTOROK = (0, 1)
 JOBB_SZEKTOROK = (4, 5)
 
+# M10.6b: hatarozottabb visszafordulas a vonal fele. A korabbi 5 fok / 15 lepes
+# osszesen 75 fokot fordult, mikozben 1.2 m-t haladt elore - ez nem eleg ahhoz,
+# hogy a rover visszakanyarodjon a vonalra, csak tovabb tavolodott tole.
 VISSZATALALAS_FORDULAT_FOK = 5.0
 VISSZATALALAS_MAX_LEPES = 15
 
@@ -159,6 +184,19 @@ def akadaly_elol(observe_valasz: dict[str, Any], kuszob: float) -> bool:
     return any(szektorok[i] < kuszob for i in ELOLSO_SZEKTOROK)
 
 
+def akadaly_oldalt(observe_valasz: dict[str, Any], elkerulesi_irany: int, kuszob: float) -> bool:
+    """Ott van-e meg az akadaly az elkerules oldalan (azaz mellettunk)?
+
+    Ha jobbra kerulunk ki (elkerulesi_irany = +1), az akadaly a BAL oldalon
+    marad el mellettunk, ezert a bal szektorokat kell figyelni - es forditva.
+    """
+    szektorok = observe_valasz.get("lidar_szektor_min") or []
+    if len(szektorok) <= max(JOBB_SZEKTOROK):
+        return False
+    figyelt = BAL_SZEKTOROK if elkerulesi_irany > 0 else JOBB_SZEKTOROK
+    return any(szektorok[i] < kuszob for i in figyelt)
+
+
 def szabadabb_oldal_elojele(observe_valasz: dict[str, Any]) -> int:
     szektorok = observe_valasz.get("lidar_szektor_min") or []
     if len(szektorok) <= max(JOBB_SZEKTOROK):
@@ -242,7 +280,10 @@ def egy_lepes_akadaly(
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
 
-    if not akadaly_elol(observe, AKADALY_KUSZOB_KILEPES_M):
+    elol_zart = akadaly_elol(observe, AKADALY_KUSZOB_KILEPES_M)
+    oldalt_zart = akadaly_oldalt(observe, utolso_elkerulesi_irany[0], AKADALY_KUSZOB_OLDAL_M)
+
+    if not elol_zart and not oldalt_zart:
         akadaly_lepesek[0] = 0
         if naplo is not None:
             naplo.rogzit(
@@ -255,6 +296,26 @@ def egy_lepes_akadaly(
             )
         return Allapot.VISSZATALALAS
 
+    if not elol_zart:
+        # Elhaladasi fazis: elottunk mar szabad, de az akadaly meg mellettunk van.
+        # Nem fordulunk tovabb (az tulforgatas lenne), csak egyenesen elhaladunk,
+        # amig az akadaly a hatunk moge nem kerul.
+        move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
+        kliens.kuld(move_parancs)
+        stat.parancsok_szama += 1
+        if naplo is not None:
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [move_parancs],
+                Allapot.AKADALY.value,
+                Allapot.AKADALY.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
+        return Allapot.AKADALY
+
+    # Csak azok a lepesek szamitanak zsakutcanak, amikor az UT ELOTTUNK zart -
+    # az elhaladasi fazis normalis mukodes, nem elakadas.
     akadaly_lepesek[0] += 1
     if akadaly_lepesek[0] >= ZSAKUTCA_AKADALY_MAX_LEPES:
         akadaly_lepesek[0] = 0
@@ -309,6 +370,22 @@ def egy_lepes_visszatalalas(
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
     kiadott_parancsok: list[dict[str, Any]] = []
+
+    # M10.6: ha a visszafordulas kozben ujra akadaly kerult elenk, ne erolteseuk
+    # a vonalat - vissza az elkerulesbe. Enelkul a rover az akadaly oldalan
+    # korbe-korbe csuszott, ismetelten nekiutkozve.
+    if akadaly_elol(observe, AKADALY_KUSZOB_BELEPES_M):
+        visszatalalas_lepesek[0] = 0
+        if naplo is not None:
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [],
+                Allapot.VISSZATALALAS.value,
+                Allapot.AKADALY.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
+        return Allapot.AKADALY
 
     if not mindharom_nem_feher(observe):
         visszatalalas_lepesek[0] = 0
@@ -390,17 +467,45 @@ def egy_lepes_kereses(
     lepes_szam: int,
 ) -> Allapot:
     irany = utolso_elojel[0] or 1
+    # Taguló spiral: minel regebb ota keresunk, annal nagyobb ivet irunk le.
+    szog = max(
+        KERESES_FORDULAT_MIN_FOK,
+        KERESES_FORDULAT_FOK - KERESES_SPIRAL_CSOKKENES * kereses_lepesek[0],
+    )
     turn_parancs = {
         "command": "turn",
-        "angle_deg": irany * KERESES_FORDULAT_FOK,
+        "angle_deg": irany * szog,
         "max_angular_speed": TURN_SEBESSEG,
     }
     kliens.kuld(turn_parancs)
     stat.parancsok_szama += 1
+    kiadott_parancsok: list[dict[str, Any]] = [turn_parancs]
+
+    # M10.6: a forgas utan elore is haladunk, igy a rover korivet ir le a
+    # helyben forgas helyett - csak igy talalhat meg egy tole tavolabb levo
+    # vonalat (pl. akadalykerules utan).
+    move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
+    kliens.kuld(move_parancs)
+    stat.parancsok_szama += 1
+    kiadott_parancsok.append(move_parancs)
     kereses_lepesek[0] += 1
 
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
+
+    if akadaly_elol(observe, AKADALY_KUSZOB_BELEPES_M):
+        kereses_lepesek[0] = 0
+        stat.akadaly_kerulesek_szama += 1
+        if naplo is not None:
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                kiadott_parancsok,
+                Allapot.KERESES.value,
+                Allapot.AKADALY.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
+        return Allapot.AKADALY
 
     if not mindharom_nem_feher(observe):
         kereses_lepesek[0] = 0
@@ -408,7 +513,7 @@ def egy_lepes_kereses(
             naplo.rogzit(
                 lepes_szam,
                 szenzor_mezok(observe),
-                [turn_parancs],
+                kiadott_parancsok,
                 Allapot.KERESES.value,
                 Allapot.VONALON.value,
                 privilegizalt_diagnosztika_mezok(observe),
@@ -457,6 +562,15 @@ def futtat(
     )
 
     try:
+        # M10.6c: a futas elott biztosan tiszta allapotbol indulunk. A
+        # reset_position csak IDLE-ben mukodik (lasd docs/protocol.md), ezert ha
+        # az elozo futas ERROR-ral vegzodott, eloszor abbol kell kilepni -
+        # kulonben a rover a pályán kivul ragad, minden move/turn elutasitasra
+        # kerul, es a kovetkezo futasok mind azonos, ertelmetlen eredményt adnak.
+        allapot_valasz = kliens.kuld({"command": "get_status"})
+        if allapot_valasz.get("state") == "ERROR":
+            kliens.kuld({"command": "reset_error"})
+        kliens.kuld({"command": "stop"})
         kliens.kuld({"command": "reset_position"})
 
         while stat.lepesek_szama < max_lepes and not stat.palyaelhagyas:
