@@ -3,47 +3,103 @@
 # rover-agent-research
 
 Kutatási projekt: *Simulation-Blind Two-Timescale Rover Control by
-General-Purpose Coding Agents*. Codex CLI/IDE-integrációval támogatott
-fejlesztés.
+General-Purpose Coding Agents* (Miskolci Egyetem, Hatvany József
+Informatikai Tudományok Doktori Iskola).
+
+Egy rover Unity-szimulációban, egységes, külső szenzor-akció interfészen
+keresztül irányítva — hagyományos algoritmussal, AI coding agenttel, agent
+által generált controllerrel és neurális policy-vel egyaránt. A fejlesztés
+maga is AI coding agentekkel történik (Codex M01–M06, Claude M06 végétől),
+és ez a folyamat a kutatás tárgya is: a teljes napló az
+[AI_USAGE.md](AI_USAGE.md).
+
+## Jelenlegi állapot
+
+| | |
+|---|---|
+| Lezárt mérföldkövek | m01–m12, plusz m10.5 / m10.6 / m10.7 utólagos finomítások |
+| Következő | **m13** — agent-vezérelt rover, a baseline-hoz mérve |
+| Tesztek | 29 Python + adapter-tesztek + 10 Unity Edit/Play Mode teszt |
+| CI | tesztek, szcenárió- és protokoll-sémavalidáció, `black`, `pyflakes`, dokumentáció-ellenőrzés |
+
+### A baseline kontroller mért teljesítménye
+
+30 futás a train szcenárión, mindkét akadály állandóan látható, a javított
+pálya-geometriával (`docs/m10-6-meres.json`):
+
+| Metrika | Érték |
+|---|---|
+| Teljesített kör (task success) | **9/30** |
+| Ütközésmentes futás | **0/30** |
+
+> **Az M10 elfogadási feltétele — „a rover ütközés nélkül visszatalál a
+> vonalra a szcenáriók többségében" — ezzel formálisan nem teljesül.**
+>
+> Ezt nyitott, negatív eredményként dokumentáljuk. A hangolást tudatosan
+> abbahagytuk, mert a további paraméterezés a train-szcenárióra való
+> túlillesztés felé vitt volna. Három javítási kísérletet mérés cáfolt meg
+> és vontunk vissza (biztonsági távolság küszöb, táguló spirál,
+> akadálykontúr-követés) — részletek: `docs/m10-5-plan.md`,
+> `docs/m10-6-plan.md`. A továbblépés azonosított iránya az odometria-alapú
+> visszatalálás (M13+).
 
 ## Tartalom
-- `unity/` — Unity szimulációs projekt
-- `gateway/` — Python CLI kliens a rover API-hoz
-- `controllers/` — baseline, agent-generated és hybrid controllerek (később)
-- `training/`, `models/` — neurális policy tanítása (később)
-- `experiments/` — kísérleti konfigurációk, seedek (később)
-- `tests/` — integrációs és regressziós tesztek
-- `docs/` — architektúra, protokoll, döntési napló, képernyőképek, videók
-- `paper/` — az angol nyelvű cikk forrása (később)
-- `prompts/` — lényeges, megosztható AI-promptok
-- `scripts/doctor` — verzió- és függőségellenőrző script
-- `INSTALL_CHECKLIST.md` — lépésről lépésre telepítési ellenőrzőlista
-- `ENVIRONMENT.md` — a fejlesztői környezet leírása
-- `AI_USAGE.md` — a Codex-szel (M01-M10) és a Claude-dal (M10.5-től) végzett munka naplója
+
+| Útvonal | Tartalom |
+|---|---|
+| `unity/` | Unity szimulációs projekt (pálya, rover, szenzorok, TCP szerver) |
+| `gateway/` | Python CLI kliens a rover API-hoz |
+| `controllers/` | baseline vonalkövető, kísérletindító, replay-vizualizáció, naplóelemzők |
+| `adapter/` | agent-facing réteg: backend-absztrakció, biztonsági őrség, MCP-szerver |
+| `common/` | közös lépésenkénti naplóséma |
+| `experiments/` | szcenáriók, validátor, commitolt referenciaepizód |
+| `scripts/` | `doctor`, referenciaepizód-ellenőrző, dokumentáció-ellenőrző, tool schema export |
+| `tests/` | unit, integrációs és regressziós tesztek (`tests/README.md`: lefedettség) |
+| `docs/` | protokoll, szenzorok, LiDAR, koordinátarendszer, mérföldkőtervek, mérési adatok |
+| `prompts/` | a kutatás szempontjából lényeges, megosztható AI-promptok |
+| `paper/` | az angol nyelvű cikk forrása (később) |
+| `training/`, `models/` | neurális policy tanítása (később) |
+
+Gyökérszintű dokumentumok: [INSTALL_CHECKLIST.md](INSTALL_CHECKLIST.md) (telepítés
+lépésről lépésre), [ENVIRONMENT.md](ENVIRONMENT.md) (fejlesztői környezet),
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md) (reprodukálhatóság),
+[AI_USAGE.md](AI_USAGE.md) (AI-használati napló).
 
 ## Telepítés
-A projekt telepítéséhez és ellenőrzéséhez kövesd az [INSTALL_CHECKLIST.md](INSTALL_CHECKLIST.md)
-fájlban leírt lépéseket, majd futtasd a `scripts/doctor` szkriptet a környezet
-ellenőrzéséhez:
 
 ```bash
 ./scripts/doctor
 ```
 
-## Rover Gateway kipróbálása
-1. Nyisd meg a `unity/` Unity projektet, töltsd be a `NetworkControlScene`-t
-2. Nyomj Play-t (a szerver elindul a 127.0.0.1:8765 porton)
-3. Terminálban: `python3 gateway/client.py`
-4. Próbáld ki: `observe`, `move <táv> <sebesség>`, `stop`
+Részletesen: [INSTALL_CHECKLIST.md](INSTALL_CHECKLIST.md).
 
-## Cél
-A projekt célja egy reprodukálható kutatási platform felépítése, amelyben
-egy rover Unity-szimulációban, majd később fizikai környezetben is
-irányítható egy egységes, külső szenzor-akció interfészen keresztül —
-hagyományos algoritmussal, AI coding agenttel, agent által generált
-controllerrel és neurális policy-vel egyaránt.
+## Használat
+
+**Kézi kipróbálás.** Nyisd meg a `unity/` projektet, töltsd be a
+`TrackScene`-t, nyomj Play-t (a szerver a 127.0.0.1:8765 porton indul),
+majd terminálban:
+
+```bash
+python3 gateway/client.py
+# observe | move <táv> <sebesség> | turn <fok> <sebesség> | stop
+```
+
+**Méréssorozat** (a Unity Play módban fut, a futások között automatikus
+`reset_position`):
+
+```bash
+python3 controllers/futtat_kiserletet.py --futasok-szama 30
+```
+
+**Reprodukálhatóság Unity nélkül.** A commitolt referenciaepizód friss
+klónból is ellenőrizhető, ez fut a CI-ban is:
+
+```bash
+python3 scripts/referencia_epizod.py
+```
 
 ## Mérföldkövek
+
 - **m01**: friss klónból megnyitható Unity projekt, futó Python környezet,
   legalább egy ellenőrzött Codex-módosítás.
 - **m02**: mozgó gömb Unityben, billentyűzetes vezérléssel, Play Mode
@@ -57,63 +113,72 @@ controllerrel és neurális policy-vel egyaránt.
 - **m06**: zárt, stadion alakú pálya fehér vonallal, paraméterezhető
   geometriával (egyenes hossz, kanyar sugár, vonalszélesség, háttérszín),
   seedelt determinisztikus akadályütemezés, train/dev/test szcenáriók.
-- **m07**: vonalérzékelő szenzorok (raycast + zaj + küszöb modell),
-  mérés alapján kalibrált küszöb, kapcsolható egy-/háromszenzoros
-  (bal-közép-jobb) mód, reprodukálható zaj-seedek.
+- **m07**: vonalérzékelő szenzorok (raycast + zaj + küszöb modell), mérés
+  alapján kalibrált küszöb, kapcsolható egy-/háromszenzoros (bal-közép-jobb)
+  mód, reprodukálható zaj-seedek.
 - **m08**: 2D LiDAR-szimuláció (raycast-alapú, konfigurálható
   látómező/felbontás/hatótáv), szektoros tömörítés, zaj/dropout/
   késleltetés-modellezés, geometriai kalibráció ismert pozíciókban,
   futásidő-profilozás több felbontásnál.
 - **m09**: hagyományos (AI nélküli) vonalkövető baseline kontroller
-  (állapotgép + P-szabályozó), LiDAR-alapú akadályelkerülés, uj
-  `reset_position` protokollparancs a reprodukálható mérésekhez,
-  két 30 futásos mérési sorozat (0/30 és 0/30 pályaelhagyás),
-  dokumentált nyitott kérdéssel az akadálykerülés kétmodális
-  eloszlásáról (lásd docs/m09-plan.md).
-- **m10**: ütközésdetektálás (`OnCollisionEnter`, időalapú cooldown
-  a többszörös számlálás ellen), lépésenkénti diagnosztikai naplózás,
+  (állapotgép + P-szabályozó), LiDAR-alapú akadályelkerülés, új
+  `reset_position` protokollparancs a reprodukálható mérésekhez, két
+  30 futásos mérési sorozat, dokumentált nyitott kérdéssel az akadálykerülés
+  kétmodális eloszlásáról (`docs/m09-plan.md`).
+- **m10**: ütközésdetektálás (`OnCollisionEnter`, időalapú cooldown a
+  többszörös számlálás ellen), lépésenkénti diagnosztikai naplózás,
   irányított vonal-visszakeresés akadálykerülés után (`VISSZATALALAS`
-  állapot, 11/11 sikeres Unity Play mód-os teszten), explicit
-  zsákutca-észlelés és -eszkalálás, javított akadály-időzítés
-  (`reset_position`-höz kötve, nem a Play mód indításához) - végleges
-  30 futásos mérés dokumentált nyitott kérdéssel az M09-ben azonosított
-  oszcillációs probléma további megerősítéséről (lásd docs/m10-plan.md).
-- **m10.5** (nem hivatalos, utólagos finomítás): az M09/M10-ben
-  dokumentált oszcillációs jelenség gyökérokának feltárása és
-  javítása - az AKADALY állapot mostantól ténylegesen halad is
-  előre a fordulás közben, és az `AKADALY_KUSZOB_KILEPES_M`
-  paraméter finomhangolva (1.1). Eredmény: pályaelhagyás 60%->0%,
-  átlagos ütközésszám 20.9->10.2 (30 futásos méréssel igazolva).
-  Két elvetett javítási kísérlet is dokumentálva (lásd
-  docs/m10-5-plan.md).
-- **m10.6** (nem hivatalos, utólagos javítás): az akadálykerülés újramérése
-  a javított pálya-geometriával. Kiderült, hogy az M09-M10.5 mérések a fantom
-  fehér ív miatt érvénytelenek voltak (a rover a lépések 73%-ában nem a valódi
-  vonalon volt), és hogy a teljesített kör 500 lépéses kerettel matematikailag
-  kizárt volt. Négy hiba javítva (AKADALY elhaladási fázis, VISSZATALALAS
-  visszatérés az elkerülésbe, KERESES körív helyben forgás helyett, ERROR-ból
-  való reset), új metrika: task success. Végleges mérés (30 futás):
-  task success 0/30 → **9/30**, de **ütközésmentes futás 0/30** — az M10
-  elfogadási feltétele ezzel **továbbra sem teljesül**. Részletek és a
-  mérési adatok: docs/m10-6-plan.md.
-- **m12**: agent-facing MCP-adapter. Az `adapter/` réteg öt MCP-eszközön
-  (`observe`, `move`, `turn`, `stop`, `session_status`)
-  keresztül teszi vezérelhetővé a rovert AI-agentek számára. Backend-absztrakció
-  (Unity TCP vagy mock, az agent számára megkülönböztethetetlenül), biztonsági
-  réteg (paraméter-validáció a rover előtt, munkamenet-korlátok, automatikus
-  stop, a privilegizált szimulátor-mezők elrejtése), 18 mock teszt, exportált
-  tool schema. Egy vak kiértékelésben egy külön Claude Code munkamenet
-  kizárólag az eszközleírásokból vezette a rovert 20 lépésen át, egy másik
-  pedig biztonsági átvizsgálást végzett — a nyolc találatból öt javítva.
-  Részletek: docs/m12-plan.md, docs/m12-security-review.md.
+  állapot), explicit zsákutca-észlelés és -eszkalálás, javított
+  akadály-időzítés (`reset_position`-höz kötve, nem a Play mód indításához),
+  végleges 30 futásos mérés (`docs/m10-plan.md`).
 - **m11**: reprodukálható kísérleti platform. Egységes lépésenkénti
-  naplóséma (`common/kiserlet_naplo.py`), replay-vizualizáció statikus
-  képpel és animált videóval (`controllers/replay_visualizer.py`),
-  egyparancsos méréssorozat-indítás automatikus összesítéssel
+  naplóséma (`common/kiserlet_naplo.py`), replay-vizualizáció statikus képpel
+  és animált videóval (`controllers/replay_visualizer.py`), egyparancsos
+  méréssorozat-indítás automatikus összesítéssel
   (`controllers/futtat_kiserletet.py`), Unity Edit/Play Mode tesztek
-  (10, mind zöld) + 29 Python-teszt, CI (tesztek, sémavalidáció,
-  black formázás, pyflakes, dokumentáció-ellenőrzés) és Unity nélkül,
-  friss klónból reprodukálható referenciaepizód
-  (`scripts/referencia_epizod.py`). Az M11 tesztjei két örökölt hibát
-  találtak és javítottak: fantom fehér ív a pálya-geometriában (M07 óta)
-  és az összesítő futásszám-hibája. Részletek: docs/m11-plan.md.
+  (10, mind zöld) + 29 Python-teszt, CI és Unity nélkül, friss klónból
+  reprodukálható referenciaepizód (`scripts/referencia_epizod.py`). Az M11
+  tesztjei két örökölt hibát találtak és javítottak: fantom fehér ív a
+  pálya-geometriában (M07 óta) és az összesítő futásszám-hibája
+  (`docs/m11-plan.md`).
+- **m12**: agent-facing MCP-adapter. Az `adapter/` réteg öt MCP-eszközön
+  (`observe`, `move`, `turn`, `stop`, `session_status`) keresztül teszi
+  vezérelhetővé a rovert AI-agentek számára. Backend-absztrakció (Unity TCP
+  vagy mock, az agent számára megkülönböztethetetlenül), biztonsági réteg
+  (paraméter-validáció a rover előtt, munkamenet-korlátok, automatikus stop,
+  a privilegizált szimulátor-mezők elrejtése), 18 mock teszt, exportált tool
+  schema. Egy vak kiértékelésben egy külön Claude Code munkamenet kizárólag
+  az eszközleírásokból vezette a rovert 20 lépésen át, egy másik pedig
+  biztonsági átvizsgálást végzett — a nyolc találatból öt javítva
+  (`docs/m12-plan.md`, `docs/m12-security-review.md`).
+
+### Utólagos, nem hivatalos finomítások
+
+Ezek nem a kiírás mérföldkövei, hanem az M09–M10 nyitva maradt
+akadálykerülési problémájára adott, külön mért válaszok:
+
+- **m10.5**: az M09/M10-ben dokumentált oszcillációs jelenség gyökérokának
+  feltárása — az AKADALY állapot mostantól ténylegesen halad is előre a
+  fordulás közben, és az `AKADALY_KUSZOB_KILEPES_M` finomhangolva (1.1).
+  Eredmény: pályaelhagyás 60% → 0%, átlagos ütközésszám 20.9 → 10.2
+  (30 futás). Két elvetett javítási kísérlet is dokumentálva
+  (`docs/m10-5-plan.md`).
+- **m10.6**: az akadálykerülés újramérése a javított pálya-geometriával.
+  Kiderült, hogy az M09–M10.5 mérések a fantom fehér ív miatt érvénytelenek
+  voltak (a rover a lépések 73%-ában nem a valódi vonalon volt), és hogy a
+  teljesített kör 500 lépéses kerettel matematikailag kizárt volt. Négy hiba
+  javítva (AKADALY elhaladási fázis, VISSZATALALAS visszatérés az
+  elkerülésbe, KERESES körív helyben forgás helyett, ERROR-ból való reset),
+  új metrika: task success. Végleges mérés: task success 0/30 → **9/30**, de
+  **ütközésmentes futás 0/30** (`docs/m10-6-plan.md`).
+- **m10.7**: akadálykontúr-követés (bug-algoritmus) kísérlete — a mérés
+  megcáfolta (az elkerülési irányt tartó P-szabályozó miatt a kilépési
+  feltétel sosem teljesül, a rover körbekeringi az akadályt), visszavonva.
+  Dokumentálva a `docs/m10-6-plan.md` „Elvetett javítás 2." szakaszában.
+
+### Hátralévő mérföldkövek
+
+- **m13–m18**: a hivatalos feladatkiírás szerint. Az **m13** az
+  agent-vezérelt rover kísérlete: egy általános célú coding agent irányítja
+  a rovert az M12-es MCP-interfészen keresztül, azonos szcenáriókon és azonos
+  metrikákkal mérve, mint a fenti baseline.

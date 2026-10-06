@@ -1,10 +1,55 @@
-# AI eszközök használata
+# AI-használati napló
 
-## Codex (CLI/IDE integráció)
-- **Eszköz:** Codex, PyCharm IDE-integráció
-- **Cél:** kódrészletek generálása és kipróbálása
+Ez a dokumentum a kutatás során használt AI coding agentek munkáját naplózza.
+A kutatás tárgya részben maga ez a folyamat, ezért a napló a sikertelen és
+visszavont kísérleteket is tartalmazza, nem csak a beváltakat.
 
-## Elvégzett próbafeladatok
+## Eszközök és időszakok
+
+| Időszak | Eszköz | Szerep |
+|---|---|---|
+| M01–M06 | Codex (JetBrains AI, PyCharm IDE-integráció) | kódgenerálás, protokoll- és sématervezés |
+| M06 vége – M12 | Claude (Claude Code) | tervezés, kódjavaslat, napló-diagnózis, review |
+
+A váltás oka nem preferencia volt: az M06 közben elfogyott a havi Codex-kvóta
+(lásd a 13. szakaszt), és a megkezdett munkát ezért fejeztük be Claude-dal.
+
+## Munkamegosztás
+
+Minden szakaszban azonos a felosztás, és ezt szándékosan nem mossuk össze:
+
+- **Az AI adta**: a tervet, a kódjavaslatot, a diagnózist a mérési adatokból,
+  a tesztek vázát, a review-kat.
+- **Én végeztem**: a bevezetést a saját projektbe (Rider/terminál), a Unity
+  Play módos futtatást, a méréseket, és minden tartalmi döntést — beleértve
+  azt is, hogy egy AI-javaslatot a mérés alapján elvetünk.
+- **A mérés döntött**, nem az érvelés: négy javítási kísérletet mért adat
+  cáfolt meg és vontunk vissza (M10.5 ×2, M10.6 ×1, M10.7 ×1).
+
+Ahol ettől eltértünk, az külön jelölve van (pl. a 13. szakaszban az M06
+kötelező AI-eleme végül nem AI-val készült).
+
+## Mérföldkő-index
+
+| Mérföldkő | Szakasz | Elsődleges AI | Mit adott az AI | Hogyan ellenőriztem |
+|---|---|---|---|---|
+| M01 | 1–5 | Codex | próbafüggvények, INSTALL_CHECKLIST, `scripts/doctor` | kézi futtatás, friss klónból végigtesztelve |
+| M02 | 6–7 | Codex | `MovementController.cs`, Play Mode tesztek | Unity Test Runner |
+| M03 | 8–9, „Hibakeresés" | Codex | TCP/JSON szerver, Python CLI kliens | kézi parancsok; két hibát én találtam meg |
+| M04 | 10 | Codex | mozgásmodell-összehasonlítás (döntési input) | a döntés az enyém, `docs/coordinate-system.md` |
+| M05 | fuzz-szakasz, 11–12 | Codex | protokoll-review, v1 protokoll implementáció | fuzz teszt + kézi esetek; a security-csomag szűkítése saját döntés |
+| M06 | 13 | Codex, majd Claude | JSON séma, szcenárió-generátor | validátor + reprodukálhatósági teszt; **a validátort a kvóta elfogyása miatt nem AI írta** |
+| M07 | 14 | Claude | ColorSensor-kalibráció elemzése, `SensorArray.cs` | 5 pontos kézi mérés, kanyarpróba (`docs/sensors.md`) |
+| M08 | 15 | Claude | `LidarSensor.cs`, kalibrációs és profilozási terv | 5 pontos geometriai kalibráció, futásidő-profilozás (`docs/lidar.md`) |
+| M09 | 16–17 | Claude | `observe`-bővítés, baseline kontroller, `reset_position` | 2 × 30 futásos mérés; a negatív eredmény dokumentálva |
+| M10 | 18 | Claude | ütközésdetektálás, lépésnapló, `VISSZATALALAS`, zsákutca-kezelés | Unity Play mód, 30 futásos mérés; két saját mérési hibámat is rögzítettem |
+| M10.5 | 18 (alszakasz) | Claude | oszcilláció gyökérok-diagnózisa | 30 futásos mérések; **két javaslat mérés alapján elvetve** |
+| M11 | 19 | Claude | naplóséma, replay, CI, Unity tesztek | Test Runner, CI, referenciaepizód |
+| M12 | 20–21 | Claude | adapter, MCP-szerver; külön munkamenet vak kiértékelésre és biztonsági review-ra | 18 mock teszt; 8 találatból 5 javítva |
+| M10.6 | 22 | Claude | geometria-javítás utáni újramérés, 4 hibajavítás, task success metrika | 30 futásos mérés; **a kapu nyitva maradt** |
+| M10.7 | 23 | Claude | akadálykontúr-követés kísérlete | 5 futásos mérés **megcáfolta** → visszavonva |
+
+---
 
 ### 1. Prímszám-ellenőrzés
 A Codex-szel generáltattam egy `prim_e()` függvényt, ami eldönti egy számról,
@@ -80,7 +125,7 @@ A tesztelés során két hibát találtam és javítottam:
    beállítások eltávolítása a stop ágból — a mozgás leállításához elég
    a hátralévő távolság és sebesség nullázása.
 
-   ### 10. Rovermozgás-modell összehasonlítás
+### 10. Rovermozgás-modell összehasonlítás
 A Codex-től kértem egy összehasonlítást a kinematikus és a WheelCollider-
 alapú mozgásmodell között (m04 kötelező AI-használat). A kinematikus
 modellt választottam, mert gyors, determinisztikus, könnyen
@@ -92,7 +137,7 @@ angular_velocity_radps) történjen, hogy később könnyebben átvihető
 legyen WheelCollider-re vagy fizikai roverre — ezt a döntést a
 docs/coordinate-system.md fájlban dokumentáltam.
 
-## Tesztelési tapasztalatok és ismert korlátok
+### Fuzz-tesztelési tapasztalatok és ismert korlátok (M05)
 
 A `protocol_fuzz_test.py` sikeresen igazolt, és segített kijavítani két
 valódi hibát a `RoverGatewayServer.cs` fájlban: egy regressziót, amely minden
@@ -597,6 +642,48 @@ nem hozott javulást, és a további paraméterezés a train-szcenárióra való
 túlillesztés felé vitt volna. Az M10-es kapu ezért nyitva marad, őszintén
 dokumentálva (`docs/m10-6-plan.md`) — negatív eredményként, megnevezett okkal.
 
+### 23. M10.7: akadálykontúr-követés — elvetett javítási kísérlet
+
+Az M10.6 után nyitva maradt kapuhoz (0/30 ütközésmentes futás) a Claude egy
+elvi, nem hangolás-jellegű javaslatot adott: a bug-algoritmusok mintájára a
+rover ne egy rögzített szöggel forduljon el az akadálytól, hanem egy
+P-szabályozóval tartson állandó oldaltávolságot tőle, azaz kövesse a kontúrját
+(`KERULES_CEL_OLDALTAV_M = 0.6`, `KERULES_P_FOK_PER_M = 25.0`).
+
+**A mérés megcáfolta**: 349.6 ütközés/futás a referenciaként újramért 67.6
+helyett, 0/5 task success az 1/5 helyett. A diagnózis a lépésnaplóból: pont a
+szabályozó működése okozta a bajt — mivel az akadályt pontosan 0.6 m-en
+tartotta, a kilépési feltétel (`AKADALY_KUSZOB_KILEPES_M = 1.1`) soha nem
+teljesült, így a rover körbekeringte az akadályt ahelyett, hogy elhagyta volna.
+A bug-algoritmusok hiányzó eleme a *leave condition*, amihez tudni kellene,
+merre van az eredeti útvonal — ez a jelenlegi, szenzor-only interfészen nem áll
+rendelkezésre.
+
+A javítást visszavontuk, a kontroller a mért M10.6-os állapotában maradt. A
+kísérlet, a mérési adatok és a módszertani tanulság a `docs/m10-6-plan.md`
+„Elvetett javítás 2.: akadálykontúr-követés (bug-algoritmus)" szakaszában.
+
+Ez a kísérlet jelölte ki a továbblépés irányát is: a hiányzó kilépési feltételt
+**odometriával** lehetne pótolni, azaz a rover saját kiadott `turn`/`move`
+parancsainak integrálásával. Ez nem privilegizált szimulátor-adat — a rover a
+saját parancsait ismeri —, tehát nem sérti a kutatás alapelvét. M13+ munkaként
+rögzítve.
+
+Ezzel a hangolást tudatosan abbahagytuk: négy iterációból az utolsó kettő nem
+hozott javulást, és a további paraméterezés a train-szcenárióra való
+túlillesztés felé vitt volna.
+
 ## Megjegyzések
-Az AI (Codex) által generált kódot mindegyik esetben átnéztem és kipróbáltam,
-mielőtt bekerült a `src/main.py` fájlba.
+
+- Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és
+  kipróbáltam, mielőtt bekerült volna a projektbe. A Unity-oldali változtatásokat
+  Play módban, a Python-oldaliakat teszttel vagy éles méréssel ellenőriztem.
+- A naplóban szándékosan benne maradtak a saját hibáim is (félrevitt mérés az
+  „örökké látható" akadályokkal, kézi szerkesztési hibák Riderben, a `.venv`
+  véletlen verziókövetése), mert a kutatás kérdése épp az, hogy egy ilyen
+  munkafolyamat hol és hogyan hibázik.
+- Visszatérő minta, amit érdemes külön kiemelni: **az AI-generált kód és az
+  ugyanazon AI által generált teszt párosa rendszeresen ugyanazt a vakfoltot
+  hagyja** — a tesztek a boldog útvonalat fedik, a hibaágakat nem. Két külön
+  mérföldkőben is így derült ki egy lappangó hiba (M11: fantom fehér ív;
+  M12: nyolc biztonsági találat, amiből egyet sem fogott meg a 11 meglévő teszt).
