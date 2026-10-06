@@ -769,6 +769,26 @@ A diagnózis menete itt is a megszokott volt: a Claude a prefab- és
 jelenetfájlok tényleges értékeinek összevetéséből állította fel a hipotézist,
 a felhasználó pedig a Unity Inspectorban ellenőrizte és végezte el a javítást.
 
+### 26. A `get_status` adatszivárgása: egy aznap bevitt hiba
+
+A 25. pontban leírt `get_status` eszköz hibás volt, és ezt egy külső audit
+találta meg néhány órával a bevezetése után. A Unity-szerver minden parancs
+után a **teljes választ** eltárolta, a `get_status` pedig ezt adta vissza a
+`last_command_result` mezőben. Egy `observe` utáni `get_status` így kiadta az
+ágensnek a pozíciót, a sebességet és az ütközésszámlálót, vagyis pont azt, amit
+az adapter elrejteni hivatott. Az adapter szűrője csak a felső szintű kulcsokat
+nézte, a szövegbe ágyazott választ nem. Ugyanez a mechanizmus az ismételt
+hívások válaszméretét hívásonként megduplázta.
+
+A hibát a Claude vitte be: a `protocol_version` kiszűrésére figyelt, a
+`last_command_result` tartalmát viszont nem nézte meg a szerver kódjában, és a
+hozzá írt teszt a mockon futott, ami ilyen mezőt nem ad vissza.
+
+Javítás két szinten: a szerver már csak rövid összefoglalót tárol
+(`observe:completed`), az adapter pedig eldobja a mezőt, ha az beágyazott
+JSON-nak látszik. A regressziós teszt egy kifejezetten szivárgó stub backendet
+használ. A javítást élő Unityn is ellenőriztük.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és

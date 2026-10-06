@@ -16,7 +16,7 @@
     },
     {
       "name": "get_status",
-      "description": "Megadja a rover allapotgepenek aktualis allapotat. Nem mozgatja a rovert. A 'state' erteke: IDLE (all, parancsra kesz), MOVING (eppen halad), TURNING (eppen fordul), ERROR (hibaallapot). ERROR allapotban a move es a turn hivasok elutasitasra kerulnek, es az elutasitott hivas is fogyaszt a parancskeretbol - ha ezt latod, ne probalkozz tovabb ugyanazzal, hanem jelezd a problemat; ERROR-bol az agent nem tud sajat erobol kilepni. A 'last_command_result' az elozo parancs kimenetelet mondja meg, ami akkor hasznos, ha egy valasz nem erkezett meg. Mint az observe, ez a hivas is fogyaszt a parancskeretbol.",
+      "description": "Megadja a rover allapotgepenek aktualis allapotat. Nem mozgatja a rovert. A 'state' erteke: IDLE (all, parancsra kesz), MOVING (eppen halad), TURNING (eppen fordul), ERROR (hibaallapot). ERROR allapotban a move es a turn hivasok elutasitasra kerulnek, es az elutasitott hivas is fogyaszt a parancskeretbol - ha ezt latod, ne probalkozz tovabb ugyanazzal, hanem jelezd a problemat; ERROR-bol az agent nem tud sajat erobol kilepni. A 'last_command_result' az elozo parancs nevet es kimenetelet adja meg, ilyen alakban: 'move:completed', 'turn:rejected' - akkor hasznos, ha egy valasz nem erkezett meg es nem tudod, vegrehajtodott-e. Mint az observe, ez a hivas is fogyaszt a parancskeretbol.",
       "input_schema": {
         "properties": {},
         "type": "object",

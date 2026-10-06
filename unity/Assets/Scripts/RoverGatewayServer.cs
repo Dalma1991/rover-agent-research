@@ -711,7 +711,17 @@ public class RoverGatewayServer : MonoBehaviour
         }
 
         VegsoValaszTarolasa(keres.RequestId, valasz);
-        utolsoParancsEredmenye = valasz;
+        // Ide CSAK rovid osszefoglalo kerul, soha a teljes valasz. Korabban a
+        // teljes valasz JSON-ja volt eltarolva, aminek ket kovetkezmenye volt:
+        // (1) a get_status last_command_result mezoje visszaadta az elozo
+        //     observe privilegizalt mezoit (position, speed, collision_count),
+        //     megkerulve az adapter szurojet, ami csak felso szintu kulcsokat nez;
+        // (2) minden valasz beagyazta az elozot escape-elve, igy az ismetelt
+        //     get_status hivasok merete hivasonkent duplazodott.
+        string utolsoStatusz =
+            valasz.Contains("\"status\":\"completed\"") ? "completed" :
+            valasz.Contains("\"status\":\"rejected\"") ? "rejected" : "error";
+        utolsoParancsEredmenye = keres.Command + ":" + utolsoStatusz;
         return valasz;
     }
 

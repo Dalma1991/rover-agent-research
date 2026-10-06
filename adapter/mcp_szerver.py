@@ -105,8 +105,10 @@ def observe() -> dict[str, Any]:
         "hivas is fogyaszt a parancskeretbol - ha ezt latod, ne probalkozz "
         "tovabb ugyanazzal, hanem jelezd a problemat; ERROR-bol az agent nem "
         "tud sajat erobol kilepni. A 'last_command_result' az elozo parancs "
-        "kimenetelet mondja meg, ami akkor hasznos, ha egy valasz nem erkezett "
-        "meg. Mint az observe, ez a hivas is fogyaszt a parancskeretbol."
+        "nevet es kimenetelet adja meg, ilyen alakban: 'move:completed', "
+        "'turn:rejected' - akkor hasznos, ha egy valasz nem erkezett meg es nem "
+        "tudod, vegrehajtodott-e. Mint az observe, ez a hivas is fogyaszt a "
+        "parancskeretbol."
     )
 )
 def get_status() -> dict[str, Any]:

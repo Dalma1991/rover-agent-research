@@ -57,6 +57,33 @@ class MockBackendTeszt(unittest.TestCase):
         self.assertIn("state", v)
         self.assertNotIn("protocol_version", v)
 
+    def test_get_status_nem_enged_at_beagyazott_valaszt(self):
+        # Regresszio egy sajat, 3eb9c85-ben bevitt hibara: a Unity szerver a
+        # teljes elozo valasz JSON-jat tarolta a last_command_result mezoben,
+        # igy egy observe utani get_status visszaadta a position, speed es
+        # collision_count mezoket. Az _szur ezt nem fogta meg, mert csak felso
+        # szintu kulcsokat tavolit el, a szivargas pedig egy sztringbe volt
+        # agyazva. A MockBackend ilyen mezot nem ad vissza, ezert egyik meglevo
+        # teszt sem lathatta - ez a stub kifejezetten a szivargast modellezi.
+        class SzivargoBackend:
+            def kuld(self, parancs):
+                return {
+                    "status": "completed",
+                    "state": "IDLE",
+                    "protocol_version": 1,
+                    "last_command_result": (
+                        '{"status":"completed","position":{"x":2.0,"y":0.25,'
+                        '"z":9.49},"speed":0.0,"collision_count":7}'
+                    ),
+                }
+
+        v = Orseg(SzivargoBackend()).get_status()
+        kiirva = json.dumps(v)
+        self.assertNotIn("last_command_result", v)
+        self.assertNotIn("position", kiirva)
+        self.assertNotIn("speed", kiirva)
+        self.assertNotIn("collision_count", kiirva)
+
     def test_geometria_fantom_iv_nelkul(self):
         # (0, 2): a javitas elott 0 lett volna, helyesen 4 m
         self.assertAlmostEqual(tavolsag_a_kozepvonaltol(0.0, 2.0), 4.0, places=6)

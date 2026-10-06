@@ -182,6 +182,15 @@ class Orseg:
         """
         valasz = self._vegrehajt({"command": "get_status"})
         valasz.pop("protocol_version", None)
+        # Vedelem a beagyazott valasz ellen. A szerver korabban a teljes elozo
+        # valasz JSON-jat tarolta a last_command_result mezoben, igy egy
+        # observe utani get_status kiadta a position/speed/collision_count
+        # mezoket - az _szur ezt nem latta, mert az csak felso szintu kulcsokat
+        # tavolit el. A szerver mar osszefoglalot kuld ("move:completed"), de ha
+        # barmikor visszaesne a regi viselkedesre, az agent akkor se lassa.
+        eredmeny = valasz.get("last_command_result")
+        if isinstance(eredmeny, str) and eredmeny.lstrip().startswith("{"):
+            valasz.pop("last_command_result", None)
         return valasz
 
     def session_status(self) -> dict[str, Any]:
