@@ -755,9 +755,16 @@ készült), a prefabbeli (az M09 előtti, ütközésre hajlamos), és a
 dokumentumban leírt (egyikkel sem azonos).
 
 A gyökérok: az M09-es javítás — alváz Scale Z 1.5 → 1.0, kerekek arányosítva —
-csak a jelenetbeli példányon történt meg. A jelenetbeli objektum ráadásul le is
-lett választva a prefabról (unpack), ezért az eltérés semmilyen Unity-beli
-jelzést nem adott.
+csak a jelenetbeli példányon történt meg, prefab-felülírásként (override).
+
+**Helyesbítés (ugyanaznap, külső audit nyomán).** Ennek a bejegyzésnek az első
+változata, a `83c36e6` commit üzenete és a `coordinate-system.md` azt állította,
+hogy a jelenetbeli rover le lett választva a prefabról. Ez téves volt: a Claude
+egy Play módban készült képernyőképből következtetett, a jelenetfájl ellenőrzése
+nélkül. A commitolt `TrackScene.unity` prefab-példányt tartalmaz, a javított
+méretekkel felülírva. A súlyosság is kisebb az alább leírtnál: a mérések friss
+klónból is a helyes geometrián futottak volna, csak a prefab új példányosítása
+adott volna régi rovert. A prefab javítása ettől függetlenül helyes.
 
 Ez **reprodukálhatósági hiba**: friss klónból a prefabot példányosítva a
 javítás előtti rover jött volna létre, vagyis a mérések nem lettek volna

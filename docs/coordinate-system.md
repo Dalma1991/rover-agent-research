@@ -83,9 +83,11 @@ rover mögé ugyanaz az interfész tehető.
 > geometria 1.5-ös Z-vel készült; az M09-ben kiderült, hogy a túlnyújtott
 > alváz miatt a kerekek nekiütköztek az akadályoknak, mielőtt a test
 > elfordulhatott volna. A javítás (Z=1.0, kerekek arányosítva) akkor
-> **csak a jelenetbeli példányon** történt meg, a prefabon nem — és mivel
-> a jelenetbeli objektum közben le is lett választva a prefabról, az
-> eltérés hónapokig észrevétlen maradt. A prefab 2026-10-06-án lett a
+> **csak a jelenetbeli példányon** történt meg, a prefabon nem: a jelenet
+> a javított méreteket prefab-felülírásként (override) tárolja, ezért a
+> mérések végig a helyes geometrián futottak, a prefab viszont a régit
+> őrizte. (Egy korábbi változat tévesen azt állította, hogy a jelenetbeli
+> objektum le lett választva a prefabról.) A prefab 2026-10-06-án lett a
 > jelenetbeli, mért geometriához igazítva. A fenti értékek azóta
 > mindkettőben azonosak.
 
