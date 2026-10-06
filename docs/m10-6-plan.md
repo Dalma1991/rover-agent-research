@@ -70,7 +70,7 @@ Egy negyedik hiba a javítás közbeni mérésekből jött elő:
 | 3 | A KERESES `turn` **és** `move` parancsot ad, így körívet ír le helyben forgás helyett; ha akadály kerül elé, az AKADALY-ba vált | ugyanott |
 | 4 | A futás előtt `get_status` → ha ERROR, akkor `reset_error` + `stop` + `reset_position` | `futtat()` |
 
-## Elvetett javítás: táguló spirál
+## Elvetett javítás 1.: táguló spirál
 
 A sikertelen futások mind a KERESES-ben, **1.4–1.5 m-re a vonaltól** értek
 véget — épp a fix körív 2.3 m-es átmérőjén kívül. Ebből az a hipotézis
@@ -81,6 +81,61 @@ távolabbi vonalat is. A mérés ezt **megcáfolta**: a rover nem esett ki
 9%-ában volt a valódi vonalon (a szűk körívvel 30%). A spirál ezért ki van
 kapcsolva (`KERESES_SPIRAL_CSOKKENES = 0.0`), a paraméter és a mérés
 tanulsága viszont a kódban maradt.
+
+## Elvetett javítás 2.: akadálykontúr-követés (bug-algoritmus)
+
+**Mérés dátuma:** 2026-10-06. Kiinduló hipotézis: a rover azért veszíti el a
+vonalat, mert az akadály mellett elhaladva csak egyenesen megy, és nem tudja,
+hol a vonal. A szakirodalomból ismert megoldás a kontúrkövetés: P-szabályozó
+tartson állandó oldaltávolságot (0.6 m) az akadálytól, a lidar oldalsó
+szektoraira — ugyanaz az elv, mint a vonalkövetés a színszenzorokra. Az
+érvelés elegáns volt: mivel **az akadály a vonalon ül**, a kontúrja mentén
+haladva a geometria magától visszavisz a vonalhoz.
+
+Ehhez társult egy második, önmagában helyes javítás is: a
+`VISSZATALALAS_MAX_LEPES` 15-ről 80-ra emelése. Az 5 fokos lépésenkénti
+fordulat 0.92 m sugarú kört ír le, ami 1.84 m-en belül bármilyen vonalat
+metsz — de csak ha a rover befejezi a kört; 15 lépés mindössze 75 fokot
+fordult, a teljes körhöz 72 lépés kellene.
+
+A mérés (5 futás, azonos Unity-példányon, közvetlenül egy M10.6-os
+kontrollméréssel összevetve) **egyértelműen megcáfolta**:
+
+| Metrika | M10.6 (kontroll, 5 futás) | Kontúrkövetés (5 futás) |
+|---|---|---|
+| Ütközés / futás | 67.6 | **349.6** |
+| Task success | 1/5 | 0/5 |
+| Hatékonyság | 0.427 | 0.117 |
+| Zsákutca-eszkaláció | 0.0 | **11.4** |
+| Akadálykerülés / futás | 3.6 | 12.2 |
+
+A 11.4-es zsákutca-szám és a 12.2 akadálykerülés árulja el az okot: a rover
+**körbe-körbe kering az akadály körül**. A P-szabályozó pontosan azt teszi,
+amire tervezték — 0.6 m-en tartja az akadályt —, csakhogy így soha nem engedi
+el: a kilépési feltétel (az akadály eltűnik az oldalsó szektorokból) sosem
+teljesül, mert a szabályozó aktívan a látómezőben tartja. Önfenntartó hurok.
+
+Ez a wall-following klasszikus hibája: hiányzik a **leave condition**. A
+teljes bug-algoritmusban a rover akkor hagyja el a kontúrt, amikor a
+haladási iránya újra az eredeti célirányba fordul — ehhez viszont tudnia
+kellene, merre volt a vonal, vagyis **odometriára** lenne szükség (a rover
+saját, kiadott parancsaiból integrált elmozdulás; ez nem privilegizált adat,
+egy valódi roveren a kerék-enkóderek adnák). Ez már egy újabb, nagyobb
+fejlesztési kör, ezért nem valósult meg.
+
+A kontúrkövetés és a megemelt VISSZATALALAS-keret ezért **nem került be** a
+kódba; a baseline az M10.6-os konfigurációban maradt.
+
+### Módszertani tanulság
+
+Két, elvileg helyes és a szakirodalomból vett javítás is rontott, miközben a
+mögöttük álló diagnózis mindkét esetben korrekt volt (a spirálnál a mért
+1.4–1.5 m-es távolság a körív átmérőjén kívül; a kontúrkövetésnél az, hogy a
+rover nem tudja, hol a vonal). Egy kézzel hangolt, emlékezet nélküli
+állapotgépen a lokálisan ésszerű szabályok globálisan rossz viselkedést
+adnak. Ez teszi érdekessé az M13-as összehasonlítást: ha egy agent vagy egy
+tanult policy ugyanezzel a szenzorkészlettel jobban boldogul, az önmagában
+eredmény — és most már van hozzá mért, dokumentált alapvonal.
 
 ## Végleges mérés (30 futás, 1500 lépés, `stadium-train-baseline-always-visible`)
 
@@ -128,6 +183,11 @@ Ami nyitva marad (M13+):
 - **A bimodális viselkedés.** Az ütközésszám szórása 57.8 (3 és 238 között):
   egyes futások simán mennek, mások beragadnak egy akadály mellé. A
   gyökérokot nem tártuk fel.
+- **Odometria-alapú visszatalálás.** A két megcáfolt javítási kísérlet közös
+  tanulsága, hogy a rovernek emlékeznie kellene arra, merre hagyta el a
+  vonalat. A kiadott `turn`/`move` parancsokból integrált elmozdulás-becslés
+  (nem privilegizált adat) ezt megadná, és a kontúrkövetésnek is megadná a
+  hiányzó leave conditiont.
 - A baseline egy egyszerű, kézzel hangolt állapotgép. Az M13+ agent-alapú és
   tanult kontrollerek éppen ezen a ponton mérhetők össze vele: a
   `controllers/kor_metrika.py` és a `--controller` kapcsoló ehhez már készen
