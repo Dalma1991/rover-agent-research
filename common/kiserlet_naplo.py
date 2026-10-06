@@ -55,6 +55,27 @@ class KiserletNaplozo:
         self._fh.write("\n")
         self._fh.flush()
 
+    def metaadat_rogzitese(self, **mezok: Any) -> None:
+        """Futasonkent egy sor a <naplo>_meta.jsonl fajlba.
+
+        Ide kerul minden, ami a meres megismetlesehez kell, de a lepesenkenti
+        sorokbol hianyzott: a tenylegesen betoltott szcenario, a lepeskeret, a
+        kontroller parameterei es a git commit. Kulon fajl, hogy a meglevo
+        naplo-olvasok (replay, kor_metrika, osszesito) valtozatlanul mukodjenek.
+        """
+        meta_fajl = self.fajl.with_name(self.fajl.stem + "_meta.jsonl")
+        bejegyzes = {
+            "run_id": self.run_id,
+            "controller": self.metaadat.controller,
+            "backend": self.metaadat.backend,
+            "seed": self.metaadat.seed,
+            "idobelyeg": datetime.now(timezone.utc).isoformat(),
+            **mezok,
+        }
+        with meta_fajl.open("a", encoding="utf-8") as f:
+            json.dump(bejegyzes, f, ensure_ascii=False, separators=(",", ":"))
+            f.write("\n")
+
     def close(self) -> None:
         self._fh.close()
 

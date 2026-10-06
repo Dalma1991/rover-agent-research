@@ -739,7 +739,10 @@ public class RoverGatewayServer : MonoBehaviour
                 utolsoUtkozesIdopontja = float.NegativeInfinity;
                 valasz = SikerValasz(
                     keres.RequestId,
-                    "A rover visszaallt a kezdohelyzetbe."
+                    "A rover visszaallt a kezdohelyzetbe. scenario="
+                        + (trackController != null ? trackController.SzcenarioNev : "")
+                        + " timescale="
+                        + Time.timeScale.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 );
                 break;
 

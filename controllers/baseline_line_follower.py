@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import socket
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -535,12 +536,62 @@ def egy_lepes_kereses(
     return Allapot.KERESES
 
 
+def _szcenario_nev(reset_valasz: object) -> str | None:
+    """A Unity a reset_position valaszanak uzeneteben kozli a betoltott szcenariot."""
+    if not isinstance(reset_valasz, dict):
+        return None
+    uzenet = str(reset_valasz.get("message", ""))
+    if "scenario=" not in uzenet:
+        return None
+    return (uzenet.split("scenario=", 1)[1].split() or [None])[0]
+
+
+def _time_scale(reset_valasz: object) -> float | None:
+    if not isinstance(reset_valasz, dict):
+        return None
+    uzenet = str(reset_valasz.get("message", ""))
+    if "timescale=" not in uzenet:
+        return None
+    try:
+        return float(uzenet.split("timescale=", 1)[1].split()[0])
+    except (ValueError, IndexError):
+        return None
+
+
+def _parameterek() -> dict:
+    """A kontroller osszes modulszintu konstansa, a meres megismetlesehez."""
+    return {
+        nev: ertek
+        for nev, ertek in sorted(globals().items())
+        if nev.isupper() and isinstance(ertek, (int, float, tuple))
+    }
+
+
+def _git_allapot() -> dict:
+    gyoker = Path(__file__).resolve().parent.parent
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=gyoker, capture_output=True, text=True, timeout=10
+        ).stdout.strip()
+        piszkos = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=gyoker,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).stdout.strip()
+        return {"git_commit": commit or None, "git_tiszta": piszkos == ""}
+    except (OSError, subprocess.SubprocessError):
+        return {"git_commit": None, "git_tiszta": None}
+
+
 def futtat(
     host: str,
     port: int,
     max_lepes: int,
     kiserlet_naplo_fajl: Path | None = KISERLET_NAPLO_FAJL,
     seed: int | None = None,
+    elvart_szcenario: str | None = None,
 ) -> FutasStatisztika:
     kliens = GatewayKliens(host, port)
     stat = FutasStatisztika()
@@ -571,7 +622,21 @@ def futtat(
         if allapot_valasz.get("state") == "ERROR":
             kliens.kuld({"command": "reset_error"})
         kliens.kuld({"command": "stop"})
-        kliens.kuld({"command": "reset_position"})
+        reset_valasz = kliens.kuld({"command": "reset_position"})
+        szcenario = _szcenario_nev(reset_valasz)
+        if elvart_szcenario and szcenario != elvart_szcenario:
+            raise RuntimeError(
+                f"A Unityben a(z) '{szcenario}' szcenario van betoltve, "
+                f"a mereshez '{elvart_szcenario}' kell."
+            )
+        if naplo:
+            naplo.metaadat_rogzitese(
+                scenario=szcenario,
+                time_scale=_time_scale(reset_valasz),
+                max_lepes=max_lepes,
+                parameterek=_parameterek(),
+                **_git_allapot(),
+            )
 
         while stat.lepesek_szama < max_lepes and not stat.palyaelhagyas:
             if allapot is Allapot.VONALON:
@@ -656,13 +721,25 @@ def main() -> int:
         default=None,
         help="A hasznalt szcenario seed-je, kizarolag naplozasi celra.",
     )
+    parser.add_argument(
+        "--elvart-szcenario",
+        default=None,
+        help="Ha meg van adva, a futas csak akkor indul el, ha a Unity ezt a szcenariot toltotte be.",
+    )
     args = parser.parse_args()
     kiserlet_naplo_fajl = Path(args.kiserlet_naplo) if args.kiserlet_naplo else None
 
     print(f"Kapcsolodas: {args.host}:{args.port} ...")
     try:
-        stat = futtat(args.host, args.port, args.max_lepes, kiserlet_naplo_fajl, args.seed)
-    except (ConnectionError, OSError) as hiba:
+        stat = futtat(
+            args.host,
+            args.port,
+            args.max_lepes,
+            kiserlet_naplo_fajl,
+            args.seed,
+            args.elvart_szcenario,
+        )
+    except (ConnectionError, OSError, RuntimeError) as hiba:
         print(f"Hiba: {hiba}", file=sys.stderr)
         return 1
 

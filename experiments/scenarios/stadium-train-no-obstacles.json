@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "name": "stadium-train-no-obstacles",
+    "type": "train",
+    "seed": 1126986952
+  },
+  "track": {
+    "straight_length_m": 12.0,
+    "turn_radius_m": 4.0,
+    "line_width_m": 0.18,
+    "background_color_rgb": {
+      "r": 28,
+      "g": 32,
+      "b": 28
+    }
+  },
+  "obstacles": []
+}

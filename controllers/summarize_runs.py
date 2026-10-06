@@ -22,6 +22,12 @@ def utolso_n_futas(n: int) -> list[dict]:
     return [json.loads(sor) for sor in utolsok]
 
 
+def _szoras(adatok) -> float:
+    """Szoras; egyetlen adatnal 0.0 (a statistics.stdev ilyenkor kivetelt dob)."""
+    adatok = list(adatok)
+    return statistics.stdev(adatok) if len(adatok) >= 2 else 0.0
+
+
 def osszegez(n: int = 30) -> None:
     futasok = utolso_n_futas(n)
 
@@ -36,28 +42,28 @@ def osszegez(n: int = 30) -> None:
     print(f"Osszegzes ({len(futasok)} futas):")
     print(
         f"  Parancsok szama:      atlag={statistics.mean(parancsok):.1f}, "
-        f"szoras={statistics.stdev(parancsok):.1f}, "
+        f"szoras={_szoras(parancsok):.1f}, "
         f"min={min(parancsok)}, max={max(parancsok)}"
     )
     print(
         f"  Vonalvesztesek szama: atlag={statistics.mean(vonalveszesek):.1f}, "
-        f"szoras={statistics.stdev(vonalveszesek):.1f}, "
+        f"szoras={_szoras(vonalveszesek):.1f}, "
         f"min={min(vonalveszesek)}, max={max(vonalveszesek)}"
     )
     print(
         f"  Akadalykerulesek:     atlag={statistics.mean(akadalykerulesek):.1f}, "
-        f"szoras={statistics.stdev(akadalykerulesek):.1f}, "
+        f"szoras={_szoras(akadalykerulesek):.1f}, "
         f"min={min(akadalykerulesek)}, max={max(akadalykerulesek)}"
     )
     print(
         f"  Zsakutcak szama:      atlag={statistics.mean(zsakutcak):.1f}, "
-        f"szoras={statistics.stdev(zsakutcak):.1f}, "
+        f"szoras={_szoras(zsakutcak):.1f}, "
         f"min={min(zsakutcak)}, max={max(zsakutcak)}"
     )
     print(f"  Palyaelhagyasok:      {palyaelhagyasok}/{len(futasok)} futasban")
     print(
         f"  Utkozesek szama:      atlag={statistics.mean(utkozesek):.1f}, "
-        f"szoras={statistics.stdev(utkozesek):.1f}, "
+        f"szoras={_szoras(utkozesek):.1f}, "
         f"min={min(utkozesek)}, max={max(utkozesek)}"
     )
     print(f"  Utkozott futasok:     {utkozott_futasok}/{len(futasok)} futasban")

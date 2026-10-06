@@ -69,8 +69,10 @@ def validate_semantics(dokumentum: dict) -> list[str]:
     track = dokumentum.get("track", {})
     egyenes = track.get("straight_length_m", 0)
     sugar = track.get("turn_radius_m", 0)
+    # default=0: akadaly nelkuli szcenarional (ures lista) a max() elszallt.
     x_hatar = sugar + max(
-        o.get("size_m", {}).get("x", 0) for o in dokumentum.get("obstacles", [{"size_m": {}}])
+        (o.get("size_m", {}).get("x", 0) for o in dokumentum.get("obstacles", [])),
+        default=0,
     )
     z_hatar = egyenes / 2 + sugar
 

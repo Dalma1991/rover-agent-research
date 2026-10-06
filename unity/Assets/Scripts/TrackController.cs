@@ -160,6 +160,9 @@ public class TrackController : MonoBehaviour
     /// kozelebe; a dev es a holdout palyan tobb mint 1 m-rel a vonal mellol
     /// indult volna.
     /// </summary>
+    public string SzcenarioNev =>
+        dokumentum != null && dokumentum.metadata != null ? dokumentum.metadata.name : "";
+
     public bool KezdoPoz(float y, out Vector3 pozicio, out Quaternion forgatas)
     {
         pozicio = Vector3.zero;

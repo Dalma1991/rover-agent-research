@@ -38,6 +38,7 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--max-lepes", type=int, default=500)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--elvart-szcenario", default=None)
     args = parser.parse_args()
 
     projekt_gyoker = Path(__file__).resolve().parent.parent
@@ -65,6 +66,8 @@ def main() -> int:
         ]
         if args.seed is not None:
             parancs += ["--seed", str(args.seed)]
+        if args.elvart_szcenario:
+            parancs += ["--elvart-szcenario", args.elvart_szcenario]
 
         eredmeny = subprocess.run(parancs)
         if eredmeny.returncode != 0:
