@@ -220,6 +220,45 @@ public class RoverGatewayServer : MonoBehaviour
         kezdoForgatas = rigidBody.rotation;
     }
 
+    private void Start()
+    {
+        // Az Awake-ben a TrackController meg nem biztos, hogy betoltotte a
+        // szcenariot, ezert a kezdopozt itt vesszuk at tole.
+        if (KezdoPozFrissitese())
+        {
+            rigidBody.position = kezdoPozicio;
+            rigidBody.rotation = kezdoForgatas;
+            transform.SetPositionAndRotation(kezdoPozicio, kezdoForgatas);
+        }
+    }
+
+    private bool KezdoPozFrissitese()
+    {
+        if (trackController != null
+            && trackController.KezdoPoz(kezdoPozicio.y, out Vector3 p, out Quaternion f))
+        {
+            kezdoPozicio = p;
+            kezdoForgatas = f;
+            return true;
+        }
+        return false;
+    }
+
+    // Resetnel a szenzorok zajgeneratora ujraindul a seedbol. Enelkul a
+    // generator a Play mod inditasatol futott tovabb, igy ket futas soha
+    // nem kaphatta ugyanazt a zajsorozatot.
+    private void SzenzorZajUjrainditasa()
+    {
+        foreach (ColorSensor szenzor in GetComponentsInChildren<ColorSensor>(true))
+        {
+            szenzor.ZajUjrainditasa();
+        }
+        if (lidar != null)
+        {
+            lidar.ZajUjrainditasa();
+        }
+    }
+
     private void OnEnable()
     {
         InditSzerver();
@@ -652,8 +691,10 @@ public class RoverGatewayServer : MonoBehaviour
                 }
 
                 RoverAzonnaliLeallitasa();
+                KezdoPozFrissitese();
                 rigidBody.position = kezdoPozicio;
                 rigidBody.rotation = kezdoForgatas;
+                SzenzorZajUjrainditasa();
                 allapot = RoverAllapot.IDLE;
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
@@ -688,8 +729,10 @@ public class RoverGatewayServer : MonoBehaviour
                 }
 
                 RoverAzonnaliLeallitasa();
+                KezdoPozFrissitese();
                 rigidBody.position = kezdoPozicio;
                 rigidBody.rotation = kezdoForgatas;
+                SzenzorZajUjrainditasa();
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
                    trackController?.UjrakezdiAkadalyUtemezest();

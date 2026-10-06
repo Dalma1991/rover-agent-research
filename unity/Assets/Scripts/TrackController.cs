@@ -152,6 +152,27 @@ public class TrackController : MonoBehaviour
         utemezesKezdeteS = Time.timeSinceLevelLoad;
     }
 
+    /// <summary>
+    /// A rover szcenariohoz kotott kezdopoza: a jobb oldali egyenes kozepe
+    /// (x = turn_radius_m, z = 0), a vonalon, -z iranyba nezve. Korabban a
+    /// rover ott indult, ahol a jelenetben eppen allt (egy M07-es teszt
+    /// maradvanya a kanyarban), ami csak a train palyan esett a vonal
+    /// kozelebe; a dev es a holdout palyan tobb mint 1 m-rel a vonal mellol
+    /// indult volna.
+    /// </summary>
+    public bool KezdoPoz(float y, out Vector3 pozicio, out Quaternion forgatas)
+    {
+        pozicio = Vector3.zero;
+        forgatas = Quaternion.identity;
+        if (dokumentum == null || dokumentum.track == null)
+        {
+            return false;
+        }
+        pozicio = new Vector3(dokumentum.track.turn_radius_m, y, 0f);
+        forgatas = Quaternion.Euler(0f, 180f, 0f);
+        return true;
+    }
+
     private void Update()
     {
         float t = Time.timeSinceLevelLoad - utemezesKezdeteS;

@@ -57,6 +57,16 @@ public class ColorSensor : MonoBehaviour
         pufferIndex = 0;
     }
 
+    public void ZajUjrainditasa()
+    {
+        veletlenszamGenerator = new System.Random(zajSeed);
+        if (keslelteteesPuffer != null)
+        {
+            Array.Clear(keslelteteesPuffer, 0, keslelteteesPuffer.Length);
+        }
+        pufferIndex = 0;
+    }
+
     private void FixedUpdate()
     {
         MeresVegrehajtasa();

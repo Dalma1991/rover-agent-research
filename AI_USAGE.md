@@ -796,6 +796,26 @@ Javítás két szinten: a szerver már csak rövid összefoglalót tárol
 JSON-nak látszik. A regressziós teszt egy kifejezetten szivárgó stub backendet
 használ. A javítást élő Unityn is ellenőriztük.
 
+### 27. Szcenárióhoz kötött kezdőpóz és a zajgenerátor újraindítása
+
+Külső audit két pontja nyomán. (1) A rover addig ott indult, ahol a jelenetben
+éppen állt: egy M07-es teszt maradványaként a kanyarban, elfordulva, ami csak a
+train pályán esett a vonal közelébe. Mostantól a `TrackController` számolja a
+kezdőpózt a szcenárió pályájából (az egyenes közepe, a vonalon), és a szerver
+induláskor és minden resetnél oda állítja a rovert. (2) A szenzorok
+zajgenerátora csak a Play mód indulásakor jött létre a seedből; mostantól
+minden resetnél újraindul.
+
+A Claude írta a kódot a szerver, a pályavezérlő és a két szenzor forrásának
+átolvasása után; a felhasználó Unity Play módban ellenőrizte (`reset_position`
+után `position` = (4,0; 0,0), a középső szenzor fehéret lát).
+
+Ismert, még nyitott korlátok: a futások ettől még nem bitre azonosak, mert a
+szenzorok `FixedUpdate`-enként húznak zajt, a parancsok pedig valós időben
+érkeznek; és az élő mérés megerősítette, hogy a középső színszenzor kb.
+11,5 cm-rel el van tolva oldalra. A korábbi baseline-mérések a régi kezdőpózzal
+készültek, újramérés szükséges.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és

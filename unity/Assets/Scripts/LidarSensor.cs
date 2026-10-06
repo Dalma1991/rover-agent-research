@@ -114,6 +114,13 @@ public class LidarSensor : MonoBehaviour
         }
     }
 
+    public void ZajUjrainditasa()
+    {
+        veletlenszamGenerator = new System.Random(zajSeed);
+        fixedUpdateSzamlalo = 0;
+        pufferIndex = 0;
+    }
+
     private void FixedUpdate()
     {
         fixedUpdateSzamlalo++;

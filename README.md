@@ -25,6 +25,12 @@ maga is AI coding agentekkel történik (Codex M01–M06, Claude M06 végétől)
 
 ### A baseline kontroller mért teljesítménye
 
+> **Figyelem: az alábbi számok újramérésre várnak.** 2026-10-06-án a rover
+> kezdőpóza megváltozott (a szcenárió pályájának egyenesén, a vonalon indul,
+> nem a kanyarban), és egy külső audit szerint a mérés a dokumentált paranccsal
+> nem is állítható elő (1500 lépés, always-visible szcenárió). Az új, teljesen
+> naplózott mérésig ezek tájékoztató értékek.
+
 30 futás a train szcenárión, mindkét akadály állandóan látható, a javított
 pálya-geometriával (`docs/m10-6-meres.json`):
 
