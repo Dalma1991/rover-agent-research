@@ -1,50 +1,126 @@
 #!/usr/bin/env bash
-# Egyszerű "doctor" script: kiírja a lényeges verziókat és ellenőrzi a függőségeket.
+# scripts/doctor - környezet- és projektellenőrző.
+#
+# Friss klón után ezt futtatva kiderül, hogy minden megvan-e a mérésekhez.
+# Kilépési kód: 0 ha minden kötelező ellenőrzés átment, 1 egyébként.
+# (A korábbi verzió mindig 0-t adott vissza, ezért ellenőrzésre alkalmatlan volt.)
 
-set -euo pipefail
+set -uo pipefail
+cd "$(dirname "$0")/.."
 
-echo "=== Rendszer- és eszközverziók ==="
+HIBA=0
+FIGY=0
 
-if command -v python3 &> /dev/null; then
-    echo "Python:  $(python3 --version)"
+ok()   { printf "  [OK]    %s\n" "$1"; }
+hiba() { printf "  [HIBA]  %s\n" "$1"; HIBA=$((HIBA+1)); }
+figy() { printf "  [FIGY]  %s\n" "$1"; FIGY=$((FIGY+1)); }
+
+echo "=== Alapeszközök ==="
+
+if command -v python3 >/dev/null 2>&1; then
+    if python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' 2>/dev/null; then
+        ok "$(python3 --version 2>&1)"
+    else
+        hiba "$(python3 --version 2>&1) - a projekt Python 3.9+ -t igényel"
+    fi
 else
-    echo "Python:  HIÁNYZIK (nincs telepítve python3)"
+    hiba "python3 nincs telepítve"
 fi
 
-if command -v git &> /dev/null; then
-    echo "Git:     $(git --version)"
+if command -v git >/dev/null 2>&1; then
+    ok "$(git --version)"
 else
-    echo "Git:     HIÁNYZIK (nincs telepítve)"
+    hiba "git nincs telepítve"
 fi
 
-if command -v pip3 &> /dev/null; then
-    echo "Pip:     $(pip3 --version)"
+UNITY_VERZIO="unity/ProjectSettings/ProjectVersion.txt"
+if [ -f "$UNITY_VERZIO" ]; then
+    V=$(grep "m_EditorVersion:" "$UNITY_VERZIO" | head -1 | awk '{print $2}')
+    ok "Unity projekt verziója: $V (az élő méréshez a Unity Editor is kell)"
 else
-    echo "Pip:     HIÁNYZIK (nincs telepítve)"
+    figy "nincs $UNITY_VERZIO - a Unity projekt hiányzik vagy sérült"
 fi
 
 echo ""
-echo "=== Python beépített modulok ellenőrzése ==="
+echo "=== Futtatáshoz szükséges Python-modulok ==="
 
-# A projekt csak beépített (standard library) modulokat használ: argparse, csv
-for modul in argparse csv; do
-    if python3 -c "import ${modul}" &> /dev/null; then
-        echo "  [OK]      ${modul}"
+for modul in jsonschema matplotlib; do
+    if python3 -c "import $modul" 2>/dev/null; then
+        MV=$(python3 -c "import $modul; print(getattr($modul, '__version__', '?'))" 2>/dev/null)
+        ok "$modul ($MV)"
     else
-        echo "  [HIÁNYZIK] ${modul}"
+        hiba "$modul hiányzik - 'pip install $modul'"
     fi
 done
 
 echo ""
-echo "=== Projektfájlok ellenőrzése ==="
+echo "=== Fejlesztői eszközök (a CI ezeket futtatja) ==="
 
-for fajl in "src/main.py" "README.md" "AI_USAGE.md"; do
-    if [ -f "${fajl}" ]; then
-        echo "  [OK]      ${fajl}"
-    else
-        echo "  [HIÁNYZIK] ${fajl}"
-    fi
+if python3 -m black --version >/dev/null 2>&1; then
+    BV=$(python3 -m black --version 2>&1 | head -1)
+    case "$BV" in
+        *25.11.0*) ok "black 25.11.0" ;;
+        *)         hiba "black verzióeltérés: $BV - a pyproject.toml 25.11.0-t ír elő" ;;
+    esac
+else
+    figy "black nincs telepítve - a formázás-ellenőrzés helyben nem futtatható"
+fi
+
+if python3 -m pyflakes --version >/dev/null 2>&1; then
+    ok "pyflakes ($(python3 -m pyflakes --version 2>&1 | head -1))"
+else
+    figy "pyflakes nincs telepítve - a statikus ellenőrzés helyben nem futtatható"
+fi
+
+if command -v uv >/dev/null 2>&1; then
+    ok "uv ($(uv --version 2>&1)) - az MCP-szerver indításához"
+else
+    figy "uv nincs telepítve - az MCP-szerver (adapter/mcp_szerver.py) nem indítható; minden más működik"
+fi
+
+echo ""
+echo "  Megjegyzés: az 'mcp' csomag Python 3.12-t igényel, a projekt többi része 3.9-en fut."
+echo "  Az MCP-szervert ezért külön környezetben indítjuk:"
+echo "    uv run --no-project --python 3.12 --with mcp python adapter/mcp_szerver.py"
+
+echo ""
+echo "=== Projektszerkezet ==="
+
+for mappa in unity gateway controllers adapter common experiments scripts tests docs; do
+    if [ -d "$mappa" ]; then ok "$mappa/"; else hiba "$mappa/ hiányzik"; fi
 done
 
 echo ""
-echo "=== Kész! ==="
+echo "=== Kulcsfájlok ==="
+
+for fajl in \
+    README.md AI_USAGE.md REPRODUCIBILITY.md ENVIRONMENT.md INSTALL_CHECKLIST.md \
+    docs/protocol.md \
+    controllers/baseline_line_follower.py \
+    controllers/futtat_kiserletet.py \
+    adapter/mcp_szerver.py \
+    scripts/referencia_epizod.py \
+    scripts/ellenoriz_dokumentaciot.py
+do
+    if [ -f "$fajl" ]; then ok "$fajl"; else hiba "$fajl hiányzik"; fi
+done
+
+echo ""
+echo "=== Gyorsteszt: referenciaepizód (Unity nélkül) ==="
+
+if python3 scripts/referencia_epizod.py >/dev/null 2>&1; then
+    ok "a commitolt referenciaepizód metrikái egyeznek"
+else
+    hiba "a referenciaepizód ellenőrzése elbukott - a részletekért: python3 scripts/referencia_epizod.py"
+fi
+
+echo ""
+echo "=== Összegzés ==="
+
+if [ "$HIBA" -eq 0 ]; then
+    echo "  Minden kötelező ellenőrzés átment. ($FIGY figyelmeztetés)"
+    exit 0
+else
+    echo "  $HIBA hiba, $FIGY figyelmeztetés."
+    exit 1
+fi

@@ -78,6 +78,17 @@ kiírja a Python, Git és Pip verzióját, ellenőrzi a szükséges Python modul
 (argparse, csv), és megnézi, hogy a projekt alapfájljai (src/main.py, README.md,
 AI_USAGE.md) megvannak-e.
 
+> **Utólagos megjegyzés (M12 után).** Ez a leírás a szkript *eredeti*, M01-es
+> állapotát rögzíti. A szkriptet később újraírtuk, mert három ponton félrevezetővé
+> vált: (1) azt állította, a projekt csak beépített modulokat használ, holott
+> szükség van a `jsonschema` és `matplotlib` csomagokra; (2) a kilépési kódja
+> mindig 0 volt, így ellenőrzésre valójában alkalmatlan volt; (3) a `src/main.py`-t
+> nézte, a projekt érdemi részét adó `controllers/`, `adapter/`, `common/`
+> mappákat viszont nem. Az új verzió ellenőrzi a Python-verziót, az Unity projekt
+> verzióját, a tényleges függőségeket, a CI által használt eszközök pontos
+> verzióit, a projektszerkezetet, és lefuttatja a referenciaepizód-ellenőrzést is
+> — hiba esetén pedig 1-es kilépési kóddal áll le.
+
 ### 6. Unity mozgó gömb komponens (MovementController.cs)
 A Codex-szel megíratattam a MovementController.cs C# komponenst, ami a
 WASD/nyílbillentyűkkel mozgatja a gömböt egy Rigidbody segítségével.
