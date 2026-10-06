@@ -158,3 +158,37 @@ halasztunk, nem ezen mérföldkő részeként.
   eredmények összehasonlítása.
 - Szisztematikus paraméter-sweep (P-erősítés, keresési szög) a
   fenti diagnosztika birtokában, célzottabban.
+
+## Érvénytelenítés és újramérés (2026-10-06)
+
+**A fenti két 30 futásos sorozat nem igazolja az M09 elfogadási feltételét.**
+Fantom-íves pályageometrián készültek (a hibát az M11 tesztjei találták meg),
+500 lépéses kerettel, amellyel a teljes kör eleve kizárt volt, és a kanyarban
+álló, elfordult kezdőpózból. Az M09-es kapu ezért az alábbi mérésig nyitott.
+
+### Előre rögzített mérési terv
+
+Ez a szakasz a mérés **előtt**, külön commitban került a repóba.
+
+| | |
+|---|---|
+| Szcenárió | `stadium-train-no-obstacles` (a train pálya akadályok nélkül) |
+| Futások száma | 30, egymás után, kihagyás és válogatás nélkül |
+| Lépéskeret | 1500 lépés futásonként |
+| Kontroller | `controllers/baseline_line_follower.py`, a commitolt paraméterekkel, hangolás nélkül |
+| Kezdőpóz | a szcenárió pályájának egyenesén, a vonalon (`reset_position`) |
+| Siker egy futásban | legalább egy teljes kör a lépéskereten belül **és** nincs pályaelhagyás |
+| Elfogadási küszöb | **legalább 27 sikeres futás a 30-ból (90%)** |
+
+Parancs (a Unityben a `TrackController` *Szcenario Fajl Nev* mezője
+`stadium-train-no-obstacles.json`, Play mód, a Unity ablaka előtérben):
+
+```bash
+python3 controllers/futtat_kiserletet.py --futasok-szama 30 --max-lepes 1500 \
+  --elvart-szcenario stadium-train-no-obstacles
+python3 controllers/kor_metrika.py --utolso 30
+```
+
+A szcenáriót, a Time Scale-t, a paramétereket és a commitot a futások
+metaadat-naplója rögzíti. Ha a küszöb nem teljesül, az eredményt negatív
+eredményként közöljük; a sorozatot nem ismételjük meg jobb szám reményében.
