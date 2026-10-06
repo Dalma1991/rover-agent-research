@@ -15,7 +15,7 @@ authors:
   - family-names: "Sipos-Posta"
     given-names: "Dalma"
     affiliation: "University of Miskolc"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0009-0008-9634-9077"
 identifiers:
   - type: doi
     value: 10.5281/zenodo.22161119

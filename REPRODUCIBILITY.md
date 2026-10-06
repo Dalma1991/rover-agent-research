@@ -215,3 +215,45 @@ git checkout m05   # vagy m01, m02, ..., m10, m10-5, m10-6, m11, m11.1, m12
   fájlokat (`experiments/scenario_validator.py`, `tests/scenario_seed_test.py`,
   `unity/Assets/Scripts/TrackController.cs`) Claude írta, ez az `AI_USAGE.md`-ben
   dokumentálva van.
+
+## Nagy bináris fájlok és a Git-LFS
+
+**Döntés: a projekt nem vezet be Git-LFS-t.** Ezt tudatos választásként
+rögzítjük, nem mulasztásként.
+
+### A jelenlegi állapot
+
+| Fájl | Méret |
+|---|---|
+| `docs/videos/m10-akadalykerules-demo.mov` | 68 MB |
+| `docs/screenshots/unity-friss-klon.png` | 10 MB |
+| `logs/m10_vegleges_30_futas_lepesnaplo.jsonl` | 7 MB |
+| `docs/videos/m11-referencia-replay.gif` | 4 MB |
+
+A `.git` könyvtár ezekkel együtt kb. 112 MB.
+
+### Miért nem LFS
+
+1. **Visszamenőleg nem segítene.** Az LFS-be mozgatás nem törli a már
+   meglévő blobokat a history-ból — ahhoz history-átírás kellene, amit a
+   projekt kizárt: az áthelyezné az `m01`–`m12` tageket, amelyek a
+   reprodukálhatóság bizonyítékai, és amelyekre azóta Zenodo-kiadások és
+   DOI-k is hivatkoznak.
+2. **Rontaná a friss klónból való reprodukálhatóságot.** Git-LFS nélkül a
+   klónozó csak mutatófájlokat kap a tényleges tartalom helyett. A projekt
+   egyik alapkövetelménye, hogy friss klónból, extra eszköz telepítése
+   nélkül reprodukálható legyen — az LFS pont ezzel megy szembe.
+3. **A méret nem szorít.** A GitHub fájlonkénti korlátja 100 MB; a
+   legnagyobb fájlunk 68 MB. A repó mérete kényelmes határon belül van.
+
+### A helyette bevezetett szabály
+
+Új, **10 MB fölötti bináris** nem kerül a verziókövetésbe. Az ilyen
+tartalom (demóvideó, nagy felbontású képernyőkép, nyers mérési adat)
+GitHub release-mellékletként vagy a mérföldkőhöz tartozó Zenodo-kiadás
+mellékleteként kerül közzé, a dokumentáció pedig linkkel hivatkozik rá.
+
+### Mikor kell újragondolni
+
+Ha egyetlen fájl meghaladná a 100 MB-ot (a GitHub ezt elutasítja), vagy ha
+a `.git` 500 MB fölé nőne. Addig a fenti szabály elegendő.
