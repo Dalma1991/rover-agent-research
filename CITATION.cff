@@ -1,18 +1,25 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
-title: "Simulation-Blind Two-Timescale Rover Control by General-Purpose Coding Agents"
+message: "Ha felhasználod ezt a szoftvert, kérlek az alábbiak szerint hivatkozz rá."
+title: >-
+  rover-agent-research: Simulation-Blind Two-Timescale Rover Control by General-Purpose Coding Agents
+abstract: >-
+  Reprodukálható kutatási platform egy rover szenzor-akció interfészen keresztüli irányításához Unity-szimulációban. A rendszer hagyományos algoritmussal, AI coding agenttel, agent által generált controllerrel és neurális policy-vel is vezérelhető, azonos szcenáriókon és azonos metrikákkal mérve. A fejlesztés maga is AI coding agentekkel történt, és ez a folyamat a kutatás tárgya is; a teljes munkanapló a repóban van.
 type: software
 authors:
-  - family-names: "Sipos-Posta"
-    given-names: "Dalma"
-    affiliation: "University of Miskolc"
+  - family-names: Sipos-Posta
+    given-names: Dalma
+    affiliation: "Miskolci Egyetem, Hatvany József Informatikai Tudományok Doktori Iskola"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22161119
+    description: "Concept DOI - mindig a legfrissebb kiadásra mutat"
 repository-code: "https://github.com/Dalma1991/rover-agent-research"
-version: "0.12.1"
-date-released: "2026-09-11"
 license: MIT
 keywords:
-  - robotics
-  - agentic AI
-  - simulation
   - rover control
-  - Unity
+  - line following
+  - AI coding agents
+  - reproducible research
+  - Unity simulation
+  - robotics

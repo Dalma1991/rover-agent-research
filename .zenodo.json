@@ -1,0 +1,21 @@
+{
+  "title": "rover-agent-research: Simulation-Blind Two-Timescale Rover Control by General-Purpose Coding Agents",
+  "description": "Reprodukálható kutatási platform egy rover szenzor-akció interfészen keresztüli irányításához Unity-szimulációban. A rendszer hagyományos algoritmussal, AI coding agenttel, agent által generált controllerrel és neurális policy-vel is vezérelhető, azonos szcenáriókon és azonos metrikákkal mérve. A fejlesztés maga is AI coding agentekkel történt, és ez a folyamat a kutatás tárgya is; a teljes munkanapló a repóban van.",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Sipos-Posta, Dalma",
+      "affiliation": "Miskolci Egyetem, Hatvany József Informatikai Tudományok Doktori Iskola"
+    }
+  ],
+  "keywords": [
+    "rover control",
+    "line following",
+    "AI coding agents",
+    "reproducible research",
+    "Unity simulation",
+    "robotics"
+  ],
+  "language": "hun"
+}

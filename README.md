@@ -1,4 +1,5 @@
 [![CI](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml/badge.svg)](https://github.com/Dalma1991/rover-agent-research/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22161119.svg)](https://doi.org/10.5281/zenodo.22161119)
 
 # rover-agent-research
 
@@ -97,6 +98,18 @@ klónból is ellenőrizhető, ez fut a CI-ban is:
 ```bash
 python3 scripts/referencia_epizod.py
 ```
+
+## Licenc és hivatkozás
+
+A projekt [MIT licenc](LICENSE) alatt érhető el.
+
+Minden mérföldkő külön, Zenodón archivált kiadást és saját DOI-t kap. Az összes
+verzióra érvényes hivatkozás (mindig a legfrissebbre mutat):
+
+> Sipos-Posta, D. *rover-agent-research: Simulation-Blind Two-Timescale Rover Control by General-Purpose Coding Agents*. Zenodo. https://doi.org/10.5281/zenodo.22161119
+
+A gépi olvasható hivatkozási adatokat a [CITATION.cff](CITATION.cff) tartalmazza
+— a GitHub a repó jobb oldali sávjában *Cite this repository* néven is megjeleníti.
 
 ## Mérföldkövek
 
