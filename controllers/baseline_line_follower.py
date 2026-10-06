@@ -574,7 +574,7 @@ def _git_allapot() -> dict:
             ["git", "rev-parse", "HEAD"], cwd=gyoker, capture_output=True, text=True, timeout=10
         ).stdout.strip()
         piszkos = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=no"],
+            ["git", "status", "--porcelain", "--untracked-files=no", "--", ".", ":(exclude)logs"],
             cwd=gyoker,
             capture_output=True,
             text=True,
