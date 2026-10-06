@@ -43,7 +43,7 @@ from adapter.backend import (
     Backend,
 )
 
-ENGEDELYEZETT_PARANCSOK = ("observe", "move", "turn", "stop", "reset_position")
+ENGEDELYEZETT_PARANCSOK = ("observe", "get_status", "move", "turn", "stop", "reset_position")
 ELREJTETT_MEZOK = ("position", "speed", "collision_occurred", "collision_count")
 # Az utkozes-erzekelo (bumper/IMU) egy valodi roveren is letezne, ezert az agent
 # megkapja - de csak "az utolso observe ota tortent-e utkozes" bool formaban, nem
@@ -168,6 +168,21 @@ class Orseg:
         meresindito szkript vegzi ezen a metoduson keresztul.
         """
         return self._vegrehajt({"command": "reset_position"})
+
+    def get_status(self) -> dict[str, Any]:
+        """A rover allapotgepe: IDLE / MOVING / TURNING / ERROR.
+
+        Agent-eszkoz. Enelkul egy agent nem veszi eszre, ha a rover ERROR
+        allapotba kerult, es vakon kuldene tovabb parancsokat, amiket a rover
+        egyesevel elutasit - a parancskeret kozben fogy.
+
+        A protocol_version kikerul a valaszbol: fejlesztoi adat, a vezerleshez
+        nem kell, es a vak API-kiertekeles tanulsaga szerint minden folosleges
+        mezo zajt visz az eszkozleirasba.
+        """
+        valasz = self._vegrehajt({"command": "get_status"})
+        valasz.pop("protocol_version", None)
+        return valasz
 
     def session_status(self) -> dict[str, Any]:
         eltelt = time.monotonic() - self.session.kezdet

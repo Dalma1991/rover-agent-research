@@ -128,7 +128,7 @@ def parancs_feldolgozasa(sor: str) -> dict[str, Any] | None:
 
     raise ValueError(
         "Ismeretlen parancs. Használható: observe, get_status, move, turn, "
-        "stop, reset_error, quit."
+        "stop, reset_error, reset_position, quit."
     )
 
 
@@ -230,7 +230,8 @@ def interaktiv_kliens(host: str, port: int) -> int:
     print(
         "Kapcsolódva. Parancsok: observe, get_status, "
         "move <distance_m> <max_speed>, "
-        "turn <angle_deg> <max_angular_speed>, stop, reset_error, quit"
+        "turn <angle_deg> <max_angular_speed>, stop, reset_error, "
+        "reset_position, quit"
     )
 
     with JsonlNaplo(NAPLO_FAJL) as naplo, kapcsolat:

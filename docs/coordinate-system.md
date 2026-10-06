@@ -20,20 +20,37 @@ környezetként kerül majd bevezetésre.
 
 ## Vezérlési interfész
 
-A rover vezérlése nem Unity-specifikus pozícióparancsokkal történik,
-hanem absztrakt sebesség-parancsokkal:
+### Az M04-es terv
 
-```json
-{
-  "linear_velocity_mps": 1.0,
-  "angular_velocity_radps": 0.3
-}
-```
+A rover vezérlése ne Unity-specifikus pozícióparancsokkal történjen,
+hanem absztrakt sebesség-parancsokkal (`linear_velocity_mps`,
+`angular_velocity_radps`), amiket egy adapter fordít le — előbb
+MovePosition/MoveRotation műveletekre, később keréknyomatékokra, végül
+valódi motorvezérlési parancsokra.
 
-Ezt egy külön adapter fordítja le:
-- jelenleg: MovePosition/MoveRotation műveletekre (kinematikus modell)
-- később: keréknyomatékokra és kormányzásra (WheelCollider modell)
-- végül: valódi motorvezérlési parancsokra (fizikai rover)
+### Ami ténylegesen megvalósult (M05, v1 protokoll)
+
+**Az elv megmaradt, a konkrét mezők viszont mások lettek.** A v1 protokoll
+nem folytonos sebesség-parancsokat használ, hanem **diszkrét, befejeződő
+mozgásokat**:
+
+| Parancs | Paraméterek |
+|---|---|
+| `move` | `distance_m`, `max_speed` |
+| `turn` | `angle_deg`, `max_angular_speed` |
+
+A `linear_velocity_mps` / `angular_velocity_radps` mezők **soha nem
+kerültek be a protokollba**. A váltás oka: a diszkrét, visszajelzéssel
+záruló parancsok mellett az állapotgép (IDLE/MOVING/TURNING/ERROR), a
+watchdog és az idempotencia-kezelés sokkal egyszerűbben megvalósítható —
+egy folytonos sebesség-parancsnál nincs természetes pont, ahol a parancs
+"befejeződik".
+
+A mértékegységek és a pontos tartományok: `docs/protocol.md`.
+
+Az absztrakció célja viszont teljesült: a vezérlés nem hivatkozik Unity-
+specifikus fogalmakra, így a későbbi WheelCollider-modell vagy fizikai
+rover mögé ugyanaz az interfész tehető.
 
 ## Koordinátarendszer
 
@@ -44,17 +61,31 @@ Ezt egy külön adapter fordítja le:
 
 ## Méretek és konvenciók
 
-- Alváz méretei: (később, a prefab elkészülte után dokumentálva)
-- Sebesség mértékegysége: m/s
-- Szögsebesség mértékegysége: rad/s
+- Sebesség: m/s (`max_speed`)
+- Szög és szögsebesség: fok, illetve fok/s (`angle_deg`,
+  `max_angular_speed`) — az M04-es terv még rad/s-ot irányzott elő, a
+  megvalósult v1 protokoll fokban dolgozik
+- A tényleges méreteket lásd lent
 
 ## Rover prefab méretei (tényleges)
 
-- Alváz (RoverChassis): Cube primitíva, Scale (1.0, 0.3, 1.5)
-- Kerekek: Cylinder primitívák, Scale (0.3, 0.6, 0.3), Rotation (0, 0, 90)
+- Alváz (RoverChassis): Cube primitíva, Scale **(1, 0.3, 1)**
+- Kerekek: Cylinder primitívák, Scale **(0.5, 0.15, 0.5)**,
+  Rotation (0, 0, 90)
 - Kerék pozíciók (alváz lokális koordinátákban):
-  - WheelFrontLeft: (-0.6, 0.3, 0.6)
-  - WheelFrontRight: (0.6, 0.3, 0.6)
-  - WheelBackLeft: (-0.6, 0.3, -0.6)
-  - WheelBackRight: (0.6, 0.3, -0.6)
-- A prefab: Assets/Prefabs/RoverChassis.prefab
+  - WheelFrontLeft: (-0.6, 0, 0.4)
+  - WheelFrontRight: (0.6, 0, 0.4)
+  - WheelBackLeft: (-0.6, 0, -0.4)
+  - WheelBackRight: (0.6, 0, -0.4)
+- A prefab: `unity/Assets/Prefabs/RoverChassis.prefab`
+
+> **Az alváz Scale Z értéke azért 1.0, nem 1.5.** Az eredeti, M04-es
+> geometria 1.5-ös Z-vel készült; az M09-ben kiderült, hogy a túlnyújtott
+> alváz miatt a kerekek nekiütköztek az akadályoknak, mielőtt a test
+> elfordulhatott volna. A javítás (Z=1.0, kerekek arányosítva) akkor
+> **csak a jelenetbeli példányon** történt meg, a prefabon nem — és mivel
+> a jelenetbeli objektum közben le is lett választva a prefabról, az
+> eltérés hónapokig észrevétlen maradt. A prefab 2026-10-06-án lett a
+> jelenetbeli, mért geometriához igazítva. A fenti értékek azóta
+> mindkettőben azonosak.
+

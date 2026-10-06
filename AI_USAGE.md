@@ -725,6 +725,50 @@ ne tűnjön valódi geometriának. Így a „szektor minimuma = a hozzá tartoz�
 sugarak minimuma" invariáns a mockban pontosan teljesül, és erre külön
 regressziós teszt is készült.
 
+### 25. Specifikáció-megfelelés és egy lappangó geometriai eltérés
+
+Három, egymástól független hiányosság pótlása, amiket részben egy külső audit,
+részben a `get_status` kapcsán indult vizsgálódás hozott elő.
+
+**`get_status` mint agent-eszköz.** A kiírás 2.1 pontja nevesíti, az M12-es
+adapterből mégis kimaradt. Nem formai kérdés: enélkül egy ágens nem veszi
+észre, ha a rover ERROR állapotba került, és vakon küldene tovább parancsokat,
+amiket a rover egyesével elutasít — miközben a parancskerete fogy. A válaszból
+a `protocol_version` kikerül: fejlesztői adat, és a vak API-kiértékelés
+tanulsága szerint minden fölösleges mező zajt visz az eszközleírásba.
+
+Közben egy nyitott kérdés is megfogalmazódott az M13-hoz: **ERROR állapotból
+az ágens nem tud saját erejéből kilépni**, mert a `reset_error` nem
+agent-eszköz. Az eszközleírás ezt most explicit módon kimondja ("jelezd a
+problémát, ne próbálkozz tovább"), de hogy ez a helyes tervezés-e, azt az M13-as
+kísérlet fogja megmutatni.
+
+**A kliens súgója.** A `gateway/client.py` kezelte a `reset_position`
+parancsot, de a parancslistájából hiányzott. Egysoros, de ugyanaz a fajta rés
+dokumentáció és valóság között, amit aznap már kétszer javítottunk.
+
+**A prefab geometriája — ez volt a komoly.** A `coordinate-system.md`
+átnézésekor derült ki, hogy az általa megadott alváz- és kerékméretek egyik
+tényleges értékkel sem egyeznek. A nyomot követve kiderült, hogy **három
+különböző geometria** van forgalomban: a jelenetbeli (amin minden mérés
+készült), a prefabbeli (az M09 előtti, ütközésre hajlamos), és a
+dokumentumban leírt (egyikkel sem azonos).
+
+A gyökérok: az M09-es javítás — alváz Scale Z 1.5 → 1.0, kerekek arányosítva —
+csak a jelenetbeli példányon történt meg. A jelenetbeli objektum ráadásul le is
+lett választva a prefabról (unpack), ezért az eltérés semmilyen Unity-beli
+jelzést nem adott.
+
+Ez **reprodukálhatósági hiba**: friss klónból a prefabot példányosítva a
+javítás előtti rover jött volna létre, vagyis a mérések nem lettek volna
+megismételhetők — miközben az egész projekt erre épül. A prefab az M04
+elfogadási feltételének része, ezért nem töröltük, hanem a jelenetbeli, mért
+geometriához igazítottuk.
+
+A diagnózis menete itt is a megszokott volt: a Claude a prefab- és
+jelenetfájlok tényleges értékeinek összevetéséből állította fel a hipotézist,
+a felhasználó pedig a Unity Inspectorban ellenőrizte és végezte el a javítást.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és

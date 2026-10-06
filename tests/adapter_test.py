@@ -47,6 +47,16 @@ class MockBackendTeszt(unittest.TestCase):
         for ny, m in zip(nyers, maszk):
             self.assertEqual(m, ny < 10.0)
 
+    def test_get_status_allapotot_ad_protocol_version_nelkul(self):
+        # A kiiras 2.1 pontja nevesiti a get_status-t az agent-eszkozok kozott,
+        # de az M12-es adapterbol hianyzott: egy agent nem vette volna eszre,
+        # ha a rover ERROR allapotba kerul.
+        o = Orseg(MockBackend())
+        v = o.get_status()
+        self.assertEqual(v["status"], "completed")
+        self.assertIn("state", v)
+        self.assertNotIn("protocol_version", v)
+
     def test_geometria_fantom_iv_nelkul(self):
         # (0, 2): a javitas elott 0 lett volna, helyesen 4 m
         self.assertAlmostEqual(tavolsag_a_kozepvonaltol(0.0, 2.0), 4.0, places=6)

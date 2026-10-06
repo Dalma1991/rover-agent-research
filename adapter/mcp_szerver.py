@@ -98,6 +98,23 @@ def observe() -> dict[str, Any]:
 
 @szerver.tool(
     description=(
+        "Megadja a rover allapotgepenek aktualis allapotat. Nem mozgatja a "
+        "rovert. A 'state' erteke: IDLE (all, parancsra kesz), MOVING (eppen "
+        "halad), TURNING (eppen fordul), ERROR (hibaallapot). ERROR allapotban "
+        "a move es a turn hivasok elutasitasra kerulnek, es az elutasitott "
+        "hivas is fogyaszt a parancskeretbol - ha ezt latod, ne probalkozz "
+        "tovabb ugyanazzal, hanem jelezd a problemat; ERROR-bol az agent nem "
+        "tud sajat erobol kilepni. A 'last_command_result' az elozo parancs "
+        "kimenetelet mondja meg, ami akkor hasznos, ha egy valasz nem erkezett "
+        "meg. Mint az observe, ez a hivas is fogyaszt a parancskeretbol."
+    )
+)
+def get_status() -> dict[str, Any]:
+    return orseg().get_status()
+
+
+@szerver.tool(
+    description=(
         "Elore mozgatja a rovert. distance_m: 0.01-1.00 meter. max_speed: "
         "0.05-0.50 m/s (alapertelmezett 0.2). A parancs a mozgas "
         "befejezesekor ter vissza. Tartomanyon kivuli vagy nem szamertek "
