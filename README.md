@@ -111,6 +111,30 @@ verzióra érvényes hivatkozás (mindig a legfrissebbre mutat):
 A gépi olvasható hivatkozási adatokat a [CITATION.cff](CITATION.cff) tartalmazza
 — a GitHub a repó jobb oldali sávjában *Cite this repository* néven is megjeleníti.
 
+### Mérföldkövenkénti DOI-k
+
+Minden mérföldkő külön, Zenodón archivált kiadást kapott. A disszertációban
+és a cikkben ezekre lehet pontosan hivatkozni, nem csak a projekt egészére.
+
+| Tag | DOI |
+|---|---|
+| `m01` | [10.5281/zenodo.22161307](https://doi.org/10.5281/zenodo.22161307) |
+| `m02` | [10.5281/zenodo.22161315](https://doi.org/10.5281/zenodo.22161315) |
+| `m03` | [10.5281/zenodo.22161319](https://doi.org/10.5281/zenodo.22161319) |
+| `m04` | [10.5281/zenodo.22161328](https://doi.org/10.5281/zenodo.22161328) |
+| `m05` | [10.5281/zenodo.22161332](https://doi.org/10.5281/zenodo.22161332) |
+| `m06` | [10.5281/zenodo.22161337](https://doi.org/10.5281/zenodo.22161337) |
+| `m07` | [10.5281/zenodo.22161342](https://doi.org/10.5281/zenodo.22161342) |
+| `m08` | [10.5281/zenodo.22161349](https://doi.org/10.5281/zenodo.22161349) |
+| `m09` | [10.5281/zenodo.22161357](https://doi.org/10.5281/zenodo.22161357) |
+| `m10` | [10.5281/zenodo.22161120](https://doi.org/10.5281/zenodo.22161120) |
+| `m10-5` | [10.5281/zenodo.22164382](https://doi.org/10.5281/zenodo.22164382) |
+| `m10-6` | [10.5281/zenodo.23183236](https://doi.org/10.5281/zenodo.23183236) |
+| `m10-7` | [10.5281/zenodo.23183248](https://doi.org/10.5281/zenodo.23183248) |
+| `m11` | [10.5281/zenodo.23183186](https://doi.org/10.5281/zenodo.23183186) |
+| `m11.1` | [10.5281/zenodo.23183214](https://doi.org/10.5281/zenodo.23183214) |
+| `m12` | [10.5281/zenodo.23183230](https://doi.org/10.5281/zenodo.23183230) |
+
 ## Mérföldkövek
 
 - **m01**: friss klónból megnyitható Unity projekt, futó Python környezet,
