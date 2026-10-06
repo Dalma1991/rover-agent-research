@@ -55,6 +55,23 @@ mérföldkőtől kezdve — a vonalérzékelő szenzorok állapotát. Minden
   mérföldkőnél került be; a `position`/`speed`-del ellentétben ez
   **nem** privilegizált információ, egy valódi roveren is elérhető
   lenne (lásd `docs/lidar.md`).
+- `lidar_nyers`: a LiDAR **nyers, sugáronkénti** távolságai méterben
+  (`float[]`, alapértelmezetten 36 elem), balról jobbra rendezve,
+  ugyanabban a 180 fokos legyezőben, mint a `lidar_szektor_min`. Az
+  M13 mérföldkőnél került be, az RQ5 vizsgálatához: enélkül nem
+  hasonlítható össze, hogy egy ágens a tömörített szektoradatból
+  vagy a nyers jelből vezérel-e jobban. A `lidar_szektor_min`
+  változatlanul megmarad - a kettő ugyanarra a mérésre épül, a
+  szektor értéke a hozzá tartozó sugarak minimuma.
+- `lidar_nyers_ervenyes`: logikai maszk (`bool[]`), sugaranként
+  jelzi, hogy az adott mérés érvényes-e. **Enélkül a `lidar_nyers`
+  félrevezető**: egy kimaradt vagy találat nélküli sugár is a
+  maximális hatótávot (10.0) adja vissza, tehát a "szabad az út
+  10 méterig" és a "ez a sugár kimaradt" eset különben
+  megkülönböztethetetlen lenne. A szektoros tömörítés eddig is
+  kiszűrte az érvénytelen sugarakat, a nyers jelnél ezt a
+  fogyasztóra hagyjuk. Mint a `lidar_szektor_min`, ez **sem**
+  privilegizált információ.
 - `collision_occurred` / `collision_count`: az M10 mérföldkőnél
   bevezetett ütközésdetektálás. **Privilegizált diagnosztika**: a
   controllerek nem használhatják vezérlésre, csak naplózásra és
@@ -251,6 +268,11 @@ szcenárió-sémához hasonlóan), és a fuzz tesztek referenciája.
   `collision_count` privilegizált diagnosztikai mezőkkel.
 - **M12**: a protokoll formális JSON Schema leírást kapott
   (`docs/protocol.schema.json`); maga a protokoll nem változott.
+- **M13**: az `observe` válasz kibővítve a `lidar_nyers` és
+  `lidar_nyers_ervenyes` mezőkkel (nyers, sugáronkénti LiDAR-jel és
+  érvényességi maszk). Additív bővítés, a protokollverzió marad v1.
+  Indok: az RQ5 (tömörített vs. nyers szenzorjel) enélkül nem
+  vizsgálható.
 - **M09**: uj `reset_position` parancs - IDLE allapotbol hivhato
   pozicio-reset a kiserleti futasok kozotti reprodukalhatosaghoz
   (korabban csak a `reset_error` allitotta vissza a kezdopoziciot,

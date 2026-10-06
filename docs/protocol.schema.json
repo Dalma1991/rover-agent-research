@@ -246,6 +246,21 @@
           },
           "description": "M08: szektoronkenti minimalis akadalytavolsag (m), balrol jobbra."
         },
+        "lidar_nyers": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0.0
+          },
+          "description": "M13: nyers, sugaronkenti LiDAR-tavolsag (m), balrol jobbra. Nem privilegizalt."
+        },
+        "lidar_nyers_ervenyes": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "description": "M13: sugaronkenti ervenyessegi maszk a lidar_nyers mezohoz. Hossza megegyezik vele."
+        },
         "collision_occurred": {
           "type": "boolean",
           "description": "M10: privilegizalt diagnosztika."

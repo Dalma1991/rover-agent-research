@@ -146,6 +146,8 @@ public class RoverGatewayServer : MonoBehaviour
         public SzenzorErtek sensor_center;
         public SzenzorErtek sensor_right;
         public float[] lidar_szektor_min;
+        public float[] lidar_nyers;
+        public bool[] lidar_nyers_ervenyes;
         public bool collision_occurred;
         public int collision_count;
     }
@@ -551,6 +553,8 @@ public class RoverGatewayServer : MonoBehaviour
                         szenzorTomb != null ? szenzorTomb.JobbErtek : 0f
                     ),
                     lidar_szektor_min = lidar != null ? lidar.SzektorMinTavolsag : new float[0],
+                    lidar_nyers = lidar != null ? lidar.NyersTavolsagok : new float[0],
+                    lidar_nyers_ervenyes = lidar != null ? lidar.ErvenyessegiMaszk : new bool[0],
                         collision_occurred = utkozesTortentAzUtolsoResetOta,
                         collision_count = utkozesekSzamaAzUtolsoResetOta
                 });

@@ -287,7 +287,21 @@ class MockBackend:
             szektorok[idx] = min(szektorok[idx], round(tav, 3))
         return szektorok
 
+    def _lidar_nyers(self) -> tuple[list[float], list[bool]]:
+        # A mock nem futtat valodi raycastert: a nyers sugarakat a
+        # szektor-minimumokbol szarmaztatja, szektoronkent azonos ertekkel.
+        # Igy a "szektor minimuma == a hozza tartozo nyers sugarak minimuma"
+        # invarians a mockban is pontosan teljesul, es a valasz alakja
+        # megegyezik a Unity-evel. Valodi, sugarankenti geometriat csak a
+        # Unity oldal ad.
+        sugar_szektoronkent = 6  # Unity: 36 sugar / 6 szektor
+        nyers: list[float] = []
+        for ertek in self._lidar():
+            nyers.extend([ertek] * sugar_szektoronkent)
+        return nyers, [True] * len(nyers)
+
     def _observe(self) -> dict[str, Any]:
+        lidar_nyers, lidar_ervenyes = self._lidar_nyers()
         return {
             "position": {"x": round(self.x, 4), "y": 0.0, "z": round(self.z, 4)},
             "speed": 0.0,
@@ -296,6 +310,8 @@ class MockBackend:
             "sensor_center": self._szenzor(0.0),
             "sensor_right": self._szenzor(SZENZOR_OLDALTAV_M),
             "lidar_szektor_min": self._lidar(),
+            "lidar_nyers": lidar_nyers,
+            "lidar_nyers_ervenyes": lidar_ervenyes,
             "collision_occurred": self.utkozesek > 0,
             "collision_count": self.utkozesek,
         }

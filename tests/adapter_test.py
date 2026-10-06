@@ -26,6 +26,21 @@ class MockBackendTeszt(unittest.TestCase):
         self.assertTrue(obs["sensor_center"]["white"])
         self.assertEqual(len(obs["lidar_szektor_min"]), 6)
 
+    def test_lidar_nyers_es_maszk_konzisztens_a_szektorokkal(self):
+        # M13/RQ5: a nyers jel es a tomoritett szektorok ugyanarra a meresre
+        # epulnek - a szektor erteke a hozza tartozo sugarak minimuma.
+        b = MockBackend()
+        obs = b.kuld({"command": "observe"})
+        nyers = obs["lidar_nyers"]
+        maszk = obs["lidar_nyers_ervenyes"]
+        szektorok = obs["lidar_szektor_min"]
+        self.assertEqual(len(nyers), 36)
+        self.assertEqual(len(maszk), len(nyers))
+        sugar_per_szektor = len(nyers) // len(szektorok)
+        for i, szektor_ertek in enumerate(szektorok):
+            resz = nyers[i * sugar_per_szektor : (i + 1) * sugar_per_szektor]
+            self.assertAlmostEqual(szektor_ertek, min(resz), places=6)
+
     def test_geometria_fantom_iv_nelkul(self):
         # (0, 2): a javitas elott 0 lett volna, helyesen 4 m
         self.assertAlmostEqual(tavolsag_a_kozepvonaltol(0.0, 2.0), 4.0, places=6)
@@ -90,6 +105,12 @@ class OrsegTeszt(unittest.TestCase):
         self.assertNotIn("request_id", obs)
         self.assertIn("sensor_center", obs)
         self.assertIn("lidar_szektor_min", obs)
+        # M13/RQ5: a nyers LiDAR-jel nem privilegizalt szimulator-adat,
+        # az agensnek latnia kell - kulonben az RQ5 nem vizsgalhato.
+        self.assertIn("lidar_nyers", obs)
+        self.assertIn("lidar_nyers_ervenyes", obs)
+        self.assertNotIn("lidar_nyers", ELREJTETT_MEZOK)
+        self.assertNotIn("lidar_nyers_ervenyes", ELREJTETT_MEZOK)
 
     def test_parancslimit_automatikus_stop(self):
         for _ in range(5):

@@ -684,6 +684,34 @@ Ezzel a hangolást tudatosan abbahagytuk: négy iterációból az utolsó kettő
 hozott javulást, és a további paraméterezés a train-szcenárióra való
 túlillesztés felé vitt volna.
 
+### 24. M13 előkészítés: nyers LiDAR-vektor az API-ban
+
+Az M13 (agent-vezérelt rover) egyik kutatási kérdése, az **RQ5**, azt vizsgálja,
+hogy egy ágens a **tömörített** szektoradatból vagy a **nyers** szenzorjelből
+vezérel-e jobban. Az `observe` válasz addig csak a 6 elemű `lidar_szektor_min`
+mezőt adta vissza, így az RQ5 egyszerűen nem volt vizsgálható — ezt egy külső
+audit is jelezte.
+
+A `LidarSensor` (M08) már korábban is publikussá tette a nyers adatot
+(`NyersTavolsagok`, `ErvenyessegiMaszk`), tehát a szenzort nem kellett
+módosítani, csak kivezetni az `observe` válaszába. A bővítés additív, a
+protokollverzió marad v1.
+
+Egy részletre a Claude külön felhívta a figyelmet, és ez érdemi tervezési
+döntés lett: a `LidarSensor` a **kimaradt és a találat nélküli** sugarakat
+egyaránt a maximális hatótávval (10.0) tölti ki. A szektoros tömörítés eddig
+kiszűrte az érvényteleneket, de a nyers jelnél ez elveszne — az ágens nem
+tudná megkülönböztetni a „szabad az út 10 méterig" és a „ez a sugár kimaradt"
+esetet. Ezért a `lidar_nyers` mellé bekerült a `lidar_nyers_ervenyes` maszk is.
+Ez ugyanaz a fajta csendes torzítás, mint az M11-ben felfedezett fantom fehér
+ív: nem hibaüzenettel jelentkezik, hanem elrontott mérésekkel.
+
+A `MockBackend` nem futtat valódi raycastert, ezért a nyers sugarakat a
+szektorértékekből származtatja. Ez a kódban kommentként is rögzítve van, hogy
+ne tűnjön valódi geometriának. Így a „szektor minimuma = a hozzá tartozó
+sugarak minimuma" invariáns a mockban pontosan teljesül, és erre külön
+regressziós teszt is készült.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és
