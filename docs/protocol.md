@@ -64,14 +64,20 @@ mérföldkőtől kezdve — a vonalérzékelő szenzorok állapotát. Minden
   változatlanul megmarad - a kettő ugyanarra a mérésre épül, a
   szektor értéke a hozzá tartozó sugarak minimuma.
 - `lidar_nyers_ervenyes`: logikai maszk (`bool[]`), sugaranként
-  jelzi, hogy az adott mérés érvényes-e. **Enélkül a `lidar_nyers`
-  félrevezető**: egy kimaradt vagy találat nélküli sugár is a
-  maximális hatótávot (10.0) adja vissza, tehát a "szabad az út
-  10 méterig" és a "ez a sugár kimaradt" eset különben
-  megkülönböztethetetlen lenne. A szektoros tömörítés eddig is
-  kiszűrte az érvénytelen sugarakat, a nyers jelnél ezt a
-  fogyasztóra hagyjuk. Mint a `lidar_szektor_min`, ez **sem**
-  privilegizált információ.
+  `true`, ha az adott sugár **talált** valamit a hatótávon belül.
+  Enélkül a `lidar_nyers` félrevezető lenne: a nem találó sugarak is
+  a maximális hatótávot (10.0) adják vissza, így a nyers számokból
+  nem derülne ki, hogy ott mérés történt-e egyáltalán.
+  **Figyelem, a `false` két dolgot jelenthet**, és ezeket a jelenlegi
+  szenzormodell nem különbözteti meg: (1) nincs akadály a hatótávon
+  belül - vagyis az irány *szabad*; (2) a mérés kimaradt
+  (`meresKimaradasEselye`). A `LidarSensor` mindkettőt azonos módon
+  jelöli. A `false` tehát **nem** jelent automatikusan szenzorhibát,
+  és nyílt pályán ez a tipikus érték. Ha az M13-as kiértékelésnél a
+  kettő megkülönböztetése számít, a `LidarSensor`-t kell bővíteni egy
+  harmadik állapottal. A szektoros tömörítés a nem találó sugarakat
+  eleve kiszűri, a nyers jelnél ezt a fogyasztóra hagyjuk. Mint a
+  `lidar_szektor_min`, ez **sem** privilegizált információ.
 - `collision_occurred` / `collision_count`: az M10 mérföldkőnél
   bevezetett ütközésdetektálás. **Privilegizált diagnosztika**: a
   controllerek nem használhatják vezérlésre, csak naplózásra és

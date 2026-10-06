@@ -703,6 +703,19 @@ egyaránt a maximális hatótávval (10.0) tölti ki. A szektoros tömörítés 
 kiszűrte az érvényteleneket, de a nyers jelnél ez elveszne — az ágens nem
 tudná megkülönböztetni a „szabad az út 10 méterig" és a „ez a sugár kimaradt"
 esetet. Ezért a `lidar_nyers` mellé bekerült a `lidar_nyers_ervenyes` maszk is.
+
+Az élesben, Unity Play módban végzett ellenőrzés ezt rögtön igazolta is: egy
+`observe` válaszban 36 sugárból csak kettő volt `true` (a két akadályt találó
+sugár), a többi 34 pedig `false` — pedig mind 10.0-t írt. A nyers számok
+önmagukban azt sugallták volna, hogy minden irányban 10 méterig szabad az út.
+
+Ugyanez az ellenőrzés egy pontatlanságot is feltárt a saját
+dokumentációnkban: a maszk `false` értéke valójában **kétfélét** jelenthet
+(nincs akadály hatótávon belül, vagy kimaradt a mérés), és ezeket a
+`LidarSensor` nem különbözteti meg. Az első megfogalmazás „érvényes-e a mérés"
+-ként írta le, ami szenzorhibát sugallt — holott nyílt pályán a `false` a
+normális érték. Javítva; a megkülönböztetés hiánya nyitott kérdésként
+rögzítve az M13-hoz.
 Ez ugyanaz a fajta csendes torzítás, mint az M11-ben felfedezett fantom fehér
 ív: nem hibaüzenettel jelentkezik, hanem elrontott mérésekkel.
 

@@ -40,6 +40,12 @@ class MockBackendTeszt(unittest.TestCase):
         for i, szektor_ertek in enumerate(szektorok):
             resz = nyers[i * sugar_per_szektor : (i + 1) * sugar_per_szektor]
             self.assertAlmostEqual(szektor_ertek, min(resz), places=6)
+        # Regresszio: a mock eloszor minden sugarra True-t adott, ami pont a
+        # forditottja a Unity viselkedesenek (ott a nem talalo sugar false).
+        # A 19 meglevo teszt egyike sem fogta meg - eles Unity-ellenorzes
+        # derult ki. A maszk true = az adott sugar talalt valamit.
+        for ny, m in zip(nyers, maszk):
+            self.assertEqual(m, ny < 10.0)
 
     def test_geometria_fantom_iv_nelkul(self):
         # (0, 2): a javitas elott 0 lett volna, helyesen 4 m

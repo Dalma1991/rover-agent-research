@@ -298,7 +298,10 @@ class MockBackend:
         nyers: list[float] = []
         for ertek in self._lidar():
             nyers.extend([ertek] * sugar_szektoronkent)
-        return nyers, [True] * len(nyers)
+        # A maszk jelentese pontosan ugyanaz, mint a Unity oldalon: true =
+        # az adott sugar TALALT valamit a hatotavon belul. Nyilt palyan
+        # tehat a legtobb sugar false, es ez nem szenzorhiba.
+        return nyers, [e < LIDAR_MAX_HATOTAV_M for e in nyers]
 
     def _observe(self) -> dict[str, Any]:
         lidar_nyers, lidar_ervenyes = self._lidar_nyers()
