@@ -314,3 +314,38 @@ Az M10 kapu akkor teljesül, ha a sikeres futások száma **legalább 16/30**
 - A paramétereket (1,0 / 1,3 m, 0,30 m ráhagyás, 1,0 m vak zóna, 30°) egyetlen
   próbafutás alapján, geometriai megfontolásból választottuk; nem volt
   paraméter-sweep, és nincs külön dev/holdout szcenárió.
+
+### 1. eredmény (2026-10-08) – a kapu teljesült
+
+A mérés a fenti terv szerint futott: 30 futás, mindegyik
+`stadium-train-baseline-always-visible` szcenárión, 1500 lépéssel,
+time scale 70, a `7d86198` commiton, tiszta munkakönyvtárral (a metaadat mind
+a 30 futásnál ezt rögzíti). A `7d86198` csak a tervet adta hozzá, a kód
+azonos a `0124aa1`-gyel. Adatok: `docs/m10-meres.json`,
+`docs/m10-meres-meta.jsonl`.
+
+| Feltétel | Teljesült |
+|---|---|
+| legalább 1 teljes kör | 26/30 |
+| 0 ütközés | 29/30 |
+| nincs pályaelhagyás | 26/30 |
+| **mindhárom (sikeres futás)** | **25/30** |
+
+**25/30 ≥ 16/30, az M10 kapu teljesült.**
+
+További mutatók (átlag ± szórás): kör-arány 2,13 ± 0,60; megtett út
+113,9 ± 30,2 m; hatékonyság 0,908 ± 0,039; vonalon töltött arány
+0,186 ± 0,038; akadálykerülés futásonként 3,6 ± 1,0; zsákutca 0.
+A régi kerüléshez képest (9/30 teljes kör, átlagosan 77,4 ütközés) az
+ütközések gyakorlatilag megszűntek.
+
+**Sikertelen futások:**
+
+- 7., 14., 16., 21.: pályaelhagyás, mind ugyanott (0,63 kör, 468–471. lépés).
+  Ez nem véletlen szórás, hanem egy ismétlődő hibahely, valószínűleg az egyik
+  akadály első megkerülése utáni visszatérés. A mérés után nem javítottuk;
+  külön vizsgálandó.
+- 29.: egyetlen ütközés, a futás egyébként sikeres lett volna (2,35 kör).
+
+A vonalon töltött arány alacsony (18,6%), mert a kerülések hosszúak, és a
+vonalkövetés is ±11 cm-es sávban egyensúlyoz (lásd az M09 megismételt mérését).

@@ -853,6 +853,35 @@ szenzortávolságát; a felhasználó Unityben helyezte át a szenzorokat, vitte
 őket a prefabba, és élőben ellenőrizte (a középső szenzor a vonal közepén 0,92-t
 mér a korábbi 0,71 helyett).
 
+### 30. M10 kapu: a kerülés javítása és a mérés (2026-10-08)
+
+**Eszköz:** Claude (Claude Code), a kódot és a mérést Dalma futtatta a saját gépén.
+
+**Kiindulás:** a korridoros kerüléssel egy próbafutás 21 ütközést adott.
+A lépésnaplóból (állapot, parancsok, LiDAR-szektorok az ütközés pillanatában)
+az derült ki, hogy a rover nem szemből, hanem oldalról és hátulról ütközik.
+
+**Diagnózis és javítás, lépésenként (minden lépés után élő próbafutás):**
+
+1. A helyben forduló rover sarkai (~1,07 m) beleértek az akadályba, és az oldalsó
+   ellenőrzés (1,0 m a LiDAR-tól) nem számolt a 0,85 m-es félszélességgel →
+   korábbi kitérés (1,0/1,3 m), oldalsó ellenőrzés a nyers LiDAR-ból a valódi
+   szélességgel, 1,0 m-es vak zóna (a 180 fokos LiDAR nem lát hátra).
+   Eredmény: 0 ütközés, de pályaelhagyás.
+2. A visszatérés vakon fordult (5 fok × 15 lépés), a rover kifelé állva
+   távolodott → iránytartás: a kitérés összegzett fordulatát visszaforgatja,
+   majd 30 fokban tart a vonal felé. Eredmény: 0 ütközés, 0 pályaelhagyás,
+   4 kerülés, mind visszatért.
+
+**A mérés:** a kód (`0124aa1`) és a mérési terv (`7d86198`, 16/30-as küszöb)
+külön commitban, a mérés előtt került a repóba. Eredmény: 25/30, a kapu
+teljesült. A 4 pályaelhagyás ugyanott történt; ezt nem javítottuk utólag.
+
+**Az ember döntései:** a 16/30-as küszöb elfogadása; a mérés futtatása.
+**Az AI hibái ebben a szakaszban:** a hosszú beillesztendő parancsokat a
+terminál többször elvágta; a megoldás a rövid, ellenőrző összeggel (md5)
+igazolt darabok lettek.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és
