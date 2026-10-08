@@ -816,6 +816,27 @@ szenzorok `FixedUpdate`-enként húznak zajt, a parancsok pedig valós időben
 11,5 cm-rel el van tolva oldalra. A korábbi baseline-mérések a régi kezdőpózzal
 készültek, újramérés szükséges.
 
+### 28. Mérésnaplózás és az M09-es kapu újramérése
+
+Külső audit nyomán: a fő mérés a dokumentált paranccsal nem volt előállítható,
+a napló nem rögzítette, mi futott, és az M09 akadálymentes kapuja a
+geometria-javítás óta nem volt újramérve.
+
+A Claude írta a naplózás bővítését (a Unity resetnél közli a betöltött
+szcenáriót és a Time Scale-t; futásonkénti metaadat a paraméterekkel és a
+committal; `--elvart-szcenario` kapcsoló) és az akadálymentes szcenáriót. A
+sikerfeltételt (teljes kör pályaelhagyás nélkül, legalább 27/30) a felhasználó
+hagyta jóvá, és a mérés előtt, külön commitban került a repóba (`f697693`).
+
+A felhasználó élő Unityn futtatta a 30 futást: **30/30**. Közben két hiba
+derült ki a meglévő eszközökben (a szcenárió-validátor üres akadálylistán, az
+összesítő egyetlen futásnál szállt el), és egy a Claude új kódjában (a
+tisztaság-ellenőrzés a verziókövetett napló miatt mindig hamisat adott volna).
+Mindhárom a mérés előtt javítva.
+
+Nyitva maradt: paraméter-sweep, mérés a dev és a holdout pályán, a szenzorok
+aszimmetrikus elhelyezése. Részletek: `docs/m09-plan.md`.
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és

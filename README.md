@@ -31,6 +31,10 @@ maga is AI coding agentekkel történik (Codex M01–M06, Claude M06 végétől)
 > nem is állítható elő (1500 lépés, always-visible szcenárió). Az új, teljesen
 > naplózott mérésig ezek tájékoztató értékek.
 
+**Akadálymentes vonalkövetés (M09), újramérve 2026-10-06-án:** 30/30 sikeres
+futás az előre rögzített 27/30-as küszöbbel szemben, teljes naplózással
+(`docs/m09-plan.md`, „Eredmény"). Az akadályos mérés alább még a régi.
+
 30 futás a train szcenárión, mindkét akadály állandóan látható, a javított
 pálya-geometriával (`docs/m10-6-meres.json`):
 

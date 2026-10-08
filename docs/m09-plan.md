@@ -192,3 +192,39 @@ python3 controllers/kor_metrika.py --utolso 30
 A szcenáriót, a Time Scale-t, a paramétereket és a commitot a futások
 metaadat-naplója rögzíti. Ha a küszöb nem teljesül, az eredményt negatív
 eredményként közöljük; a sorozatot nem ismételjük meg jobb szám reményében.
+
+### Eredmény (2026-10-06)
+
+**30/30 sikeres futás. Az előre rögzített küszöb (legalább 27/30) teljesült.**
+
+| Metrika | Átlag | Tartomány |
+|---|---|---|
+| Sikeres futás (teljes kör, pályaelhagyás nélkül) | **30/30** | 95%-os CI: 88,4–100% |
+| Pályaelhagyás | 0/30 | |
+| Ütközés | 0/30 | |
+| Megtett körök 1500 lépés alatt | 2,276 | 2,262 – 2,289 |
+| Hatékonyság | 0,986 | 0,984 – 0,989 |
+| A vonalon töltött lépések aránya | 65,1% | 56,6% – 73,9% |
+| Vonalvesztések száma | 81,3 | 71 – 95 |
+
+Mind a 30 futás azonos beállítással készült: `stadium-train-no-obstacles`,
+Time Scale 70, 1500 lépés, `aa06119` commit, tiszta munkakönyvtár.
+Futásonkénti metrikák: `docs/m09-ujrameres.json`; metaadatok a
+paraméterekkel: `docs/m09-ujrameres-meta.jsonl`. A nyers lépésnapló (92 MB)
+a mérete miatt nem kerül a repóba, a következő kiadás mellékleteként lesz
+elérhető.
+
+A mérés előtt egy próbafutás készült az eszközök ellenőrzésére, még a
+rögzített terv commitja előtt; az nem része a 30-as sorozatnak.
+
+### Korlátok
+
+- **Egy pálya, egy paraméterkészlet.** A kiírás paraméter-sweepet is kér, az
+  nincs meg. A dev és a holdout pályán nem mértünk.
+- **A vonalkövetés pontatlan.** A rover körbemegy, de a lépések harmadában
+  nincs a vonalon. Valószínű ok: a középső színszenzor kb. 11,5 cm-rel el van
+  tolva oldalra (élő méréssel megerősítve), ez még nincs javítva.
+- **A futások nem bitre azonosak.** A zajgenerátor resetnél újraindul, de a
+  szenzorok `FixedUpdate`-enként húznak zajt, a parancsok pedig valós időben
+  érkeznek; a nem kinematikus fizika további szórást ad.
+- **Time Scale 70.** A mérés gyorsított szimulációban készült.
