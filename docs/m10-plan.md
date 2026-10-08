@@ -378,3 +378,24 @@ akadályokkal; ezt holdout-mérés fogja eldönteni. A 25/30 eredmény és az ad
 változatlanok; a futásszintű összesítő utólag került a repóba
 (`docs/m10-meres-futasok.jsonl`).
 
+
+---
+
+## Holdout-mérés – előre rögzített terv (2026-10-08, a mérés előtt)
+
+A külső átvizsgálás szerint az 1. mérés egyetlen szcenárión, seed nélkül futott,
+ugyanazon a pályán, amelyen a kerülést hangoltuk. Ez a mérés ezt pótolja.
+
+- Szcenárió: stadium-test-holdout-always-visible (14 m egyenes, 4,5 m sugár,
+  0,16 m vonal, más akadályhelyek). Ezen a pályán a kontroller még egyszer sem
+  futott, próbafutás sem lesz.
+- Kód: a baseline v2 (298c38d), változtatás nélkül.
+- 30 futás, futásonként 1500 lépés, zaj-seed 1001–1030 (--seed 1001).
+- Sikerfeltétel futásonként: kör ≥ 1, 0 ütközés, nincs pályaelhagyás.
+- Kapu: legalább 16/30 sikeres futás.
+- Ha teljesül: a v2 lesz az M13 összehasonlítási alapja. Ha nem: dokumentáljuk,
+  és a train-eredmény nem általánosítható.
+- Nem fedi: dinamikus és eltűnő akadályok. Az M10 kapu ettől függetlenül
+  részben nyitott marad.
+- Adatok a mérés után: docs/m10-holdout-meres.json, docs/m10-holdout-meta.jsonl,
+  docs/m10-holdout-futasok.jsonl.
