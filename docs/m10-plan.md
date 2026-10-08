@@ -349,3 +349,21 @@ A régi kerüléshez képest (9/30 teljes kör, átlagosan 77,4 ütközés) az
 
 A vonalon töltött arány alacsony (18,6%), mert a kerülések hosszúak, és a
 vonalkövetés is ±11 cm-es sávban egyensúlyoz (lásd az M09 megismételt mérését).
+
+---
+
+## 2. mérés: baseline v2 – előre rögzített terv (2026-10-08, a mérés előtt)
+
+Az 1. mérés 4 pályaelhagyása ugyanaz a határeset volt: a visszatérés 40 lépés
+után kb. 10 cm-re állt meg a vonaltól, és a keresés a vonaltól elfelé fordult.
+A v2 egyetlen változtatása: sikertelen visszatérés után a keresés a vonal
+felőli oldalra indul. Egy elvetett próbálkozás (párhuzamosra fordulás a vak
+zóna előtt) egyetlen próbafutásban 20 ütközést adott, ezért visszavontuk.
+
+- Mérés, szcenárió, sikerfeltétel: azonos az 1. méréssel (30 futás, 1500 lépés,
+  always-visible; kör ≥ 1, 0 ütközés, nincs pályaelhagyás).
+- Döntési szabály: a v2 lesz az M13 összehasonlítási alapja, ha a sikeres
+  futások száma legalább 25/30 (nem rosszabb az 1. mérésnél). Ha kevesebb, az
+  M13 az 1. mérés kódjához (0124aa1) mér, és a v2-t elvetjük.
+- Adatok: docs/m10-v2-meres.json és docs/m10-v2-meres-meta.jsonl (a mérés után
+  jönnek létre).
