@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3163133775575435328}
   - component: {fileID: 2839773782005320461}
   - component: {fileID: 8695816789206043857}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WheelBackLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -114,6 +114,64 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!1 &1510076068753311611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4986880245576947238}
+  - component: {fileID: 6174849945262840669}
+  m_Layer: 6
+  m_Name: Lidar
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4986880245576947238
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510076068753311611}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.00000031359224, y: -0.0000012529512, z: 0.00000011941015, w: 1}
+  m_LocalPosition: {x: 0, y: -0.1, z: 0.264}
+  m_LocalScale: {x: 1, y: 3.3333333, z: 0.6666667}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2768320115670040036}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6174849945262840669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510076068753311611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96fb2966637cb4cab9282ee66b933d4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::LidarSensor
+  latomezoFok: 180
+  sugarSzam: 36
+  maxHatotav: 10
+  raycastMagassag: 0.15
+  akadalyReteg:
+    serializedVersion: 2
+    m_Bits: 55
+  szektorSzam: 6
+  zajSzorasMeter: 0.02
+  meresKimaradasEselye: 0
+  kesesFixedUpdateKeretekben: 0
+  frissitesRitkitasa: 1
+  zajSeed: 22222
+  debugMegjelenites: 1
 --- !u!1 &1906133478888568114
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,7 +184,7 @@ GameObject:
   - component: {fileID: 7381687393938666506}
   - component: {fileID: 6415850453040750706}
   - component: {fileID: 9202598192087177364}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 'WheelFrontLeft:'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -242,7 +300,8 @@ GameObject:
   - component: {fileID: 7190835703388816619}
   - component: {fileID: 3121362391952180139}
   - component: {fileID: 9168190925107097218}
-  m_Layer: 0
+  - component: {fileID: 1224583923840008807}
+  m_Layer: 6
   m_Name: RoverChassis
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -257,7 +316,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2938215507481977742}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.00000031359224, y: 0.0000012529512, z: -0.00000011941015, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.0000043462574, y: 0.14999948, z: 2.0000064}
   m_LocalScale: {x: 1, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
@@ -266,6 +325,10 @@ Transform:
   - {fileID: 4513380523983160916}
   - {fileID: 1566009768571004025}
   - {fileID: 259320486005455293}
+  - {fileID: 3925070634075351584}
+  - {fileID: 4986880245576947238}
+  - {fileID: 6162997336588191026}
+  - {fileID: 2010942090947622321}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4815668182264788725
@@ -387,6 +450,78 @@ MonoBehaviour:
   m_EditorClassIdentifier: Scripts::RoverGatewayServer
   port: 8765
   maximalisUzenethossz: 16384
+--- !u!114 &1224583923840008807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2938215507481977742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53db420c4a5b9438787d3f6c877915cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::SensorArray
+  balSzenzor: {fileID: 5683469615780700827}
+  kozepSzenzor: {fileID: 16047625195797250}
+  jobbSzenzor: {fileID: 7980532754804045625}
+  haromSzenzorosMod: 1
+--- !u!1 &4275861358008387085
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2010942090947622321}
+  - component: {fileID: 7980532754804045625}
+  m_Layer: 6
+  m_Name: SensorRight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2010942090947622321
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4275861358008387085}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.00000031359224, y: -0.0000012529512, z: 0.00000011941015, w: 1}
+  m_LocalPosition: {x: 0.3, y: -0.1, z: 0.264}
+  m_LocalScale: {x: 1, y: 3.3333333, z: 0.6666667}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2768320115670040036}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7980532754804045625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4275861358008387085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f236b3d1dc361438bbf72f6402cf7842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::ColorSensor
+  palya: {fileID: 0}
+  raycastMagassag: 0.5
+  raycastTavolsag: 1
+  talajReteg:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  zajSzoras: 0.05
+  kuszob: 0.5
+  kesesFixedUpdateKeretekben: 0
+  meresKimaradasValoszinusege: 0
+  zajSeed: 12347
+  debugMegjelenites: 1
 --- !u!1 &4625221812255183059
 GameObject:
   m_ObjectHideFlags: 0
@@ -399,7 +534,7 @@ GameObject:
   - component: {fileID: 7751653331860614987}
   - component: {fileID: 7638707719175893790}
   - component: {fileID: 26376025796603820}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WheelBackRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -513,7 +648,7 @@ GameObject:
   - component: {fileID: 4310766410726999672}
   - component: {fileID: 2766625969131977047}
   - component: {fileID: 602547443229251712}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WheelFrontRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -615,3 +750,115 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!1 &6504461054949598806
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6162997336588191026}
+  - component: {fileID: 5683469615780700827}
+  m_Layer: 6
+  m_Name: SensorLeft
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6162997336588191026
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6504461054949598806}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.00000031359224, y: -0.0000012529512, z: 0.00000011941015, w: 1}
+  m_LocalPosition: {x: -0.3, y: -0.1, z: 0.264}
+  m_LocalScale: {x: 1, y: 3.3333333, z: 0.6666667}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2768320115670040036}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5683469615780700827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6504461054949598806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f236b3d1dc361438bbf72f6402cf7842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::ColorSensor
+  palya: {fileID: 0}
+  raycastMagassag: 0.5
+  raycastTavolsag: 1
+  talajReteg:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  zajSzoras: 0.05
+  kuszob: 0.5
+  kesesFixedUpdateKeretekben: 0
+  meresKimaradasValoszinusege: 0
+  zajSeed: 12346
+  debugMegjelenites: 1
+--- !u!1 &9073756523920270865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3925070634075351584}
+  - component: {fileID: 16047625195797250}
+  m_Layer: 6
+  m_Name: SensorCenter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3925070634075351584
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9073756523920270865}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.00000031359224, y: -0.0000012529512, z: 0.00000011941015, w: 1}
+  m_LocalPosition: {x: 0, y: -0.1, z: 0.264}
+  m_LocalScale: {x: 1, y: 3.3333333, z: 0.6666667}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2768320115670040036}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &16047625195797250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9073756523920270865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f236b3d1dc361438bbf72f6402cf7842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Scripts::ColorSensor
+  palya: {fileID: 0}
+  raycastMagassag: 0.5
+  raycastTavolsag: 1
+  talajReteg:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  zajSzoras: 0.05
+  kuszob: 0.5
+  kesesFixedUpdateKeretekben: 0
+  meresKimaradasValoszinusege: 0
+  zajSeed: 12345
+  debugMegjelenites: 1

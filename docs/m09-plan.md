@@ -228,3 +228,9 @@ rögzített terv commitja előtt; az nem része a 30-as sorozatnak.
   szenzorok `FixedUpdate`-enként húznak zajt, a parancsok pedig valós időben
   érkeznek; a nem kinematikus fizika további szórást ad.
 - **Time Scale 70.** A mérés gyorsított szimulációban készült.
+
+### Megjegyzés (2026-10-08)
+
+A fenti 30/30 a **javítás előtti** szenzorgeometrián készült (a középső
+színszenzor és a LiDAR 11,5 cm-rel oldalra tolva). A szenzorok azóta középre
+kerültek, ezért a mérést ugyanezekkel a feltételekkel megismételjük.

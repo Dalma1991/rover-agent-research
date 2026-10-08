@@ -25,6 +25,9 @@ jobs:
       - name: Baseline kontroller tesztek
         run: python3 tests/baseline_line_follower_test.py
 
+      - name: Kerules korridor-tesztek
+        run: python3 tests/kerules_korridor_test.py
+
       - name: Kiserlet-naplo tesztek
         run: python3 tests/kiserlet_naplo_test.py
 

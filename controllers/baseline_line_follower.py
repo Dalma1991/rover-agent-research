@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import socket
+import math
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -178,7 +179,40 @@ def mindharom_nem_feher(observe_valasz: dict[str, Any]) -> bool:
     )
 
 
+# A rover tenyleges meretei (a jelenet es a prefab alapjan): a kerekek kulso
+# ele +-0.85 m-re van a kozepvonaltol, a rover eleje 0.65 m-re a kozepponttol,
+# a LiDAR a kozepvonalon, 0.264 m-rel a kozeppont elott.
+ROVER_FEL_SZELESSEG_M = 0.85
+ROVER_ELEJE_M = 0.65
+LIDAR_ELORE_M = 0.264
+LIDAR_LATOMEZO_FOK = 180.0
+KORRIDOR_RAHAGYAS_M = 0.10
+
+
 def akadaly_elol(observe_valasz: dict[str, Any], kuszob: float) -> bool:
+    """Van-e akadaly a rover szelessegenek savjaban, az elejetol kuszob m-en belul?
+
+    Korabban csak a +-30 fokos elulso szektorokat nezte a LiDAR-tol merve, ami
+    0.5 m-en +-0.29 m-es savot fed le, mikozben a rover +-0.85 m szeles. Az
+    oldalt, a kerek vonalaban allo akadalyokat igy nem latta (kulso audit: az
+    M10-es utkozesek 76%-anal az elulso szektor szabadot mutatott). Mostantol a
+    nyers sugarakbol szamolja, mi esik a rover savjaba.
+    """
+    nyers = observe_valasz.get("lidar_nyers")
+    maszk = observe_valasz.get("lidar_nyers_ervenyes")
+    if nyers and maszk and len(nyers) == len(maszk) and len(nyers) >= 2:
+        n = len(nyers)
+        fel = ROVER_FEL_SZELESSEG_M + KORRIDOR_RAHAGYAS_M
+        eleje = ROVER_ELEJE_M - LIDAR_ELORE_M
+        for i, (r, talalt) in enumerate(zip(nyers, maszk)):
+            if not talalt:
+                continue
+            szog = math.radians(-LIDAR_LATOMEZO_FOK / 2 + i * LIDAR_LATOMEZO_FOK / (n - 1))
+            elore, oldalra = r * math.cos(szog), r * math.sin(szog)
+            if abs(oldalra) <= fel and elore > 0 and elore - eleje < kuszob:
+                return True
+        return False
+    # Tartalek: nyers jel nelkul a regi, szektoros dontes.
     szektorok = observe_valasz.get("lidar_szektor_min") or []
     if len(szektorok) <= max(ELOLSO_SZEKTOROK):
         return False

@@ -837,6 +837,22 @@ Mindhárom a mérés előtt javítva.
 Nyitva maradt: paraméter-sweep, mérés a dev és a holdout pályán, a szenzorok
 aszimmetrikus elhelyezése. Részletek: `docs/m09-plan.md`.
 
+### 29. Szenzorgeometria és teljes szélességű kerülés
+
+Külső audit nyomán. A jelenet- és prefabfájlok átvizsgálása szerint a rover a
+kerekekkel kb. 1,7 m széles, a kerülés viszont csak a ±30°-os elülső
+szektorokat nézte, ami 0,5 m-en ±0,29 m-es sávot fed le; a középső színszenzor
+és a LiDAR 11,5 cm-rel oldalra volt tolva; a szenzorok csak a jelenetben voltak
+a roverre téve, a prefabban nem; az MCP eszközleírás pedig 0,35 m-es szélességet
+és 6 cm-es szenzortávolságot közölt az ágenssel.
+
+A felhasználó döntött: a rover marad, a kerülés megtanulja a teljes szélességet,
+a szenzorok most kerülnek középre. A Claude írta a nyers LiDAR-sugarakból
+számoló kerülési logikát és öt tesztjét, javította az eszközleírást és a mock
+szenzortávolságát; a felhasználó Unityben helyezte át a szenzorokat, vitte át
+őket a prefabba, és élőben ellenőrizte (a középső szenzor a vonal közepén 0,92-t
+mér a korábbi 0,71 helyett).
+
 ## Megjegyzések
 
 - Minden AI által generált kódot (Codex és Claude egyaránt) átnéztem és
