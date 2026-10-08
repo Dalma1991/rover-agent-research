@@ -224,5 +224,27 @@ class VisszateresElojelTest(unittest.TestCase):
         self.assertEqual(irany, [1])
 
 
+class LengoKeresesTest(unittest.TestCase):
+    def test_lenges_mindket_iranyba_es_nullara_er_vissza(self) -> None:
+        from baseline_line_follower import KERESES_LENGES_FOK
+
+        self.assertEqual(sum(KERESES_LENGES_FOK), 0.0)
+        reszosszegek, osszeg = [], 0.0
+        for d in KERESES_LENGES_FOK:
+            osszeg += d
+            reszosszegek.append(osszeg)
+        self.assertEqual(max(reszosszegek), 35.0)
+        self.assertEqual(min(reszosszegek), -35.0)
+
+    def test_lenges_kozben_nincs_elorehaladas(self) -> None:
+        stat = FutasStatisztika()
+        kliens = StubGatewayKliens([observe_valasz(), observe_valasz()])
+        egy_lepes_kereses(kliens, stat, [-1], [0], None, 0)
+        egy_lepes_kereses(kliens, stat, [-1], [1], None, 1)
+        mozgas = [p for p in kliens.kuldott_parancsok if p["command"] != "observe"]
+        self.assertEqual([p["command"] for p in mozgas], ["turn", "turn"])
+        self.assertEqual(mozgas[0]["angle_deg"], -5.0)
+
+
 if __name__ == "__main__":
     unittest.main()

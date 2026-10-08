@@ -60,7 +60,11 @@ HOLTSAV = 0.02
 # A korív sugara: MOVE_LEPES_M / radian(KERESES_FORDULAT_FOK) ~ 1.15 m, atmeroje
 # ~2.3 m; a MAX_LEPES egy teljes kort fed le (360 / 4 = 90 lepes).
 KERESES_FORDULAT_FOK = 4.0
-KERESES_MAX_LEPES = 90
+# Holdout utan: a kereses elso fazisa helyben lengo kereses (+15, -15, +35, -35,
+# vissza 0 fokra, 5 fokos lepesekben), mert a vonal egy lepessel korabban meg a
+# kozepso szenzor alatt volt. Csak ha ez sem talalja, jon az ivben korzo kereses.
+KERESES_LENGES_FOK = [5.0] * 3 + [-5.0] * 6 + [5.0] * 10 + [-5.0] * 14 + [5.0] * 7
+KERESES_MAX_LEPES = 90 + len(KERESES_LENGES_FOK)
 # M10.6b: taguló spiral. A fix sugarú korív (r = MOVE_LEPES_M / radian(szog))
 # csak akkor talalja meg a vonalat, ha az az atmerojen belul van - a meresek
 # szerint a sikertelen futasok mind 1.4-1.5 m-re alltak meg a vonaltol, epp a
@@ -579,6 +583,31 @@ def egy_lepes_kereses(
     lepes_szam: int,
 ) -> Allapot:
     irany = utolso_elojel[0] or 1
+    if kereses_lepesek[0] < len(KERESES_LENGES_FOK):
+        lenges = {
+            "command": "turn",
+            "angle_deg": irany * KERESES_LENGES_FOK[kereses_lepesek[0]],
+            "max_angular_speed": TURN_SEBESSEG,
+        }
+        kliens.kuld(lenges)
+        stat.parancsok_szama += 1
+        kereses_lepesek[0] += 1
+        observe = kliens.kuld({"command": "observe"})
+        stat.parancsok_szama += 1
+        talalt = not mindharom_nem_feher(observe)
+        if talalt:
+            kereses_lepesek[0] = 0
+        kovetkezo = Allapot.VONALON if talalt else Allapot.KERESES
+        if naplo is not None:
+            naplo.rogzit(
+                lepes_szam,
+                szenzor_mezok(observe),
+                [lenges],
+                Allapot.KERESES.value,
+                kovetkezo.value,
+                privilegizalt_diagnosztika_mezok(observe),
+            )
+        return kovetkezo
     # Taguló spiral: minel regebb ota keresunk, annal nagyobb ivet irunk le.
     szog = max(
         KERESES_FORDULAT_MIN_FOK,
