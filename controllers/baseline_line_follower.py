@@ -501,12 +501,9 @@ def egy_lepes_visszatalalas(
             )
         return _irany_nullazasa(fordulat_osszeg, Allapot.VONALON)
 
-    # Az osszegzett fordulat elojele szamit, nem az utolso kiteresi irany: ha a
-    # kiteres kozben iranyt valtott (+15, +15, -15), a netto elfordulas a donto.
-    # Csak a visszateres elejen rogzitjuk, kulonben a visszaforgatas kozben atfordulna.
-    if fordulat_osszeg is not None and visszatalalas_lepesek[0] == 0:
-        if abs(fordulat_osszeg[0]) >= TURN_MIN_FOK:
-            utolso_elkerulesi_irany[0] = 1 if fordulat_osszeg[0] > 0 else -1
+    # Visszavonva (2026-10-08): a netto fordulat elojele azt mutatja, merre nez a rover,
+    # nem azt, melyik oldalon a vonal; ujrakiteres utan atbillent, es a rover kifele
+    # indult (validacios elotti proba). Az utolso kiteresi irany szamit.
     irany_vissza = -utolso_elkerulesi_irany[0]
     if fordulat_osszeg is not None:
         hiany = irany_vissza * VISSZATALALAS_BEFOGO_FOK - fordulat_osszeg[0]
