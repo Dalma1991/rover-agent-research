@@ -138,6 +138,12 @@
           "minimum": 5,
           "maximum": 45,
           "description": "Csak turn-nel, kotelezo."
+        },
+        "noise_seed": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Csak reset_position-nel, opcionalis: futasonkenti zaj-seed. Hianyaban a korabbi, rogzitett zajsorozat."
         }
       },
       "additionalProperties": false,

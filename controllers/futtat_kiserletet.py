@@ -65,7 +65,8 @@ def main() -> int:
             str(args.max_lepes),
         ]
         if args.seed is not None:
-            parancs += ["--seed", str(args.seed)]
+            # Futasonkent eltero zaj-seed: alap + a futas sorszama - 1.
+            parancs += ["--seed", str(args.seed + i - 1)]
         if args.elvart_szcenario:
             parancs += ["--elvart-szcenario", args.elvart_szcenario]
 

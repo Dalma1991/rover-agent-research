@@ -734,7 +734,10 @@ def futtat(
         if allapot_valasz.get("state") == "ERROR":
             kliens.kuld({"command": "reset_error"})
         kliens.kuld({"command": "stop"})
-        reset_valasz = kliens.kuld({"command": "reset_position"})
+        reset_parancs: dict[str, Any] = {"command": "reset_position"}
+        if seed is not None:
+            reset_parancs["noise_seed"] = seed
+        reset_valasz = kliens.kuld(reset_parancs)
         szcenario = _szcenario_nev(reset_valasz)
         if elvart_szcenario and szcenario != elvart_szcenario:
             raise RuntimeError(
@@ -743,6 +746,7 @@ def futtat(
             )
         if naplo:
             naplo.metaadat_rogzitese(
+                seed=seed,
                 scenario=szcenario,
                 time_scale=_time_scale(reset_valasz),
                 max_lepes=max_lepes,

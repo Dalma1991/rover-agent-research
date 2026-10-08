@@ -301,3 +301,12 @@ kizárólag 127.0.0.1-en futó szerver) nem indokolt a többletköltségük:
 
 Ezeket újra kell értékelni, mielőtt a rendszer külső hálózatra
 nyílik vagy fizikai roverre kerül.
+
+### reset_position: opcionális noise_seed (2026-10-08)
+
+A `reset_position` kérés opcionális `noise_seed` mezőt kaphat (pozitív egész).
+Megadva a szín- és LiDAR-szenzorok zajgenerátora ebből és a szenzor saját
+seedjéből indul újra, így futásonként eltérő, de reprodukálható zajsorozat
+állítható be. Hiányában a viselkedés a korábbival azonos. Más parancsnál a mező
+`UNKNOWN_FIELD` hibát ad, nem pozitív értéknél `INVALID_FIELD_TYPE`-ot. A
+kísérletfuttató `--seed N` kapcsolója az i. futáshoz N + i − 1 seedet küld.

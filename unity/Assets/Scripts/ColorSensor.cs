@@ -57,9 +57,13 @@ public class ColorSensor : MonoBehaviour
         pufferIndex = 0;
     }
 
-    public void ZajUjrainditasa()
+    // futasSeed = 0: a korabbi viselkedes, csak az inspectorban megadott seed.
+    // futasSeed > 0: futasonkent eltero, de reprodukalhato zajsorozat.
+    public void ZajUjrainditasa(int futasSeed = 0)
     {
-        veletlenszamGenerator = new System.Random(zajSeed);
+        veletlenszamGenerator = new System.Random(
+            futasSeed == 0 ? zajSeed : unchecked(zajSeed * 31 + futasSeed)
+        );
         if (keslelteteesPuffer != null)
         {
             Array.Clear(keslelteteesPuffer, 0, keslelteteesPuffer.Length);

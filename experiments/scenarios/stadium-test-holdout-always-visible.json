@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "name": "stadium-test-holdout-always-visible",
+    "type": "test",
+    "seed": 1388835055
+  },
+  "track": {
+    "straight_length_m": 14.0,
+    "turn_radius_m": 4.5,
+    "line_width_m": 0.16,
+    "background_color_rgb": {
+      "r": 22,
+      "g": 25,
+      "b": 31
+    }
+  },
+  "obstacles": [
+    {
+      "id": "test-box-01",
+      "position_m": {
+        "x": -4.5,
+        "y": 0.339,
+        "z": -4.569
+      },
+      "size_m": {
+        "x": 0.689,
+        "y": 0.677,
+        "z": 0.891
+      },
+      "schedule": {
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0,
+        "disappear_at_s": 100000.0
+      }
+    },
+    {
+      "id": "test-box-02",
+      "position_m": {
+        "x": 4.5,
+        "y": 0.331,
+        "z": 3.304
+      },
+      "size_m": {
+        "x": 0.658,
+        "y": 0.662,
+        "z": 0.865
+      },
+      "schedule": {
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0,
+        "disappear_at_s": 100000.0
+      }
+    }
+  ]
+}

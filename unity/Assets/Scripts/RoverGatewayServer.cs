@@ -171,6 +171,7 @@ public class RoverGatewayServer : MonoBehaviour
         public float MaxSpeed;
         public float Angle;
         public float MaxAngularSpeed;
+        public int NoiseSeed;
     }
 
     [Serializable]
@@ -182,6 +183,7 @@ public class RoverGatewayServer : MonoBehaviour
         public float max_speed;
         public float angle_deg;
         public float max_angular_speed;
+        public int noise_seed;
     }
 
     private sealed class IdempotenciaBejegyzes
@@ -247,15 +249,15 @@ public class RoverGatewayServer : MonoBehaviour
     // Resetnel a szenzorok zajgeneratora ujraindul a seedbol. Enelkul a
     // generator a Play mod inditasatol futott tovabb, igy ket futas soha
     // nem kaphatta ugyanazt a zajsorozatot.
-    private void SzenzorZajUjrainditasa()
+    private void SzenzorZajUjrainditasa(int futasSeed = 0)
     {
         foreach (ColorSensor szenzor in GetComponentsInChildren<ColorSensor>(true))
         {
-            szenzor.ZajUjrainditasa();
+            szenzor.ZajUjrainditasa(futasSeed);
         }
         if (lidar != null)
         {
-            lidar.ZajUjrainditasa();
+            lidar.ZajUjrainditasa(futasSeed);
         }
     }
 
@@ -732,7 +734,7 @@ public class RoverGatewayServer : MonoBehaviour
                 KezdoPozFrissitese();
                 rigidBody.position = kezdoPozicio;
                 rigidBody.rotation = kezdoForgatas;
-                SzenzorZajUjrainditasa();
+                SzenzorZajUjrainditasa(keres.NoiseSeed);
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
                    trackController?.UjrakezdiAkadalyUtemezest();
@@ -1049,6 +1051,11 @@ public class RoverGatewayServer : MonoBehaviour
             engedelyezettMezok.Add("angle_deg");
             engedelyezettMezok.Add("max_angular_speed");
         }
+        else if (dto.command == "reset_position")
+        {
+            // M10 holdout: opcionalis, futasonkenti zaj-seed.
+            engedelyezettMezok.Add("noise_seed");
+        }
 
         foreach (string mezo in mezok)
         {
@@ -1150,6 +1157,19 @@ public class RoverGatewayServer : MonoBehaviour
 
             eredmeny.Angle = (float)angle;
             eredmeny.MaxAngularSpeed = (float)angularSpeed;
+        }
+
+        if (mezok.Contains("noise_seed"))
+        {
+            if (dto.noise_seed < 1)
+            {
+                hibaValasz = HibaValasz(
+                    dto.request_id, 1101, "INVALID_FIELD_TYPE",
+                    "A noise_seed pozitiv egesz szam legyen."
+                );
+                return false;
+            }
+            eredmeny.NoiseSeed = dto.noise_seed;
         }
 
         keres = eredmeny;
