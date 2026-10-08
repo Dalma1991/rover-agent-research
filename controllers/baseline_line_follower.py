@@ -767,6 +767,9 @@ def futtat(
                     stat.lepesek_szama,
                     fordulat_osszeg=fordulat_osszeg,
                 )
+                # M10 utan: sikertelen visszateres utan a kereses a vonal feloli oldalra induljon.
+                if allapot is Allapot.KERESES:
+                    utolso_elojel[0] = -utolso_elkerulesi_irany[0]
             else:
                 allapot = egy_lepes_kereses(
                     kliens, stat, utolso_elojel, kereses_lepesek, naplo, stat.lepesek_szama
