@@ -211,5 +211,18 @@ class IranytartasTest(unittest.TestCase):
         self.assertEqual(osszeg[0], 0.0)
 
 
+class VisszateresElojelTest(unittest.TestCase):
+    def test_irany_a_netto_fordulatbol_jon(self) -> None:
+        # +15, +15, +15, -15: az utolso kiteres -1, de a netto fordulat +30
+        stat = FutasStatisztika()
+        osszeg = [30.0]
+        irany = [-1]
+        kliens = StubGatewayKliens([observe_valasz(), observe_valasz()])
+        egy_lepes_visszatalalas(kliens, stat, irany, [0], None, 0, fordulat_osszeg=osszeg)
+        fordulatok = [p["angle_deg"] for p in kliens.kuldott_parancsok if p["command"] == "turn"]
+        self.assertEqual(fordulatok, [-15.0])
+        self.assertEqual(irany, [1])
+
+
 if __name__ == "__main__":
     unittest.main()
