@@ -367,3 +367,14 @@ zóna előtt) egyetlen próbafutásban 20 ütközést adott, ezért visszavontuk
   M13 az 1. mérés kódjához (0124aa1) mér, és a v2-t elvetjük.
 - Adatok: docs/m10-v2-meres.json és docs/m10-v2-meres-meta.jsonl (a mérés után
   jönnek létre).
+
+### Helyesbítés (2026-10-08, külső átvizsgálás után)
+
+Az „1. eredmény" címe („a kapu teljesült") túl erős. A mérés az előre rögzített
+feltételt teljesítette, de csak a train szcenárión, állandóan látható
+akadályokkal, seed nélkül, és ugyanazon a pályán, amelyen a kerülést
+hangoltuk. A kiírás az akadályszcenáriók többségét kéri, dinamikus és eltűnő
+akadályokkal; ezt holdout-mérés fogja eldönteni. A 25/30 eredmény és az adatok
+változatlanok; a futásszintű összesítő utólag került a repóba
+(`docs/m10-meres-futasok.jsonl`).
+

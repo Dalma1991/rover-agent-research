@@ -19,7 +19,7 @@ maga is AI coding agentekkel történik (Codex M01–M06, Claude M06 végétől)
 | | |
 |---|---|
 | Lezárt mérföldkövek | m01–m12, plusz m10.5 / m10.6 / m10.7 utólagos finomítások |
-| M10 kapu | teljesült 2026-10-08-án: 25/30 (`docs/m10-plan.md`) |
+| M10 | train szcenárión 25/30 (2026-10-08); holdout- és dinamikus szcenárió még nincs mérve (`docs/m10-plan.md`) |
 | Következő | **m13** — agent-vezérelt rover, a baseline-hoz mérve |
 | Tesztek | 44 Python + 21 adapter-teszt + 10 Unity Edit/Play Mode teszt |
 | CI | tesztek, szcenárió- és protokoll-sémavalidáció, `black`, `pyflakes`, dokumentáció-ellenőrzés |
@@ -35,23 +35,25 @@ futás az előre rögzített 27/30-as küszöbbel szemben, teljes naplózással;
 a szenzorjavítás után 2026-10-08-án megismételve ugyanígy 30/30
 (`docs/m09-plan.md`, „Eredmény").
 
-**Akadályos pálya (M10 kapu), mérve 2026-10-08-án:** 30 futás a train
+**Akadályos pálya (M10), mérve 2026-10-08-án:** 30 futás a train
 szcenárión, mindkét akadály állandóan látható, 1500 lépés, előre rögzített
 16/30-as küszöbbel (`docs/m10-plan.md`, „1. eredmény"; adatok:
-`docs/m10-meres.json`):
+`docs/m10-meres.json`, `docs/m10-meres-futasok.jsonl`):
 
-| Metrika | Régi kerülés (M10.6) | Új kerülés (M10 kapu) |
-|---|---|---|
-| Sikeres futás (kör + 0 ütközés + nincs pályaelhagyás) | – | **25/30** |
-| Teljesített kör (task success) | 9/30 | 26/30 |
-| Ütközésmentes futás | 0/30 | 29/30 |
+| Metrika | Érték |
+|---|---|
+| Sikeres futás (kör + 0 ütközés + nincs pályaelhagyás) | **25/30** |
+| Teljesített kör (task success) | 26/30 |
+| Ütközésmentes futás | 29/30 |
 
-> **Az M10 elfogadási feltétele teljesült (25/30 ≥ 16/30).** A korábbi
-> negatív eredményt (`docs/m10-6-plan.md`) a kerülés három hibájának javítása
-> fordította meg: oldalsó ellenőrzés a rover valódi szélességével, vak zóna a
-> hátrafelé nem látó LiDAR miatt, és iránytartás a visszatéréskor
-> (AI_USAGE.md, 30. szakasz). Ismert korlát: a 4 pályaelhagyás ugyanazon a
-> helyen történt (0,63 kör), ez nyitott vizsgálati pont.
+> **Ezen a szcenárión az előre rögzített feltétel teljesült, az M10 kapu ezzel
+> még nem igazolt.** A kiírás az akadályszcenáriók többségét kéri, dinamikus és
+> eltűnő akadályokkal; ez a mérés egyetlen szcenárión futott, ugyanazon,
+> amelyen a kerülést hangoltuk, és a futások seed nélkül, közel
+> determinisztikusan ismétlődtek. Következő lépés: előre rögzített holdout-mérés
+> több szcenárión, futásonként eltérő seeddel. A 4 pályaelhagyás oka a
+> lépésnaplóból azonosítva (a keresés a vonaltól elfelé indult); a javított
+> baseline (v2) még nincs mérve.
 
 ## Tartalom
 
@@ -192,7 +194,7 @@ Minden mérföldkő külön, Zenodón archivált kiadást kapott. A disszertáci
   vezérelhetővé a rovert AI-agentek számára. Backend-absztrakció (Unity TCP
   vagy mock, az agent számára megkülönböztethetetlenül), biztonsági réteg
   (paraméter-validáció a rover előtt, munkamenet-korlátok, automatikus stop,
-  a privilegizált szimulátor-mezők elrejtése), 18 mock teszt, exportált tool
+  a privilegizált szimulátor-mezők elrejtése), 18 mock teszt (azóta 6 eszköz és 21 teszt, lásd `tests/README.md`), exportált tool
   schema. Egy vak kiértékelésben egy külön Claude Code munkamenet kizárólag
   az eszközleírásokból vezette a rovert 20 lépésen át, egy másik pedig
   biztonsági átvizsgálást végzett — a nyolc találatból öt javítva
