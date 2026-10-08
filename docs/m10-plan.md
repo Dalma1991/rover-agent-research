@@ -399,3 +399,27 @@ ugyanazon a pályán, amelyen a kerülést hangoltuk. Ez a mérés ezt pótolja.
   részben nyitott marad.
 - Adatok a mérés után: docs/m10-holdout-meres.json, docs/m10-holdout-meta.jsonl,
   docs/m10-holdout-futasok.jsonl.
+
+### Holdout-eredmény (2026-10-08) – a kapu nem teljesült
+
+30 futás a terv szerint: stadium-test-holdout-always-visible, f269cf1 (kód =
+298c38d), tiszta munkakönyvtár, 30 különböző zaj-seed (1001–1030), 1500 lépés.
+
+| Feltétel | Teljesült |
+|---|---|
+| legalább 1 teljes kör | 12/30 |
+| 0 ütközés | 29/30 |
+| nincs pályaelhagyás | 2/30 |
+| **mindhárom (sikeres futás)** | **2/30** |
+
+**2/30 < 16/30: a holdout-kapu nem teljesült; a train pályán mért 25/30 nem
+általánosít.** Vonalvesztés futásonként átlagosan 58,4 (train: 14,4), vagyis a
+keskenyebb (0,16 m) vonalon már a vonalkövetés is bizonytalan, nem csak a
+kerülés utáni visszatalálás.
+
+Korlát: a kor_metrika.py a train pálya méreteivel számol, ezért ezen a pályán a
+„vonalon töltött arány" és a hatékonyság érvénytelen. A kör-arány (szög a pálya
+középpontja körül) és a pályaelhagyás-jelző nem érintett, a 2/30 érvényes.
+
+Adatok: `docs/m10-holdout-meres.json`, `docs/m10-holdout-meta.jsonl`,
+`docs/m10-holdout-futasok.jsonl`.
