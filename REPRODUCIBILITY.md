@@ -270,6 +270,6 @@ python3 controllers/kor_metrika.py --utolso 30
 ```
 
 A futásonkénti metaadat (szcenárió, time scale, commit, tiszta-e a
-munkakönyvtár) a `logs/kiserlet_naplo_meta.jsonl`-be kerül. A hivatalos mérés
+munkakönyvtár) a helyi logs/ mappába kerül (kiserlet_naplo_meta.jsonl; nincs verziókövetve). A hivatalos mérés
 adatai: `docs/m10-meres.json`, `docs/m10-meres-meta.jsonl`; a terv és az
 eredmény: `docs/m10-plan.md`.
