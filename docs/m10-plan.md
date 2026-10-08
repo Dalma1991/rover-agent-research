@@ -423,3 +423,21 @@ középpontja körül) és a pályaelhagyás-jelző nem érintett, a 2/30 érvé
 
 Adatok: `docs/m10-holdout-meres.json`, `docs/m10-holdout-meta.jsonl`,
 `docs/m10-holdout-futasok.jsonl`.
+
+---
+
+## Validációs mérés – előre rögzített terv (2026-10-08, a pálya generálása előtt)
+
+A holdout-diagnózis alapján javított kontrollert (baseline v3: helyben lengő
+keresés) egy harmadik, általunk ki nem választott pályán igazoljuk.
+
+- Pálya: scripts/generate_validation_scenario.py, név stadium-validation-20261008,
+  típus dev. A méretek a névből képzett seedből jönnek: egyenes 10–16 m, sugár
+  3,5–5,0 m, vonalszélesség 0,14–0,22 m; 2 akadály, végig láthatóan. Ha a pálya
+  könnyűnek bizonyul, nem cseréljük, hanem leírjuk.
+- Validációs mérés: 30 futás, 1500 lépés, zaj-seed 2001–2030; ugyanaz a
+  sikerfeltétel; kapu: legalább 16/30.
+- Regresszió a train pályán (always-visible): 30 futás, seed 3001–3030;
+  feltétel: legalább 25/30 (nem rosszabb az 1. mérésnél).
+- A v3 akkor lesz az M13 összehasonlítási alapja, ha mindkét feltétel teljesül.
+- A holdout pályán a v3-at nem mérjük (azt már felhasználtuk).
