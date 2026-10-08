@@ -257,3 +257,60 @@ hibadokumentáció" elvéhez:
 A fenti 1-2. pont javítva. A 3. pont (az integrált elfogadási
 feltétel formális teljesítése) az M09-es oszcillációs probléma
 gyökérokának megoldásától függ - ez M11+ munkaként azonosítva marad.
+
+---
+
+## M10 kapu – előre rögzített mérési terv (2026-10-08, a mérés előtt)
+
+Ez a szakasz a mérés **előtt**, külön commitban kerül a repóba. Az itt leírt
+feltételeket a mérés után nem módosítjuk; ha a mérés eltérést mutat, azt új,
+dátumozott szakaszban rögzítjük.
+
+### Előzmény
+
+A régi kerüléssel (szektoros döntés, ±30°) az akadályos pályán átlagosan 77,4
+ütközés jutott egy futásra, és csak 9/30 futás tett meg teljes kört. A kerülés
+három ponton változott (részletesen a kontroller commitüzenetében):
+oldalsó ellenőrzés a nyers LiDAR-ból a rover valódi szélességével,
+korábbi kitérés és 1,0 m-es vak zóna, valamint iránytartás a visszatéréskor.
+Egyetlen próbafutás (nem része a mérésnek): 0 ütközés, 0 pályaelhagyás,
+4 kerülés, mind visszatért a vonalra.
+
+### A mérés
+
+- Szcenárió: `stadium-train-baseline-always-visible`, a jelenetben beállítva,
+  a futtató `--elvart-szcenario` kapcsolójával ellenőrizve.
+- 30 egymást követő futás, futásonként legfeljebb 1500 lépés.
+- Parancs:
+  `python3 controllers/futtat_kiserletet.py --futasok-szama 30 --max-lepes 1500 --elvart-szcenario stadium-train-baseline-always-visible`
+- Kiértékelés: `python3 controllers/kor_metrika.py --utolso 30 --json`, az
+  eredmény a `docs/m10-meres.json`, a futásonkénti metaadat a
+  `docs/m10-meres-meta.jsonl` fájlba kerül.
+- A mérés kódja a terv commitja előtti commit; a metaadatnapló minden futásnál
+  rögzíti a `git_commit` és a `git_tiszta` értékét.
+
+### Sikerfeltétel (futásonként)
+
+Egy futás akkor sikeres, ha mindhárom teljesül:
+
+1. legalább 1 teljes kör (kör-arány ≥ 1,0),
+2. 0 ütközés,
+3. nincs pályaelhagyás.
+
+### Kapu
+
+Az M10 kapu akkor teljesül, ha a sikeres futások száma **legalább 16/30**
+(a kiírás szerinti „többség”).
+
+### Előre ismert korlátok
+
+- A vak zóna 1,0 m-es egyenes szakasza a naplóban egyetlen lépésként jelenik
+  meg (legfeljebb 13 mozgásparanccsal), így a lépésszám nem egyenesen arányos
+  a megtett úttal.
+- A próbafutásban a visszatérés közben a rover mind a négy esetben újra
+  kitérésbe váltott, és kb. 1,8 m-re eltávolodott a vonaltól, mielőtt
+  visszatalált. Ez nem pályaelhagyás (az a 90 lépéses sikertelen keresést
+  jelenti), de a kerülés hosszát és a vonalon töltött arányt rontja.
+- A paramétereket (1,0 / 1,3 m, 0,30 m ráhagyás, 1,0 m vak zóna, 30°) egyetlen
+  próbafutás alapján, geometriai megfontolásból választottuk; nem volt
+  paraméter-sweep, és nincs külön dev/holdout szcenárió.
