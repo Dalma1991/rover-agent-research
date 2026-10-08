@@ -74,8 +74,11 @@ KERESES_MAX_LEPES = 90
 KERESES_SPIRAL_CSOKKENES = 0.0
 KERESES_FORDULAT_MIN_FOK = 2.0
 
-AKADALY_KUSZOB_BELEPES_M = 0.5
-AKADALY_KUSZOB_KILEPES_M = 1.1
+# M13-elo: a rover sarkai ~1.07 m-re vannak a kozepponttol, a helyben
+# fordulas ezen a sugaron sopor. 0.5 m-es belepesnel a kiteres fordulasa mar
+# beleert az akadalyba, ezert korabban kezdunk kiterni.
+AKADALY_KUSZOB_BELEPES_M = 1.0
+AKADALY_KUSZOB_KILEPES_M = 1.3
 AKADALY_FORDULAT_FOK = 15.0
 # M10.6: az akadaly akkor van tenylegesen megkerulve, ha nem csak elottunk, hanem
 # az elkerules oldalan (mellettunk) is szabad az ut. Enelkul a rover mar akkor
@@ -92,6 +95,12 @@ JOBB_SZEKTOROK = (4, 5)
 # hogy a rover visszakanyarodjon a vonalra, csak tovabb tavolodott tole.
 VISSZATALALAS_FORDULAT_FOK = 5.0
 VISSZATALALAS_MAX_LEPES = 15
+# M13-elo: iranytartas. Az AKADALY-ban kiadott fordulatokat osszegezzuk (a vonal
+# iranyahoz kepest), es a VISSZATALALAS ezt forgatja vissza, majd BEFOGO_FOK-os
+# szogben tart a vonal fele. A fix 5 fok x 15 lepes nem forgatta vissza a
+# kiterest, a rover tovabb tavolodott es elhagyta a palyat.
+VISSZATALALAS_BEFOGO_FOK = 30.0
+VISSZATALALAS_MAX_LEPES_IRANYTARTO = 40
 
 
 class Allapot(Enum):
@@ -219,17 +228,40 @@ def akadaly_elol(observe_valasz: dict[str, Any], kuszob: float) -> bool:
     return any(szektorok[i] < kuszob for i in ELOLSO_SZEKTOROK)
 
 
-def akadaly_oldalt(observe_valasz: dict[str, Any], elkerulesi_irany: int, kuszob: float) -> bool:
-    """Ott van-e meg az akadaly az elkerules oldalan (azaz mellettunk)?
+OLDAL_RAHAGYAS_M = 0.30
+# A LiDAR 180 fokos, a rover hatulja ~0.91 m-rel mogotte van: ami a hatso fel
+# melle kerul, azt mar nem latjuk. Ennyit megyunk meg egyenesen visszafordulas elott.
+VAKZONA_M = 1.0
 
-    Ha jobbra kerulunk ki (elkerulesi_irany = +1), az akadaly a BAL oldalon
-    marad el mellettunk, ezert a bal szektorokat kell figyelni - es forditva.
+
+def akadaly_oldalt(observe_valasz: dict[str, Any], elkerulesi_irany: int, kuszob: float) -> bool:
+    """Ott van-e meg az akadaly az elkerules oldalan, a rover valodi szelessegevel?
+
+    Jobbra kerulesnel (+1) az akadaly a bal oldalon (negativ szog) marad. Nyers
+    LiDAR-ral: akadaly, ha egy talalat ezen az oldalon a rover felszelessege +
+    rahagyason belul van, es nincs messze a rover eleje elott. Nyers jel nelkul
+    a regi szektoros dontes (kuszob) a tartalek.
     """
+    nyers = observe_valasz.get("lidar_nyers")
+    ervenyes = observe_valasz.get("lidar_nyers_ervenyes")
+    if nyers and ervenyes and len(nyers) == len(ervenyes) and len(nyers) > 1:
+        n = len(nyers)
+        hatar = ROVER_FEL_SZELESSEG_M + OLDAL_RAHAGYAS_M
+        for i, (r, ok) in enumerate(zip(nyers, ervenyes)):
+            if not ok:
+                continue
+            szog = math.radians(-LIDAR_LATOMEZO_FOK / 2 + i * LIDAR_LATOMEZO_FOK / (n - 1))
+            elore = r * math.cos(szog) + LIDAR_ELORE_M
+            oldalra = r * math.sin(szog)
+            figyelt = oldalra < 0 if elkerulesi_irany > 0 else oldalra > 0
+            if figyelt and abs(oldalra) <= hatar and elore <= ROVER_ELEJE_M + OLDAL_RAHAGYAS_M:
+                return True
+        return False
     szektorok = observe_valasz.get("lidar_szektor_min") or []
     if len(szektorok) <= max(JOBB_SZEKTOROK):
         return False
-    figyelt = BAL_SZEKTOROK if elkerulesi_irany > 0 else JOBB_SZEKTOROK
-    return any(szektorok[i] < kuszob for i in figyelt)
+    figyelt_szektorok = BAL_SZEKTOROK if elkerulesi_irany > 0 else JOBB_SZEKTOROK
+    return any(szektorok[i] < kuszob for i in figyelt_szektorok)
 
 
 def szabadabb_oldal_elojele(observe_valasz: dict[str, Any]) -> int:
@@ -304,6 +336,12 @@ def egy_lepes_vonalon(
     return Allapot.VONALON
 
 
+def _irany_nullazasa(fordulat_osszeg: list[float] | None, allapot: Allapot) -> Allapot:
+    if fordulat_osszeg is not None:
+        fordulat_osszeg[0] = 0.0
+    return allapot
+
+
 def egy_lepes_akadaly(
     kliens: GatewayKliens,
     stat: FutasStatisztika,
@@ -311,6 +349,7 @@ def egy_lepes_akadaly(
     akadaly_lepesek: list[int],
     naplo: KiserletNaplozo | None,
     lepes_szam: int,
+    fordulat_osszeg: list[float] | None = None,
 ) -> Allapot:
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
@@ -320,16 +359,36 @@ def egy_lepes_akadaly(
 
     if not elol_zart and not oldalt_zart:
         akadaly_lepesek[0] = 0
+        # Vak zona: a hatso fel mellett levo akadalyt mar nem latjuk, ezert
+        # meg VAKZONA_M-et egyenesen megyunk, mielott a vonal fele fordulnank.
+        vakzona_parancsok: list[dict[str, Any]] = []
+        kovetkezo = Allapot.VISSZATALALAS
+        megtett = 0.0
+        while megtett + 1e-9 < VAKZONA_M:
+            ellenorzes = kliens.kuld({"command": "observe"})
+            stat.parancsok_szama += 1
+            if akadaly_elol(ellenorzes, AKADALY_KUSZOB_BELEPES_M):
+                kovetkezo = Allapot.AKADALY
+                break
+            move_parancs = {
+                "command": "move",
+                "distance_m": MOVE_LEPES_M,
+                "max_speed": MOVE_SEBESSEG,
+            }
+            kliens.kuld(move_parancs)
+            stat.parancsok_szama += 1
+            vakzona_parancsok.append(move_parancs)
+            megtett += MOVE_LEPES_M
         if naplo is not None:
             naplo.rogzit(
                 lepes_szam,
                 szenzor_mezok(observe),
-                [],
+                vakzona_parancsok,
                 Allapot.AKADALY.value,
-                Allapot.VISSZATALALAS.value,
+                kovetkezo.value,
                 privilegizalt_diagnosztika_mezok(observe),
             )
-        return Allapot.VISSZATALALAS
+        return kovetkezo
 
     if not elol_zart:
         # Elhaladasi fazis: elottunk mar szabad, de az akadaly meg mellettunk van.
@@ -364,10 +423,12 @@ def egy_lepes_akadaly(
                 Allapot.KERESES.value,
                 privilegizalt_diagnosztika_mezok(observe),
             )
-        return Allapot.KERESES
+        return _irany_nullazasa(fordulat_osszeg, Allapot.KERESES)
 
     irany = szabadabb_oldal_elojele(observe)
     utolso_elkerulesi_irany[0] = irany
+    if fordulat_osszeg is not None:
+        fordulat_osszeg[0] += irany * AKADALY_FORDULAT_FOK
     turn_parancs = {
         "command": "turn",
         "angle_deg": irany * AKADALY_FORDULAT_FOK,
@@ -401,6 +462,7 @@ def egy_lepes_visszatalalas(
     visszatalalas_lepesek: list[int],
     naplo: KiserletNaplozo | None,
     lepes_szam: int,
+    fordulat_osszeg: list[float] | None = None,
 ) -> Allapot:
     observe = kliens.kuld({"command": "observe"})
     stat.parancsok_szama += 1
@@ -433,17 +495,21 @@ def egy_lepes_visszatalalas(
                 Allapot.VONALON.value,
                 privilegizalt_diagnosztika_mezok(observe),
             )
-        return Allapot.VONALON
+        return _irany_nullazasa(fordulat_osszeg, Allapot.VONALON)
 
     irany_vissza = -utolso_elkerulesi_irany[0]
-    turn_parancs = {
-        "command": "turn",
-        "angle_deg": irany_vissza * VISSZATALALAS_FORDULAT_FOK,
-        "max_angular_speed": TURN_SEBESSEG,
-    }
-    kliens.kuld(turn_parancs)
-    stat.parancsok_szama += 1
-    kiadott_parancsok.append(turn_parancs)
+    if fordulat_osszeg is not None:
+        hiany = irany_vissza * VISSZATALALAS_BEFOGO_FOK - fordulat_osszeg[0]
+        szog = max(-AKADALY_FORDULAT_FOK, min(AKADALY_FORDULAT_FOK, hiany))
+    else:
+        szog = irany_vissza * VISSZATALALAS_FORDULAT_FOK
+    if abs(szog) >= TURN_MIN_FOK:
+        turn_parancs = {"command": "turn", "angle_deg": szog, "max_angular_speed": TURN_SEBESSEG}
+        kliens.kuld(turn_parancs)
+        stat.parancsok_szama += 1
+        kiadott_parancsok.append(turn_parancs)
+        if fordulat_osszeg is not None:
+            fordulat_osszeg[0] += szog
 
     move_parancs = {"command": "move", "distance_m": MOVE_LEPES_M, "max_speed": MOVE_SEBESSEG}
     kliens.kuld(move_parancs)
@@ -465,9 +531,14 @@ def egy_lepes_visszatalalas(
                 Allapot.VONALON.value,
                 privilegizalt_diagnosztika_mezok(observe2),
             )
-        return Allapot.VONALON
+        return _irany_nullazasa(fordulat_osszeg, Allapot.VONALON)
 
-    if visszatalalas_lepesek[0] >= VISSZATALALAS_MAX_LEPES:
+    max_lepes = (
+        VISSZATALALAS_MAX_LEPES_IRANYTARTO
+        if fordulat_osszeg is not None
+        else VISSZATALALAS_MAX_LEPES
+    )
+    if visszatalalas_lepesek[0] >= max_lepes:
         visszatalalas_lepesek[0] = 0
         stat.vonalvesztesek_szama += 1
         if naplo is not None:
@@ -479,7 +550,7 @@ def egy_lepes_visszatalalas(
                 Allapot.KERESES.value,
                 privilegizalt_diagnosztika_mezok(observe2),
             )
-        return Allapot.KERESES
+        return _irany_nullazasa(fordulat_osszeg, Allapot.KERESES)
 
     if naplo is not None:
         naplo.rogzit(
@@ -635,6 +706,7 @@ def futtat(
     utolso_elkerulesi_irany = [1]
     visszatalalas_lepesek = [0]
     akadaly_lepesek = [0]
+    fordulat_osszeg = [0.0]
     run_id = str(uuid4())
     naplo = (
         KiserletNaplozo(
@@ -683,6 +755,7 @@ def futtat(
                     akadaly_lepesek,
                     naplo,
                     stat.lepesek_szama,
+                    fordulat_osszeg=fordulat_osszeg,
                 )
             elif allapot is Allapot.VISSZATALALAS:
                 allapot = egy_lepes_visszatalalas(
@@ -692,6 +765,7 @@ def futtat(
                     visszatalalas_lepesek,
                     naplo,
                     stat.lepesek_szama,
+                    fordulat_osszeg=fordulat_osszeg,
                 )
             else:
                 allapot = egy_lepes_kereses(

@@ -19,6 +19,7 @@ Futtatás:
 
 from __future__ import annotations
 
+import math
 import sys
 import unittest
 from pathlib import Path
@@ -28,6 +29,8 @@ GYOKER = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(GYOKER / "controllers"))
 
 from baseline_line_follower import (  # noqa: E402
+    MOVE_LEPES_M,
+    VAKZONA_M,
     Allapot,
     FutasStatisztika,
     VISSZATALALAS_MAX_LEPES,
@@ -101,9 +104,29 @@ class AllapotgepAtmenetekTest(unittest.TestCase):
 
     def test_akadaly_elhagyasakor_visszatalalasra_valt_nem_kozvetlenul_vonalonra(self) -> None:
         stat = FutasStatisztika()
-        kliens = StubGatewayKliens([observe_valasz(akadaly_tavolsag_m=5.0)])
+        # Az akadaly eltunese utan a rover meg VAKZONA_M-et egyenesen megy (minden
+        # lepes elott observe), es csak utana fordul vissza a vonal fele.
+        vakzona_lepes = math.ceil(VAKZONA_M / MOVE_LEPES_M - 1e-9)
+        valaszok = [observe_valasz(akadaly_tavolsag_m=5.0) for _ in range(1 + vakzona_lepes)]
+        kliens = StubGatewayKliens(valaszok)
         uj_allapot = egy_lepes_akadaly(kliens, stat, [1], [0], None, 0)
         self.assertIs(uj_allapot, Allapot.VISSZATALALAS)
+        mozgasok = [p["command"] for p in kliens.kuldott_parancsok if p["command"] != "observe"]
+        self.assertEqual(mozgasok, ["move"] * vakzona_lepes)
+
+    def test_vakzona_kozben_uj_akadaly_visszaad_akadalyba(self) -> None:
+        stat = FutasStatisztika()
+        kliens = StubGatewayKliens(
+            [
+                observe_valasz(akadaly_tavolsag_m=5.0),
+                observe_valasz(akadaly_tavolsag_m=5.0),
+                observe_valasz(akadaly_tavolsag_m=0.3),
+            ]
+        )
+        uj_allapot = egy_lepes_akadaly(kliens, stat, [1], [0], None, 0)
+        self.assertIs(uj_allapot, Allapot.AKADALY)
+        mozgasok = [p["command"] for p in kliens.kuldott_parancsok if p["command"] != "observe"]
+        self.assertEqual(mozgasok, ["move"])
 
     def test_akadaly_zsakutca_eszleles_eskalal_keresesre(self) -> None:
         stat = FutasStatisztika()
@@ -167,6 +190,25 @@ class AllapotgepAtmenetekTest(unittest.TestCase):
             kliens = StubGatewayKliens([observe_valasz(white=False)])
             egy_lepes_kereses(kliens, stat, [1], kereses_lepesek, None, lepes)
         self.assertTrue(stat.palyaelhagyas)
+
+
+class IranytartasTest(unittest.TestCase):
+    def test_visszatalalas_visszaforgatja_a_kiterest_majd_befog(self) -> None:
+        stat = FutasStatisztika()
+        osszeg = [45.0]  # az AKADALY 3 x 15 fokot fordult jobbra (+1)
+        kliens = StubGatewayKliens([observe_valasz(), observe_valasz()])
+        egy_lepes_visszatalalas(kliens, stat, [1], [0], None, 0, fordulat_osszeg=osszeg)
+        fordulatok = [p["angle_deg"] for p in kliens.kuldott_parancsok if p["command"] == "turn"]
+        self.assertEqual(fordulatok, [-15.0])
+        self.assertAlmostEqual(osszeg[0], 30.0)
+
+    def test_vonal_megtalalasakor_az_iranyosszeg_nullazodik(self) -> None:
+        stat = FutasStatisztika()
+        osszeg = [20.0]
+        kliens = StubGatewayKliens([observe_valasz(white=True)])
+        allapot = egy_lepes_visszatalalas(kliens, stat, [1], [0], None, 0, fordulat_osszeg=osszeg)
+        self.assertIs(allapot, Allapot.VONALON)
+        self.assertEqual(osszeg[0], 0.0)
 
 
 if __name__ == "__main__":
