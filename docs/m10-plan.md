@@ -441,3 +441,10 @@ keresés) egy harmadik, általunk ki nem választott pályán igazoljuk.
   feltétel: legalább 25/30 (nem rosszabb az 1. mérésnél).
 - A v3 akkor lesz az M13 összehasonlítási alapja, ha mindkét feltétel teljesül.
 - A holdout pályán a v3-at nem mérjük (azt már felhasználtuk).
+
+**Kiegészítés a validációs tervhez (a mérés előtt):** a train pályán futtatott
+próba (seed 999) hibát mutatott: a délelőtti előjel-javítás újrakitérés után
+rossz irányba indította a visszatérést. Visszavontuk; a mért kód 6ea4858. A
+validációs pályán ezt megelőzően egyetlen futás sem volt. Ugyanez a hiba a
+holdout-mérés (v2) kódjában is benne volt, így a holdout 2/30 részben ennek is
+betudható, a keskeny vonal hatásától utólag nem választható szét.
