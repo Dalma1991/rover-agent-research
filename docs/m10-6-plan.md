@@ -1,5 +1,10 @@
 # M10.6 (nem hivatalos): az akadálykerülés újramérése és javítása
 
+> **2026-10-08: meghaladva.** Az itt leírt negatív eredményt (0/30 ütközésmentes
+> futás) a kerülés javítása után az előre rögzített M10-mérés megfordította:
+> 25/30 sikeres futás (`docs/m10-plan.md`, „1. eredmény"). Ez a dokumentum
+> történeti feljegyzésként változatlanul marad.
+
 **Állapot:** lezárva, de az **M10 elfogadási feltétele továbbra sem teljesül** —
 lásd az értékelést a dokumentum végén.
 

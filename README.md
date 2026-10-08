@@ -19,41 +19,39 @@ maga is AI coding agentekkel történik (Codex M01–M06, Claude M06 végétől)
 | | |
 |---|---|
 | Lezárt mérföldkövek | m01–m12, plusz m10.5 / m10.6 / m10.7 utólagos finomítások |
+| M10 kapu | teljesült 2026-10-08-án: 25/30 (`docs/m10-plan.md`) |
 | Következő | **m13** — agent-vezérelt rover, a baseline-hoz mérve |
-| Tesztek | 29 Python + adapter-tesztek + 10 Unity Edit/Play Mode teszt |
+| Tesztek | 44 Python + 21 adapter-teszt + 10 Unity Edit/Play Mode teszt |
 | CI | tesztek, szcenárió- és protokoll-sémavalidáció, `black`, `pyflakes`, dokumentáció-ellenőrzés |
 
 ### A baseline kontroller mért teljesítménye
 
-> **Figyelem: az alábbi számok újramérésre várnak.** 2026-10-06-án a rover
-> kezdőpóza megváltozott (a szcenárió pályájának egyenesén, a vonalon indul,
-> nem a kanyarban), és egy külső audit szerint a mérés a dokumentált paranccsal
-> nem is állítható elő (1500 lépés, always-visible szcenárió). Az új, teljesen
-> naplózott mérésig ezek tájékoztató értékek.
+> A 2026-10-06 előtti baseline-számok (régi kezdőpóz, a dokumentált paranccsal
+> nem reprodukálható mérés) érvénytelenek. Az alábbiak az új, teljesen
+> naplózott, előre rögzített feltételű mérések.
 
 **Akadálymentes vonalkövetés (M09), újramérve 2026-10-06-án:** 30/30 sikeres
 futás az előre rögzített 27/30-as küszöbbel szemben, teljes naplózással;
 a szenzorjavítás után 2026-10-08-án megismételve ugyanígy 30/30
-(`docs/m09-plan.md`, „Eredmény"). Az akadályos mérés alább még a régi.
+(`docs/m09-plan.md`, „Eredmény").
 
-30 futás a train szcenárión, mindkét akadály állandóan látható, a javított
-pálya-geometriával (`docs/m10-6-meres.json`):
+**Akadályos pálya (M10 kapu), mérve 2026-10-08-án:** 30 futás a train
+szcenárión, mindkét akadály állandóan látható, 1500 lépés, előre rögzített
+16/30-as küszöbbel (`docs/m10-plan.md`, „1. eredmény"; adatok:
+`docs/m10-meres.json`):
 
-| Metrika | Érték |
-|---|---|
-| Teljesített kör (task success) | **9/30** |
-| Ütközésmentes futás | **0/30** |
+| Metrika | Régi kerülés (M10.6) | Új kerülés (M10 kapu) |
+|---|---|---|
+| Sikeres futás (kör + 0 ütközés + nincs pályaelhagyás) | – | **25/30** |
+| Teljesített kör (task success) | 9/30 | 26/30 |
+| Ütközésmentes futás | 0/30 | 29/30 |
 
-> **Az M10 elfogadási feltétele — „a rover ütközés nélkül visszatalál a
-> vonalra a szcenáriók többségében" — ezzel formálisan nem teljesül.**
->
-> Ezt nyitott, negatív eredményként dokumentáljuk. A hangolást tudatosan
-> abbahagytuk, mert a további paraméterezés a train-szcenárióra való
-> túlillesztés felé vitt volna. Három javítási kísérletet mérés cáfolt meg
-> és vontunk vissza (biztonsági távolság küszöb, táguló spirál,
-> akadálykontúr-követés) — részletek: `docs/m10-5-plan.md`,
-> `docs/m10-6-plan.md`. A továbblépés azonosított iránya az odometria-alapú
-> visszatalálás (M13+).
+> **Az M10 elfogadási feltétele teljesült (25/30 ≥ 16/30).** A korábbi
+> negatív eredményt (`docs/m10-6-plan.md`) a kerülés három hibájának javítása
+> fordította meg: oldalsó ellenőrzés a rover valódi szélességével, vak zóna a
+> hátrafelé nem látó LiDAR miatt, és iránytartás a visszatéréskor
+> (AI_USAGE.md, 30. szakasz). Ismert korlát: a 4 pályaelhagyás ugyanazon a
+> helyen történt (0,63 kör), ez nyitott vizsgálati pont.
 
 ## Tartalom
 

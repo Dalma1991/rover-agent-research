@@ -30,7 +30,7 @@ A `scripts/doctor` ellenőrzi a Python/Git verziót és az alapfájlok meglété
 
 ```bash
 cd gateway
-pip install -r requirements.txt  # ha van; egyébként nincs külső függőség
+# nincs külső függőség: a kliens csak a Python standard libraryt használja
 python3 client.py
 ```
 
@@ -257,3 +257,19 @@ mellékleteként kerül közzé, a dokumentáció pedig linkkel hivatkozik rá.
 
 Ha egyetlen fájl meghaladná a 100 MB-ot (a GitHub ezt elutasítja), vagy ha
 a `.git` 500 MB fölé nőne. Addig a fenti szabály elegendő.
+
+## Az M10 kapu mérésének reprodukálása (2026-10-08)
+
+A Unityben a `TrackScene` szcenáriója legyen
+`stadium-train-baseline-always-visible`, Play módban, az ablak előtérben:
+
+```bash
+python3 controllers/futtat_kiserletet.py --futasok-szama 30 --max-lepes 1500 \
+    --elvart-szcenario stadium-train-baseline-always-visible
+python3 controllers/kor_metrika.py --utolso 30
+```
+
+A futásonkénti metaadat (szcenárió, time scale, commit, tiszta-e a
+munkakönyvtár) a `logs/kiserlet_naplo_meta.jsonl`-be kerül. A hivatalos mérés
+adatai: `docs/m10-meres.json`, `docs/m10-meres-meta.jsonl`; a terv és az
+eredmény: `docs/m10-plan.md`.
