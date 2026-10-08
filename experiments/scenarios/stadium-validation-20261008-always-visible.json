@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "name": "stadium-validation-20261008-always-visible",
+    "type": "dev",
+    "seed": 3351811746
+  },
+  "track": {
+    "straight_length_m": 10.052,
+    "turn_radius_m": 4.44,
+    "line_width_m": 0.198,
+    "background_color_rgb": {
+      "r": 30,
+      "g": 33,
+      "b": 38
+    }
+  },
+  "obstacles": [
+    {
+      "id": "validation-box-01",
+      "position_m": {
+        "x": -4.44,
+        "y": 0.263,
+        "z": 4.853
+      },
+      "size_m": {
+        "x": 0.883,
+        "y": 0.525,
+        "z": 0.645
+      },
+      "schedule": {
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0,
+        "disappear_at_s": 100000.0
+      }
+    },
+    {
+      "id": "validation-box-02",
+      "position_m": {
+        "x": 4.44,
+        "y": 0.365,
+        "z": 2.613
+      },
+      "size_m": {
+        "x": 0.872,
+        "y": 0.73,
+        "z": 0.792
+      },
+      "schedule": {
+        "appear_at_s": 0.0,
+        "visible_for_s": 100000.0,
+        "disappear_at_s": 100000.0
+      }
+    }
+  ]
+}
