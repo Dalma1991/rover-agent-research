@@ -234,3 +234,40 @@ rögzített terv commitja előtt; az nem része a 30-as sorozatnak.
 A fenti 30/30 a **javítás előtti** szenzorgeometrián készült (a középső
 színszenzor és a LiDAR 11,5 cm-rel oldalra tolva). A szenzorok azóta középre
 kerültek, ezért a mérést ugyanezekkel a feltételekkel megismételjük.
+
+### Megismételt mérés a javított szenzorokkal (2026-10-08)
+
+Ugyanazok az előre rögzített feltételek; a középső színszenzor és a LiDAR
+középre került. **30/30 sikeres futás, a küszöb teljesült.**
+
+| Metrika | Eltolt szenzor (10-06) | Javított szenzor (10-08) |
+|---|---|---|
+| Sikeres futás | 30/30 | **30/30** |
+| Vonalvesztések / futás | 81,3 | **10,7** |
+| Megtett körök 1500 lépés alatt | 2,276 | 2,352 |
+| Hatékonyság | 0,986 | 0,970 |
+| A vonalon töltött lépések aránya | 65,1% | 28,1% |
+| A középpont oldaleltérése (medián) | – | **11,0 cm** |
+
+Commit: `90d4abf`, tiszta munkakönyvtár. Adatok: `docs/m09-ujrameres-v2.json`,
+`docs/m09-ujrameres-v2-meta.jsonl`.
+
+**Miért esett a „vonalon" arány, ha a vonalvesztés is esett?** A két szám
+mást mér. A `kor_metrika` a rover középpontját a vonal fél szélességén (9 cm)
+belül számolja „vonalon"-nak. A rover középpontja mediánban 11,0 cm-re halad a
+vonal közepétől, a lépések 90%-ában 11,5 cm-en belül, és egyszer sem 14 cm-nél
+messzebb. Ez a vezérlés egyensúlyi pontja: a P-szabályozó csak a két oldalsó
+szenzor különbségéből kormányoz, az oldalsó szenzorok 30 cm-re vannak, a vonal
+fehér sávja a lecsengéssel 19 cm-ig ér, így a középső ±11 cm-es sávban nincs
+hibajel. A rover a sáv szélére áll be, és ott stabilan halad.
+
+Következmények:
+
+- A „vonalon töltött arány" önmagában félrevezető; mostantól az oldaleltérés
+  mediánjával együtt közöljük.
+- A baseline pontosságát a szenzorgeometria és a kormányzási törvény
+  korlátozza, nem a paraméterek. Javítási lehetőség: a középső szenzor
+  intenzitásának bevonása a kormányzásba.
+- Az M13-ban az ágens ugyanezt a három szenzort kapja. Ha pontosabban követ,
+  az lehet egyszerűen a középső szenzor használatának következménye; az
+  összevetésnél ezt jelezni kell.
