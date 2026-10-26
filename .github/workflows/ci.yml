@@ -34,6 +34,9 @@ jobs:
       - name: Kor-metrika es egyseges sikerfeltetel tesztek
         run: python3 tests/kor_metrika_test.py
 
+      - name: Futtato es kliens robusztussagi tesztek
+        run: python3 tests/futtato_robusztussag_test.py
+
       - name: Kiserlet-naplo tesztek
         run: python3 tests/kiserlet_naplo_test.py
 
