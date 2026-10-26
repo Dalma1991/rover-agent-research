@@ -482,3 +482,29 @@ sem jelentek meg (mind a 30 futásban 0 akadálykerülés). Az eredményt nem
 értékeljük; a mérést ugyanazokkal a seedekkel megismételjük. Tanulság: a futtató
 őre csak a szcenárió nevét ellenőrzi, azt nem, hogy az akadályok ténylegesen
 jelen vannak-e – ez a gyűjtő-issue-ba kerül.
+
+### Train-regresszió (2026-10-26) – teljesült
+
+30 futás: stadium-train-baseline-always-visible, 3705aee (kód = 6ea4858,
+baseline v3), zaj-seed 3001–3030, minden futásban 4 akadálykerülés.
+
+| Feltétel | Teljesült |
+|---|---|
+| legalább 1 teljes kör | 30/30 |
+| 0 ütközés | 29/30 |
+| nincs pályaelhagyás | 30/30 |
+| **mindhárom (sikeres futás)** | **29/30** |
+
+**29/30 ≥ 25/30: a v3 a train pályán nem rosszabb a v1-nél (25/30).** Sikertelen:
+a 23. futás (egy ütközés, 2,35 kör). A metaadatban git_tiszta = False: a
+munkakönyvtárban csak a TrackScene.unity változott (a beállított szcenárió neve
+és a Unity által generált anyag- és pályaadat); a kód a commitolt volt, a
+szcenárió nevét a futtató őre minden futásban ellenőrizte.
+
+**Döntés a terv szerint:** mindkét feltétel teljesült (validáció 28/30, train
+29/30), így a baseline v3 (6ea4858) az M13 összehasonlítási alapja. Nyitva marad:
+keskeny vonalra (holdout) a v3 nincs igazolva; dinamikus és eltűnő akadályok nincsenek
+lefedve; a kor_metrika.py nem a szcenárió geometriájával számol.
+
+Adatok: `docs/m10-v3-train-meres.json`, `docs/m10-v3-train-meta.jsonl`,
+`docs/m10-v3-train-futasok.jsonl`.
