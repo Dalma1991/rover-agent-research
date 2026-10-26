@@ -474,3 +474,11 @@ train-regresszió (seed 3001–3030, küszöb 25/30).
 
 Adatok: `docs/m10-validacio-meres.json`, `docs/m10-validacio-meta.jsonl`,
 `docs/m10-validacio-futasok.jsonl`.
+
+**Érvénytelen futássorozat (2026-10-26):** a train-regresszió első 30 futása
+(seed 3001–3030) beállítási hiba miatt érvénytelen: a TrackController komponens
+ki volt kapcsolva, így a szcenárió betöltődött, de az akadályok egyetlen futásban
+sem jelentek meg (mind a 30 futásban 0 akadálykerülés). Az eredményt nem
+értékeljük; a mérést ugyanazokkal a seedekkel megismételjük. Tanulság: a futtató
+őre csak a szcenárió nevét ellenőrzi, azt nem, hogy az akadályok ténylegesen
+jelen vannak-e – ez a gyűjtő-issue-ba kerül.
