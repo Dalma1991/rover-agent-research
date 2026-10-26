@@ -16,8 +16,10 @@ Amit az agent NEM kap meg:
 - azt az informaciot, hogy valodi Unity-szimulacio vagy mock all mogotte.
 
 Inditas (a projekt Python 3.9-es venv-je erintetlen marad):
-    uv run --python 3.12 --with mcp python adapter/mcp_szerver.py --backend mock
-    uv run --python 3.12 --with mcp python adapter/mcp_szerver.py --backend unity
+    uv run --no-project --python 3.12 --with-requirements requirements-mcp.txt \
+        python adapter/mcp_szerver.py --backend mock
+    uv run --no-project --python 3.12 --with-requirements requirements-mcp.txt \
+        python adapter/mcp_szerver.py --backend unity
 
 A --backend valasztas a kiserletvezetoe, nem az agente; az agent szamara a
 ket eset megkulonboztethetetlen.

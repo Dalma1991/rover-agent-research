@@ -1,5 +1,6 @@
 gateway/logs/*.jsonl
 logs/*.jsonl
+logs/referencia_replay.png
 .idea/
 .DS_Store
 
