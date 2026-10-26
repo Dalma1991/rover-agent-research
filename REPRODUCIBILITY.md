@@ -263,7 +263,21 @@ a `.git` 500 MB fölé nőne. Addig a fenti szabály elegendő.
 ## Az M10 kapu mérésének reprodukálása (2026-10-08)
 
 A Unityben a `TrackScene` szcenáriója legyen
-`stadium-train-baseline-always-visible`, Play módban, az ablak előtérben:
+`stadium-train-baseline-always-visible`, Play módban, az ablak előtérben.
+
+**Szcenárió kiválasztása a jelenet módosítása nélkül (2026-10-26-tól).** A
+jelenetet mérés előtt ne írd át és ne mentsd: a munkafa „piszkos" lenne, és a
+metaadatban `git_tiszta=False` állna. Helyette a nem verziókövetett
+`experiments/scenarios/aktiv_szcenario.txt` fájl első sora választja ki a
+szcenáriót (felülírja az Inspector mezőjét), és utána indítsd a Play-t:
+
+```bash
+echo stadium-train-baseline-always-visible > experiments/scenarios/aktiv_szcenario.txt
+```
+
+A fájl törlése után ismét az Inspectorban beállított szcenárió töltődik be.
+A betöltött szcenáriót és az akadályok jelenlétét a futtató a reset-válaszból
+ellenőrzi (`--elvart-szcenario`).
 
 ```bash
 python3 controllers/futtat_kiserletet.py --futasok-szama 30 --max-lepes 1500 \
