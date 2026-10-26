@@ -31,6 +31,9 @@ jobs:
       - name: Kerules oldal- es vakzona-tesztek
         run: python3 tests/kerules_oldal_test.py
 
+      - name: Kor-metrika es egyseges sikerfeltetel tesztek
+        run: python3 tests/kor_metrika_test.py
+
       - name: Kiserlet-naplo tesztek
         run: python3 tests/kiserlet_naplo_test.py
 

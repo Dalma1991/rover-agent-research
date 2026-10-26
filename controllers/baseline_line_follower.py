@@ -122,6 +122,7 @@ class FutasStatisztika:
     akadaly_kerulesek_szama: int = 0
     zsakutcak_szama: int = 0
     palyaelhagyas: bool = False
+    run_id: str = ""
     utkozott: bool = False
     utkozesek_szama: int = 0
     kezdet: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -740,6 +741,7 @@ def futtat(
     akadaly_lepesek = [0]
     fordulat_osszeg = [0.0]
     run_id = str(uuid4())
+    stat.run_id = run_id
     naplo = (
         KiserletNaplozo(
             kiserlet_naplo_fajl,
@@ -827,6 +829,7 @@ def futtat(
 def naplo_iras(stat: FutasStatisztika) -> None:
     NAPLO_FAJL.parent.mkdir(parents=True, exist_ok=True)
     bejegyzes = {
+        "run_id": stat.run_id,
         "kezdet": stat.kezdet,
         "vege": datetime.now(timezone.utc).isoformat(),
         "lepesek_szama": stat.lepesek_szama,
