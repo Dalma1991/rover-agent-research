@@ -448,3 +448,29 @@ rossz irányba indította a visszatérést. Visszavontuk; a mért kód 6ea4858. 
 validációs pályán ezt megelőzően egyetlen futás sem volt. Ugyanez a hiba a
 holdout-mérés (v2) kódjában is benne volt, így a holdout 2/30 részben ennek is
 betudható, a keskeny vonal hatásától utólag nem választható szét.
+
+### Validációs eredmény (a mérés 2026-10-08 után futott) – a kapu teljesült
+
+30 futás a terv szerint: stadium-validation-20261008-always-visible, 80667fa
+(kód = 6ea4858, baseline v3), tiszta munkakönyvtár, zaj-seed 2001–2030.
+
+| Feltétel | Teljesült |
+|---|---|
+| legalább 1 teljes kör | 29/30 |
+| 0 ütközés | 28/30 |
+| nincs pályaelhagyás | 29/30 |
+| **mindhárom (sikeres futás)** | **28/30** |
+
+**28/30 ≥ 16/30: a validációs kapu teljesült.** Sikertelen: a 12. futás (egy
+ütközés, pályaelhagyás 0,65 körnél) és a 17. (egy ütközés, 2,35 kör).
+
+Korlátok: a generált pálya vonalszélessége 0,198 m, gyakorlatilag azonos a train
+pályáéval, ezért ez a mérés a más pályageometriára és akadályhelyekre való
+általánosítást igazolja, a keskeny vonalra (a holdout fő hibájára) nem. A
+kor_metrika.py itt is a train pálya méreteivel számol (a vonalon töltött arány és
+a hatékonyság érvénytelen; a kör-arány és a pályaelhagyás nem érintett).
+Dinamikus és eltűnő akadályok továbbra sincsenek lefedve. Hátravan: a
+train-regresszió (seed 3001–3030, küszöb 25/30).
+
+Adatok: `docs/m10-validacio-meres.json`, `docs/m10-validacio-meta.jsonl`,
+`docs/m10-validacio-futasok.jsonl`.
