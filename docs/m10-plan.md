@@ -538,3 +538,13 @@ egyezik.
   kap.
 - A futtatás után a kör-metrikához hozzáadott leíró mezők (köridő,
   kudarc-címke) a sikerfeltételt nem érintik.
+
+**Megszakadt futássorozatok (2026-10-26, nem értékeljük):** a keskeny vonalas
+mérés két indítása technikai hiba miatt megszakadt: a Unity egy futás közben
+30 s-ig nem válaszolt egy `observe` kérésre, és a futtató (a 2a65036 óta) ezzel
+a hibával leállt – az első sorozat a 14., a második a 6. futásnál. Az ok még
+nincs meghatározva (gyanú: a gateway minden kérést és választ a Unity
+Console-ba ír, ami hosszú sorozatnál lassítja a szerkesztőt; ellenőrzés a
+Unity Editor.log alapján). A megszakadt sorozatok eredményét nem nézzük meg és
+nem használjuk; az ok elhárítása után a teljes mérést ugyanazokkal a seedekkel
+(4001–4030) indítjuk újra.
