@@ -49,7 +49,10 @@ class Backend(Protocol):
 
 
 class UnityTcpBackend:
-    def __init__(self, host: str = "127.0.0.1", port: int = 8765, timeout_s: float = 30.0) -> None:
+    # A gateway parancs-timeoutja szimulacios idoben a varhato idotartam 1.5-szerese
+    # + 2 s; az adapter leghosszabb mozgasa (1 m, 0.05 m/s) timescale 1 mellett igy
+    # 32 s valos ido. A 90 s-os kliensoldali korlat csak a lefagyott Unityt fogja meg.
+    def __init__(self, host: str = "127.0.0.1", port: int = 8765, timeout_s: float = 90.0) -> None:
         self._socket = socket.create_connection((host, port), timeout=5)
         self._socket.settimeout(timeout_s)
 

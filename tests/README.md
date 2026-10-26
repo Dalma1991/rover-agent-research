@@ -1,6 +1,6 @@
 # Tesztek - lefedettségi összefoglaló
 
-Összesen 67 Python-teszt + 31 adapter-teszt + 10 Unity-teszt + 1 integrációs
+Összesen 67 Python-teszt + 32 adapter-teszt + 10 Unity-teszt + 1 integrációs
 ellenőrzés. A CI (`.github/workflows/ci.yml`) a Unity-t nem igénylő 38 tesztet,
 az adapter-teszteket és a
 referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
@@ -13,11 +13,11 @@ referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
 | `kerules_oldal_test.py` | 7 | Oldalsó ellenőrzés elhaladáskor a valódi félszélességgel, tartalék szektoros döntés, a kitérés a sarkok söprési sugarán kívül kezdődik | M10 kapu: a régi 1,0 m-es oldalküszöb szabadnak látta a rover oldalától 25 cm-re levő akadályt |
 | `kor_metrika_test.py` | 7 | Kör-metrika a szcenárió saját geometriájával (nincs fantom-ív), egységes sikerfeltétel: teljes kör + 0 ütközés + nincs pályaelhagyás | Második audit: a holdout vonalon-aránya a train geometriával számolódott, a siker két naplóból kézzel állt össze |
 | `futtato_robusztussag_test.py` | 16 | Az akadályok jelenléte a reset után a szcenáriófájl szerint (kikapcsolt ütemezés, hiányzó akadály, régi Unity, időzített és akadály nélküli szcenárió); szcenárió-név kiolvasása üres névnél, a gateway-válasz ellenőrzése (elutasítás, idegen request_id, 30 s-os timeout), a KERESES spirállépés teljes naplózása, az összesítő régi/hiányos sorokkal | Második audit: üres szcenárió-névnél félrevezető "timescale=70", végtelen várakozás, csendben elnyelt elutasítások, hiányos KERESES-napló, summarize_runs KeyError |
-| `adapter_test.py` | 31 | MCP-adapter: őrség, rejtett mezők, mock backend, nyers LiDAR és maszk, `get_status` szűrése, ütközésjelzés reset után, stop-nyugta backend-hiba után, a valódi TCP-backend keretezése és hibakezelése | M13-előkészítés: a `get_status` pozíció- és ütközésszivárgása; a mock maszkja fordított volt. Második audit: resetkor elveszett ütközések, hamis stop-nyugta, a `UnityTcpBackend` teszt nélkül |
+| `adapter_test.py` | 32 | MCP-adapter: őrség, rejtett mezők, mock backend, nyers LiDAR és maszk, `get_status` szűrése, ütközésjelzés reset után, stop-nyugta backend-hiba után, a valódi TCP-backend keretezése és hibakezelése | M13-előkészítés: a `get_status` pozíció- és ütközésszivárgása; a mock maszkja fordított volt. Második audit: resetkor elveszett ütközések, hamis stop-nyugta, a `UnityTcpBackend` teszt nélkül |
 | `kiserlet_naplo_test.py` | 5 | M11 egységes naplóséma: mezők, több lépés hozzáfűzése, seed nélküli működés, privilegizált diagnosztika alapértéke, két naplózó közös fájlba | - (új modul) |
 | `replay_visualizer_test.py` | 4 | Futás betöltése run_id alapján, ütközések jelölése, hiányzó diagnosztika kezelése | M11: a "ragadós" `collision_occurred` mező nem jelölhet minden lépést ütközöttnek - a `collision_count` növekményét kell figyelni (a replay-eszköz fejlesztése közben talált hiba) |
 | `scenario_seed_test.py` | 4 | Szcenárió-generálás determinisztikus seedelése; a bejegyzett szcenáriófájl egyezik a generátor kimenetével | M10 audit: a `stadium-train-baseline.json`-t mérés miatt tartósan módosították - ez a teszt azóta megakadályozza, hogy a generátor-hű fájl észrevétlenül megváltozzon |
-| `protocol_fuzz_test.py` | 6 (Unity kell) | v1 protokoll: randomizált move/turn tartományok, hibás/csonka JSON, extra/duplikált mezők, idempotencia, MOVING állapotbeli második move (1300-as hibakód) | M05: a fuzz teszt által feltárt két eredeti hiba (szerver-lefagyás csonka JSON-nál, engedékeny validáció) |
+| `protocol_fuzz_test.py` | 7 (Unity kell) | v1 protokoll: élő válaszok a sémával összevetve, randomizált move/turn tartományok, hibás/csonka JSON, extra/duplikált mezők, idempotencia, MOVING állapotbeli második move (1300-as hibakód) | M05: a fuzz teszt által feltárt két eredeti hiba (szerver-lefagyás csonka JSON-nál, engedékeny validáció) |
 | `scripts/referencia_epizod.py` | integrációs | Commitolt 500 lépéses referencia-napló metrikái egyeznek az `elvart.json`-nal, replay-kép elkészül | M11 elfogadási feltétel: referenciaepizód friss klónból |
 
 Futtatás (Unity nélkül):

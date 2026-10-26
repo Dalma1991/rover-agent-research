@@ -16,7 +16,12 @@ public class RoverGatewayServer : MonoBehaviour
 {
     private const int ProtokollVerzio = 1;
     private const int MaximalisFrameMeret = 16 * 1024;
-    private const float ParancsIdotullepesMasodperc = 15f;
+    // Parancs-timeout SZIMULACIOS idoben (2026-10-26). Korabban fix 15 s valos
+    // ido volt: timescale 1 mellett egy ervenyes, 2 m-es move 0.05 m/s-mal (40 s)
+    // ERROR-ba futott, timescale 70 mellett viszont egy elakadt mozgas 1050 s
+    // szimulacios idot is futhatott. Most: a varhato idotartam 1.5-szorose + 2 s.
+    private const float ParancsIdotullepesSzorzo = 1.5f;
+    private const float ParancsIdotullepesTartalekS = 2f;
 
     private enum RoverAllapot
     {
@@ -82,9 +87,10 @@ public class RoverGatewayServer : MonoBehaviour
     private float hatralevoSzog;
     private float maximalisSzogsebesseg;
     private float aktivParancsKezdete;
+    private float aktivParancsKeretS;
     private volatile RoverAllapot allapot = RoverAllapot.IDLE;
     private FuggobenLevoKeres aktivMozgasKeres;
-    private string utolsoParancsEredmenye = "Nincs még végrehajtott parancs.";
+    private string utolsoParancsEredmenye = "none";
 
     [Serializable]
     private class AlapValasz
@@ -94,6 +100,7 @@ public class RoverGatewayServer : MonoBehaviour
         public string state;
         public HibaAdat error;
         public string message;
+        public float sim_time_s;
     }
 
     [Serializable]
@@ -150,6 +157,7 @@ public class RoverGatewayServer : MonoBehaviour
         public bool[] lidar_nyers_ervenyes;
         public bool collision_occurred;
         public int collision_count;
+        public float sim_time_s;
     }
 
     [Serializable]
@@ -161,6 +169,7 @@ public class RoverGatewayServer : MonoBehaviour
         public HibaAdat error;
         public int protocol_version;
         public string last_command_result;
+        public float sim_time_s;
     }
 
     private sealed class FeldolgozottKeres
@@ -203,6 +212,7 @@ public class RoverGatewayServer : MonoBehaviour
         public readonly Guid KapcsolatId;
         public readonly ManualResetEventSlim Elkeszult = new ManualResetEventSlim(false);
         public string RequestId;
+        public string Command;
         public string Valasz;
 
         public FuggobenLevoKeres(string json, Guid kapcsolatId)
@@ -296,7 +306,7 @@ public class RoverGatewayServer : MonoBehaviour
                     "A kérés feldolgozása közben belső szerverhiba történt."
                 );
                 VegsoValaszTarolasa(requestId, valasz);
-                utolsoParancsEredmenye = valasz;
+                utolsoParancsEredmenye = "internal:error";
             }
             if (valasz != null)
             {
@@ -561,7 +571,7 @@ public class RoverGatewayServer : MonoBehaviour
                 "A klienskapcsolat a kérés végrehajtása előtt megszakadt."
             );
             VegsoValaszTarolasa(keres.RequestId, bontasiHiba);
-            utolsoParancsEredmenye = bontasiHiba;
+            utolsoParancsEredmenye = keres.Command + ":error";
             return bontasiHiba;
         }
 
@@ -596,9 +606,11 @@ public class RoverGatewayServer : MonoBehaviour
                     lidar_szektor_min = lidar != null ? lidar.SzektorMinTavolsag : new float[0],
                     lidar_nyers = lidar != null ? lidar.NyersTavolsagok : new float[0],
                     lidar_nyers_ervenyes = lidar != null ? lidar.ErvenyessegiMaszk : new bool[0],
-                        collision_occurred = utkozesTortentAzUtolsoResetOta,
-                        collision_count = utkozesekSzamaAzUtolsoResetOta
+                    collision_occurred = utkozesTortentAzUtolsoResetOta,
+                    collision_count = utkozesekSzamaAzUtolsoResetOta,
+                    sim_time_s = SzimulaciosIdo
                 });
+                valasz = NullHiba(valasz);
                 break;
 
             case "get_status":
@@ -609,8 +621,10 @@ public class RoverGatewayServer : MonoBehaviour
                     state = AllapotNev,
                     error = null,
                     protocol_version = ProtokollVerzio,
-                    last_command_result = utolsoParancsEredmenye
+                    last_command_result = utolsoParancsEredmenye,
+                    sim_time_s = SzimulaciosIdo
                 });
+                valasz = NullHiba(valasz);
                 break;
 
             case "move":
@@ -628,7 +642,9 @@ public class RoverGatewayServer : MonoBehaviour
                 mozgasIranya = transform.forward.normalized;
                 hatralevoTavolsag = keres.Distance;
                 maximalisSebesseg = keres.MaxSpeed;
-                AktivMozgasInditasa(RoverAllapot.MOVING, fuggoben, keres.RequestId);
+                AktivMozgasInditasa(
+                    RoverAllapot.MOVING, fuggoben, keres.RequestId, keres.Distance / keres.MaxSpeed
+                );
                 return null;
 
             case "turn":
@@ -645,7 +661,12 @@ public class RoverGatewayServer : MonoBehaviour
 
                 hatralevoSzog = keres.Angle;
                 maximalisSzogsebesseg = keres.MaxAngularSpeed;
-                AktivMozgasInditasa(RoverAllapot.TURNING, fuggoben, keres.RequestId);
+                AktivMozgasInditasa(
+                    RoverAllapot.TURNING,
+                    fuggoben,
+                    keres.RequestId,
+                    Mathf.Abs(keres.Angle) / keres.MaxAngularSpeed
+                );
                 return null;
 
             case "stop":
@@ -774,23 +795,48 @@ public class RoverGatewayServer : MonoBehaviour
         //     megkerulve az adapter szurojet, ami csak felso szintu kulcsokat nez;
         // (2) minden valasz beagyazta az elozot escape-elve, igy az ismetelt
         //     get_status hivasok merete hivasonkent duplazodott.
-        string utolsoStatusz =
-            valasz.Contains("\"status\":\"completed\"") ? "completed" :
-            valasz.Contains("\"status\":\"rejected\"") ? "rejected" : "error";
-        utolsoParancsEredmenye = keres.Command + ":" + utolsoStatusz;
+        utolsoParancsEredmenye = EredmenyOsszefoglalo(keres.Command, valasz);
         return valasz;
     }
+
+    // A last_command_result MINDIG "<parancs>:<completed|error>" alaku (vagy a
+    // kezdeti "none"). Korabban harom hibaagon (belso hiba, bontott kapcsolat,
+    // mozgas vege) a teljes valasz-JSON kerult ide, ami a semanak sem felelt meg,
+    // es a privilegizalt mezoket is kiszivarogtathatta volna.
+    private static string EredmenyOsszefoglalo(string parancs, string valasz)
+    {
+        string statusz = valasz != null && valasz.Contains("\"status\":\"completed\"")
+            ? "completed"
+            : "error";
+        return (string.IsNullOrEmpty(parancs) ? "unknown" : parancs) + ":" + statusz;
+    }
+
+    // A JsonUtility a null objektumot nem tudja null-kent irni: az error mezo
+    // sikeres valasznal {"code":0,"name":"","message":""} lett volna, ellentetben
+    // a docs/protocol.md-vel es a semaval ("error": null).
+    private static string NullHiba(string json)
+    {
+        return json.Replace("\"error\":{\"code\":0,\"name\":\"\",\"message\":\"\"}", "\"error\":null");
+    }
+
+    // Szimulacios ido a jelenet betoltese ota (s). Timescale-tol fuggetlenul a
+    // fizikai ido: a naplokban ez adja a futasok valodi idotartamat.
+    private static float SzimulaciosIdo => Time.timeSinceLevelLoad;
 
     private void AktivMozgasInditasa(
         RoverAllapot ujAllapot,
         FuggobenLevoKeres fuggoben,
-        string requestId
+        string requestId,
+        float varhatoIdotartamS
     )
     {
         allapot = ujAllapot;
-        aktivParancsKezdete = Time.realtimeSinceStartup;
+        aktivParancsKezdete = Time.fixedTime;
+        aktivParancsKeretS =
+            varhatoIdotartamS * ParancsIdotullepesSzorzo + ParancsIdotullepesTartalekS;
         aktivMozgasKeres = fuggoben;
         aktivMozgasKeres.RequestId = requestId;
+        aktivMozgasKeres.Command = ujAllapot == RoverAllapot.MOVING ? "move" : "turn";
     }
 
     private void FrissitAktivMozgast()
@@ -800,7 +846,7 @@ public class RoverGatewayServer : MonoBehaviour
             return;
         }
 
-        if (Time.realtimeSinceStartup - aktivParancsKezdete >= ParancsIdotullepesMasodperc)
+        if (Time.fixedTime - aktivParancsKezdete >= aktivParancsKeretS)
         {
             RoverAzonnaliLeallitasa();
             allapot = RoverAllapot.ERROR;
@@ -808,7 +854,8 @@ public class RoverGatewayServer : MonoBehaviour
                 aktivMozgasKeres.RequestId,
                 1500,
                 "COMMAND_TIMEOUT",
-                "A move/turn parancs 15 másodpercen belül nem fejeződött be."
+                "A move/turn parancs a varhato idotartam 1.5-szerese + 2 s "
+                    + "(szimulacios ido) alatt nem fejezodott be."
             );
             MozgasiKeresBefejezese(hiba);
             return;
@@ -897,7 +944,7 @@ public class RoverGatewayServer : MonoBehaviour
         FuggobenLevoKeres befejezett = aktivMozgasKeres;
         aktivMozgasKeres = null;
         VegsoValaszTarolasa(befejezett.RequestId, valasz);
-        utolsoParancsEredmenye = valasz;
+        utolsoParancsEredmenye = EredmenyOsszefoglalo(befejezett.Command, valasz);
         BefejezVarakozoKerest(befejezett, valasz);
     }
 
@@ -910,14 +957,15 @@ public class RoverGatewayServer : MonoBehaviour
 
     private string SikerValasz(string requestId, string uzenet)
     {
-        return JsonUtility.ToJson(new AlapValasz
+        return NullHiba(JsonUtility.ToJson(new AlapValasz
         {
             request_id = requestId,
             status = "completed",
             state = AllapotNev,
             error = null,
-            message = uzenet
-        });
+            message = uzenet,
+            sim_time_s = SzimulaciosIdo
+        }));
     }
 
     private string HibaValasz(string requestId, int kod, string nev, string uzenet)
@@ -928,7 +976,8 @@ public class RoverGatewayServer : MonoBehaviour
             status = "failed",
             state = AllapotNev,
             error = new HibaAdat { code = kod, name = nev, message = uzenet },
-            message = uzenet
+            message = uzenet,
+            sim_time_s = SzimulaciosIdo
         });
     }
 

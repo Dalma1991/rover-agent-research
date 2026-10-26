@@ -288,6 +288,19 @@ class BiztonsagiJavitasokTeszt(unittest.TestCase):
         self.assertTrue(orseg.session.lezarva)
 
 
+class SzimulaciosIdoRejtesTeszt(unittest.TestCase):
+    def test_sim_time_nem_jut_el_az_agenshez(self):
+        class IdosBackend(MockBackend):
+            def kuld(self, parancs):
+                valasz = super().kuld(parancs)
+                valasz["sim_time_s"] = 12.5
+                return valasz
+
+        orseg = Orseg(IdosBackend())
+        for valasz in (orseg.observe(), orseg.get_status(), orseg.move(0.1)):
+            self.assertNotIn("sim_time_s", valasz)
+
+
 class UtkozesResetTeszt(unittest.TestCase):
     """Audit: resetkor a rover nullazza a szamlalot; az adapter referenciaja nem maradhat a regin."""
 

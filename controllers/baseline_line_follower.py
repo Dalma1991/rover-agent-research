@@ -146,6 +146,9 @@ def privilegizalt_diagnosztika_mezok(observe: dict[str, Any]) -> dict[str, Any]:
         "position": observe.get("position"),
         "collision_occurred": observe.get("collision_occurred"),
         "collision_count": observe.get("collision_count"),
+        # 2026-10-26: szimulacios ido; timescale 70 mellett a fali idobelyeg
+        # nem mutatja a futas valodi (szimulalt) idotartamat.
+        "sim_time_s": observe.get("sim_time_s"),
     }
 
 

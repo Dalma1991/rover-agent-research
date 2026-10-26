@@ -183,11 +183,36 @@ Hiba esetén:
 | move max_speed | 0.05 m/s | 0.50 m/s |
 | turn angle_deg | 1° (abs) | 180° (abs) |
 | turn max_angular_speed | 5°/s | 45°/s |
-| Parancs timeout | - | 15 s |
-| Watchdog timeout | - | 1 s (3 kihagyott heartbeat) |
+| Parancs timeout (szimulációs idő) | - | a várható időtartam × 1.5 + 2 s |
 | TCP frame méret | - | 16 KiB |
-| Kérések/s/kliens | - | 10 (burst 20) |
-| Feldolgozatlan kérések sora | - | 32 |
+
+**Pontosítás (2026-10-26, második audit).** A korábbi táblázat négy olyan
+korlátot is felsorolt, amelyek közül három sosem volt megvalósítva:
+
+- *Parancs timeout:* fix 15 s **valós** idő volt. Timescale 1 mellett egy
+  érvényes, 2 m-es `move` 0.05 m/s-mal (40 s) ERROR-ba futott, timescale 70
+  mellett viszont egy elakadt mozgás akár 1050 s szimulációs ideig tartott.
+  Most szimulációs időben mér: a várható időtartam (`distance_m / max_speed`,
+  illetve `|angle_deg| / max_angular_speed`) 1.5-szerese + 2 s.
+- *Watchdog / heartbeat (1 s):* nincs heartbeat-mechanizmus. A
+  `WATCHDOG_EXPIRED` (1501) akkor keletkezik, ha a mozgást indító kliens
+  **bontja a kapcsolatot** a mozgás közben; ilyenkor a rover azonnal megáll.
+  A kliensek a `move`/`turn` válaszára blokkolva várnak, ezért egy
+  heartbeat-követelmény minden meglévő klienst megtörne.
+- *Kérés/s és várakozási sor (10/s, 32):* nincs megvalósítva. Az ágens felé
+  a korlátokat az adapter őrsége adja (parancskeret, időkeret,
+  távolságkeret, lásd `adapter/orseg.py`).
+
+A kliensoldali socket-timeout ennél hosszabb (baseline: 30 s, adapter:
+90 s), és csak a lefagyott vagy leállított Unityt fogja meg.
+
+**Szimulációs időbélyeg.** Minden válasz `sim_time_s` mezőt is tartalmaz
+(a jelenet betöltése óta eltelt szimulációs idő, s). Privilegizált
+diagnosztika: a lépésnapló rögzíti, az adapter elrejti az ágens elől.
+Sikeres válaszban az `error` értéke `null` (korábban a Unity
+`JsonUtility` egy üres, `code: 0` hibaobjektumot írt ide). A `get_status`
+`last_command_result` mezője mindig `<parancs>:<completed|error>` alakú
+(kezdetben `none`), soha nem a teljes válasz.
 
 Minden numerikus mezőt véges számnak kell lennie
 (NaN/Infinity elutasítva) és a fenti tartományon belülinek -

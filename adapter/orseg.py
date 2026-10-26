@@ -44,7 +44,8 @@ from adapter.backend import (
 )
 
 ENGEDELYEZETT_PARANCSOK = ("observe", "get_status", "move", "turn", "stop", "reset_position")
-ELREJTETT_MEZOK = ("position", "speed", "collision_occurred", "collision_count")
+# sim_time_s (2026-10-26): a szimulacios ido elarulna, hogy szimulator all mogotte.
+ELREJTETT_MEZOK = ("position", "speed", "collision_occurred", "collision_count", "sim_time_s")
 # Az utkozes-erzekelo (bumper/IMU) egy valodi roveren is letezne, ezert az agent
 # megkapja - de csak "az utolso observe ota tortent-e utkozes" bool formaban, nem
 # a szimulator kumulativ szamlalojakent (abbol statisztika lenne visszafejtheto).
