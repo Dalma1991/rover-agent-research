@@ -121,6 +121,10 @@ class RoverGatewayProtocolFuzzTest(unittest.TestCase):
             raise unittest.SkipTest(
                 f"A Unity Play Mode szerver nem érhető el: {HOST}:{PORT} ({hiba})"
             ) from hiba
+        # Bemelegito keres hosszu timeouttal: a Play inditasa utani elso keres
+        # (JIT, elso FixedUpdate-ek) tobb masodpercig is tarthat, es kulonben az
+        # abece szerint elso teszt setUp-ja futna 2 s-os timeoutba (2026-10-26).
+        keres(uj_keres("get_status"), timeout=30.0)
 
     def setUp(self) -> None:
         # A tesztek egymástól függetlenül álló roverrel induljanak.
