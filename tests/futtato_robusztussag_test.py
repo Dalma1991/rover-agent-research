@@ -72,14 +72,20 @@ class SzcenarioNevTest(unittest.TestCase):
 
 
 class ValaszEllenorzesTest(unittest.TestCase):
+    def _kliens(self, valaszolo) -> GatewayKliens:
+        kliens, _ = _kliens_paron(valaszolo)
+        self.addCleanup(kliens._szerver_veg.close)
+        self.addCleanup(kliens.socket.close)
+        return kliens
+
     def test_sikeres_valasz_atmegy(self) -> None:
-        kliens, _ = _kliens_paron(
+        kliens = self._kliens(
             lambda k: {"request_id": k["request_id"], "status": "completed", "state": "IDLE"}
         )
         self.assertEqual(kliens.kuld({"command": "observe"})["status"], "completed")
 
     def test_elutasitas_megallitja_a_futast(self) -> None:
-        kliens, _ = _kliens_paron(
+        kliens = self._kliens(
             lambda k: {
                 "request_id": k["request_id"],
                 "status": "failed",
@@ -92,7 +98,7 @@ class ValaszEllenorzesTest(unittest.TestCase):
         self.assertIn("INVALID_STATE", str(ctx.exception))
 
     def test_mas_request_id_hiba(self) -> None:
-        kliens, _ = _kliens_paron(
+        kliens = self._kliens(
             lambda k: {"request_id": "masik", "status": "completed", "state": "IDLE"}
         )
         with self.assertRaises(GatewayHiba):
@@ -102,7 +108,7 @@ class ValaszEllenorzesTest(unittest.TestCase):
         eredeti = blf.VALASZ_TIMEOUT_S
         blf.VALASZ_TIMEOUT_S = 0.2
         try:
-            kliens, _ = _kliens_paron(lambda k: None)
+            kliens = self._kliens(lambda k: None)
             with self.assertRaises(ConnectionError) as ctx:
                 kliens.kuld({"command": "turn", "angle_deg": 5.0, "max_angular_speed": 20.0})
             self.assertIn("turn", str(ctx.exception))

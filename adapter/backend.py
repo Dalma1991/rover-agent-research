@@ -63,7 +63,12 @@ class UnityTcpBackend:
         hossz = int.from_bytes(self._pontosan_fogad(4), "big", signed=False)
         if not 1 <= hossz <= MAXIMALIS_FRAME_MERET:
             raise ConnectionError(f"Hibas valaszframe-meret: {hossz}")
-        return json.loads(self._pontosan_fogad(hossz).decode("utf-8"))
+        valasz = json.loads(self._pontosan_fogad(hossz).decode("utf-8"))
+        # A valasznak a most kuldott kereshez kell tartoznia; egy elcsuszott
+        # (korabbi kereshez tartozo) valasz rossz parancs eredmenyet adna az agentnek.
+        if not isinstance(valasz, dict) or valasz.get("request_id") != keres["request_id"]:
+            raise ConnectionError("A valasz nem a kuldott kereshez tartozik.")
+        return valasz
 
     def _pontosan_fogad(self, hossz: int) -> bytes:
         reszek: list[bytes] = []
@@ -172,6 +177,8 @@ class MockBackend:
                     self.allapot,
                 )
             self.x, self.z, self.irany_fok = PALYA_IV_SUGAR_M, 0.0, 0.0
+            # A Unity is nullazza az utkozesszamlalot resetkor (RoverGatewayServer).
+            self.utkozesek = 0
             return {"status": "completed", "state": self.allapot}
         if cmd == "reset_error":
             if self.allapot != "ERROR":
@@ -180,6 +187,7 @@ class MockBackend:
                 )
             self.allapot = "IDLE"
             self.x, self.z, self.irany_fok = PALYA_IV_SUGAR_M, 0.0, 0.0
+            self.utkozesek = 0
             return {"status": "completed", "state": self.allapot}
         return _hiba(1200, "UNKNOWN_COMMAND", f"unknown command: {cmd!r}", self.allapot)
 
