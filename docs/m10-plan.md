@@ -508,3 +508,33 @@ lefedve; a kor_metrika.py nem a szcenárió geometriájával számol.
 
 Adatok: `docs/m10-v3-train-meres.json`, `docs/m10-v3-train-meta.jsonl`,
 `docs/m10-v3-train-futasok.jsonl`.
+
+---
+
+## Keskeny vonalas mérés – előre rögzített terv (2026-10-26, a mérés előtt)
+
+A v3 baseline-t (6ea4858) eddig csak 0,18–0,198 m-es vonalon mértük; a holdout
+fő nehézsége a keskenyebb (0,16 m-es) vonal volt, és ezt a v3-ra nem igazoltuk.
+Ez a mérés a vonalszélesség hatását választja le: minden más a train pályáéval
+egyezik.
+
+- Pálya: stadium-train-narrow-014-always-visible (típus dev). A train pálya
+  geometriája és akadályai (egyenes 12 m, sugár 4 m, ugyanaz a két akadály,
+  végig láthatóan), egyetlen eltéréssel: vonalszélesség **0,14 m** (a train
+  0,18 m helyett; a validációs tartomány alsó széle, keskenyebb a holdout
+  0,16 m-énél). A pálya a mérés előtt készült, próbafutás nem volt rajta.
+- Kód: a v3 vezérlési logika változatlan (6ea4858 óta a kontroller állapotgépe
+  nem módosult; a 2026-10-26-i commitok a futtatót, a naplózást és a gateway-t
+  érintik). A mért commit a meta `git_commit` mezőjében.
+- 30 futás, 1500 lépés, zaj-seed 4001–4030 (`--seed 4001`), a szcenárió az
+  `aktiv_szcenario.txt`-ből (a jelenet nem módosul), az akadályok jelenlétét
+  a futtató minden futás előtt ellenőrzi.
+- Sikerfeltétel (változatlan): legalább 1 teljes kör + 0 ütközés + nincs
+  pályaelhagyás, a `controllers/kor_metrika.py` SIKERES sora alapján (a
+  szcenárió saját geometriájával).
+- **Kapu: legalább 16/30** (az M10 kapu küszöbe). Viszonyítás: a train pályán
+  29/30. Ha a kapu nem teljesül, a v3-at nem javítjuk utólag ezen a pályán;
+  az eredményt korlátként rögzítjük, és a javítás új, előre regisztrált mérést
+  kap.
+- A futtatás után a kör-metrikához hozzáadott leíró mezők (köridő,
+  kudarc-címke) a sikerfeltételt nem érintik.
