@@ -1,6 +1,6 @@
 # Tesztek - lefedettségi összefoglaló
 
-Összesen 44 Python-teszt + 21 adapter-teszt + 10 Unity-teszt + 1 integrációs
+Összesen 51 Python-teszt + 21 adapter-teszt + 10 Unity-teszt + 1 integrációs
 ellenőrzés. A CI (`.github/workflows/ci.yml`) a Unity-t nem igénylő 38 tesztet,
 az adapter-teszteket és a
 referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
@@ -11,6 +11,7 @@ referenciaepizód-ellenőrzést futtatja minden push-nál; a 6 fuzz teszt
 | `baseline_line_follower_test.py` | 13 | A vonalkövető állapotgép (VONALON / AKADALY / VISSZATALALAS / KERESES) minden átmenete, stub klienssel, Unity nélkül | M10: akadály elhagyása után VISSZATALALAS-ra vált, nem közvetlenül VONALON-ra; zsákutca-eszkaláció KERESES-re `ZSAKUTCA_AKADALY_MAX_LEPES` után; M09: keresés maximuma után pályaelhagyás jelzése; M10 kapu: vak zóna (egyenes haladás az akadály eltűnése után), iránytartás a visszatéréskor |
 | `kerules_korridor_test.py` | 5 | Korridoros akadályészlelés a nyers LiDAR-ból a rover teljes szélességével | M13-előkészítés: a régi ±30°-os döntés nem látta a rover sávjába eső oldalsó akadályt |
 | `kerules_oldal_test.py` | 7 | Oldalsó ellenőrzés elhaladáskor a valódi félszélességgel, tartalék szektoros döntés, a kitérés a sarkok söprési sugarán kívül kezdődik | M10 kapu: a régi 1,0 m-es oldalküszöb szabadnak látta a rover oldalától 25 cm-re levő akadályt |
+| `kor_metrika_test.py` | 7 | Kör-metrika a szcenárió saját geometriájával (nincs fantom-ív), egységes sikerfeltétel: teljes kör + 0 ütközés + nincs pályaelhagyás | Második audit: a holdout vonalon-aránya a train geometriával számolódott, a siker két naplóból kézzel állt össze |
 | `adapter_test.py` | 21 | MCP-adapter: őrség, rejtett mezők, mock backend, nyers LiDAR és maszk, `get_status` szűrése | M13-előkészítés: a `get_status` pozíció- és ütközésszivárgása; a mock maszkja fordított volt |
 | `kiserlet_naplo_test.py` | 5 | M11 egységes naplóséma: mezők, több lépés hozzáfűzése, seed nélküli működés, privilegizált diagnosztika alapértéke, két naplózó közös fájlba | - (új modul) |
 | `replay_visualizer_test.py` | 4 | Futás betöltése run_id alapján, ütközések jelölése, hiányzó diagnosztika kezelése | M11: a "ragadós" `collision_occurred` mező nem jelölhet minden lépést ütközöttnek - a `collision_count` növekményét kell figyelni (a replay-eszköz fejlesztése közben talált hiba) |
@@ -24,6 +25,7 @@ Futtatás (Unity nélkül):
 python3 tests/baseline_line_follower_test.py -v
 python3 tests/kerules_korridor_test.py -v
 python3 tests/kerules_oldal_test.py -v
+python3 tests/kor_metrika_test.py -v
 python3 tests/kiserlet_naplo_test.py -v
 python3 tests/replay_visualizer_test.py -v
 python3 tests/scenario_seed_test.py -v
