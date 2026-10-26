@@ -134,6 +134,22 @@ kiserleti/mereszsi futasok kozotti, reprodukalhato pozicio-reset,
 amikor nincs hibaallapot. Sikertelen biztonsagi ellenorzeskor
 ERROR_RESET_NOT_SAFE hibat ad, valtozatlan allapotban marad.
 
+Sikeres reset eseten a valasz `message` mezoje szokozzel elvalasztott
+`kulcs=ertek` parokat tartalmaz, amelyeket a meresi futtato ellenoriz:
+
+- `scenario=<nev>`: a betoltott szcenario neve (ures, ha nincs betoltve);
+- `timescale=<szam>`: a Unity `Time.timeScale` erteke;
+- `obstacles=<db>`: a szcenariobol letrehozott akadalyok szama;
+- `active=<db>`: a reset pillanataban lathato akadalyok szama (az utemezes
+  a resetkor azonnal ervenyesul);
+- `schedule=on|off`: fut-e az akadaly-utemezes (`off`, ha a
+  `TrackController` komponens ki van kapcsolva - ilyenkor egyetlen akadaly
+  sem jelenik meg).
+
+A `controllers/baseline_line_follower.py` `--elvart-szcenario` mellett
+osszeveti ezeket a szcenariofajllal, es elteres eseten nem indul el
+(2026-10-26, a masodik audit es egy 0 akadallyal lefutott meres nyoman).
+
 ## Válaszformátum
 
 ```json

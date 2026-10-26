@@ -33,6 +33,7 @@ from baseline_line_follower import (  # noqa: E402
     GatewayHiba,
     GatewayKliens,
     _szcenario_nev,
+    akadaly_ellenorzes,
     egy_lepes_kereses,
 )
 
@@ -174,6 +175,46 @@ class OsszesitoTest(unittest.TestCase):
         finally:
             summarize_runs.NAPLO_FAJL = eredeti
         self.assertIn("Nincs osszegezheto futas", kimenet.getvalue())
+
+
+def _reset(extra: str) -> dict:
+    return {"message": "A rover visszaallt. scenario=x timescale=70 " + extra}
+
+
+class AkadalyJelenletTest(unittest.TestCase):
+    """Hibas train-meres: kikapcsolt TrackController mellett 0 akadallyal futott a meres."""
+
+    TRAIN = "stadium-train-baseline-always-visible"
+
+    def test_rendben(self) -> None:
+        meta = akadaly_ellenorzes(_reset("obstacles=2 active=2 schedule=on"), self.TRAIN)
+        self.assertEqual(meta, {"akadalyok": 2, "lathato_akadalyok_kezdetben": 2})
+
+    def test_kikapcsolt_utemezes(self) -> None:
+        with self.assertRaises(RuntimeError) as ctx:
+            akadaly_ellenorzes(_reset("obstacles=2 active=0 schedule=off"), self.TRAIN)
+        self.assertIn("TrackController", str(ctx.exception))
+
+    def test_hianyzo_lathato_akadaly(self) -> None:
+        with self.assertRaises(RuntimeError):
+            akadaly_ellenorzes(_reset("obstacles=2 active=1 schedule=on"), self.TRAIN)
+
+    def test_regi_unity_mezok_nelkul(self) -> None:
+        with self.assertRaises(RuntimeError) as ctx:
+            akadaly_ellenorzes({"message": "scenario=x timescale=70"}, self.TRAIN)
+        self.assertIn("obstacles", str(ctx.exception))
+
+    def test_idozitett_szcenario_kezdetben_nincs_lathato(self) -> None:
+        meta = akadaly_ellenorzes(
+            _reset("obstacles=2 active=0 schedule=on"), "stadium-train-baseline"
+        )
+        self.assertEqual(meta["lathato_akadalyok_kezdetben"], 0)
+
+    def test_akadaly_nelkuli_szcenario(self) -> None:
+        meta = akadaly_ellenorzes(
+            _reset("obstacles=0 active=0 schedule=off"), "stadium-train-no-obstacles"
+        )
+        self.assertEqual(meta["akadalyok"], 0)
 
 
 if __name__ == "__main__":

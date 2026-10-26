@@ -739,6 +739,64 @@ def _time_scale(reset_valasz: object) -> float | None:
         return None
 
 
+def _uzenet_mezo(reset_valasz: object, kulcs: str) -> str | None:
+    """Egy 'kulcs=ertek' mezo a reset valaszanak uzenetebol (None, ha nincs benne)."""
+    if not isinstance(reset_valasz, dict):
+        return None
+    for resz in str(reset_valasz.get("message", "")).split():
+        if resz.startswith(kulcs + "="):
+            return resz[len(kulcs) + 1 :]
+    return None
+
+
+SZCENARIO_MAPPA = Path(__file__).resolve().parent.parent / "experiments" / "scenarios"
+
+
+def akadaly_ellenorzes(reset_valasz: object, szcenario_nev: str) -> dict[str, Any]:
+    """Az akadalyok tenyleg jelen vannak-e a reset utan, a szcenariofajl szerint.
+
+    Masodik audit / hibas train-meres: kikapcsolt TrackController mellett a
+    szcenario neve stimmelt, de egyetlen akadaly sem jelent meg, es a meres
+    eszrevetlenul 0 akadallyal futott. A Unity a reset valaszaban kozli az
+    akadalyok szamat (obstacles), a lathatokat (active) es hogy az utemezes
+    fut-e (schedule); ezt vetjuk ossze a szcenario JSON-javal (t = 0-ban
+    lathato akadalyok). Elteresnel RuntimeError.
+    """
+    fajl = SZCENARIO_MAPPA / f"{szcenario_nev}.json"
+    try:
+        akadalyok = json.loads(fajl.read_text(encoding="utf-8")).get("obstacles", [])
+    except (OSError, ValueError) as hiba:
+        raise RuntimeError(f"A szcenariofajl nem olvashato: {fajl}") from hiba
+    elvart_db = len(akadalyok)
+    elvart_aktiv = sum(
+        1
+        for a in akadalyok
+        if a["schedule"]["appear_at_s"] <= 0.0 < a["schedule"]["disappear_at_s"]
+    )
+    mezok = {k: _uzenet_mezo(reset_valasz, k) for k in ("obstacles", "active", "schedule")}
+    if None in mezok.values():
+        raise RuntimeError(
+            "A Unity reset-valasza nem tartalmazza az akadaly-mezoket (obstacles/active/"
+            "schedule). Huzd le a legfrissebb Unity-szkripteket, es inditsd ujra a Play-t."
+        )
+    try:
+        jelentett_db, jelentett_aktiv = int(mezok["obstacles"]), int(mezok["active"])
+    except ValueError as hiba:
+        raise RuntimeError(f"Ertelmezhetetlen akadaly-mezok: {mezok}") from hiba
+    if elvart_db and mezok["schedule"] != "on":
+        raise RuntimeError(
+            "Az akadaly-utemezes nem fut (schedule=off): a TrackController komponens ki van "
+            "kapcsolva. Edit modban kapcsold be, mentsd a jelenetet, majd inditsd ujra a Play-t."
+        )
+    if jelentett_db != elvart_db or jelentett_aktiv != elvart_aktiv:
+        raise RuntimeError(
+            f"Az akadalyok nem a szcenario szerint allnak: a Unity {jelentett_db} akadalyt, "
+            f"ebbol {jelentett_aktiv} lathatot jelent; a '{szcenario_nev}' szerint "
+            f"{elvart_db} kell, ebbol {elvart_aktiv} lathato a futas elejen."
+        )
+    return {"akadalyok": jelentett_db, "lathato_akadalyok_kezdetben": jelentett_aktiv}
+
+
 def _parameterek() -> dict:
     """A kontroller osszes modulszintu konstansa, a meres megismetlesehez."""
     return {
@@ -821,6 +879,9 @@ def futtat(
                 f"A Unityben a(z) '{szcenario}' szcenario van betoltve, "
                 f"a mereshez '{elvart_szcenario}' kell."
             )
+        akadaly_meta = (
+            akadaly_ellenorzes(reset_valasz, elvart_szcenario) if elvart_szcenario else {}
+        )
         if naplo:
             naplo.metaadat_rogzitese(
                 seed=seed,
@@ -828,6 +889,7 @@ def futtat(
                 time_scale=_time_scale(reset_valasz),
                 max_lepes=max_lepes,
                 parameterek=_parameterek(),
+                **akadaly_meta,
                 **_git_allapot(),
             )
 

@@ -737,7 +737,7 @@ public class RoverGatewayServer : MonoBehaviour
                 SzenzorZajUjrainditasa(keres.NoiseSeed);
                 utkozesTortentAzUtolsoResetOta = false;
                 utkozesekSzamaAzUtolsoResetOta = 0;
-                   trackController?.UjrakezdiAkadalyUtemezest();
+                trackController?.UjrakezdiAkadalyUtemezest();
                 utolsoUtkozesIdopontja = float.NegativeInfinity;
                 valasz = SikerValasz(
                     keres.RequestId,
@@ -745,6 +745,14 @@ public class RoverGatewayServer : MonoBehaviour
                         + (trackController != null ? trackController.SzcenarioNev : "")
                         + " timescale="
                         + Time.timeScale.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                        // A meresi futtato ezekbol ellenorzi, hogy az akadalyok
+                        // tenyleg jelen vannak (lasd TrackController.UtemezesFut).
+                        + " obstacles="
+                        + (trackController != null ? trackController.AkadalyokSzama : 0)
+                        + " active="
+                        + (trackController != null ? trackController.AktivAkadalyokSzama : 0)
+                        + " schedule="
+                        + (trackController != null && trackController.UtemezesFut ? "on" : "off")
                 );
                 break;
 

@@ -150,7 +150,37 @@ public class TrackController : MonoBehaviour
     public void UjrakezdiAkadalyUtemezest()
     {
         utemezesKezdeteS = Time.timeSinceLevelLoad;
+        // Azonnal alkalmazzuk az utemezest, ne csak a kovetkezo Update-ben:
+        // igy a reset valasza mar a valodi lathatosagot jelenti.
+        FrissitAkadalyLathatosagot();
     }
+
+    /// <summary>
+    /// Masodik audit / hibas train-meres (2026-10-26): ha a komponens ki van
+    /// kapcsolva, az Awake lefut (az akadalyok letrejonnek, inaktivan), de az
+    /// Update nem, igy az akadalyok sosem jelennek meg - a meres pedig 0
+    /// akadallyal, eszrevetlenul futott le. Ezek a mezok a reset valaszaba
+    /// kerulnek, es a meresi futtato ellenorzi oket a szcenariofajl alapjan.
+    /// </summary>
+    public int AkadalyokSzama => akadalyok.Count;
+
+    public int AktivAkadalyokSzama
+    {
+        get
+        {
+            int db = 0;
+            foreach (AkadalyPeldany akadaly in akadalyok)
+            {
+                if (akadaly.Objektum != null && akadaly.Objektum.activeSelf)
+                {
+                    db++;
+                }
+            }
+            return db;
+        }
+    }
+
+    public bool UtemezesFut => isActiveAndEnabled;
 
     /// <summary>
     /// A rover szcenariohoz kotott kezdopoza: a jobb oldali egyenes kozepe
@@ -178,6 +208,17 @@ public class TrackController : MonoBehaviour
 
     private void Update()
     {
+        FrissitAkadalyLathatosagot();
+    }
+
+    private void FrissitAkadalyLathatosagot()
+    {
+        // Kikapcsolt komponensnel az utemezes nem fut (az Update sem futna);
+        // a reset sem kapcsolhatja be helyette az akadalyokat.
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
         float t = Time.timeSinceLevelLoad - utemezesKezdeteS;
 
         foreach (AkadalyPeldany akadaly in akadalyok)
